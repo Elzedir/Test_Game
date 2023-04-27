@@ -34,16 +34,24 @@ public abstract class Actor : Hitbox
     protected Vector3 startingPosition;
     public float triggerLength;
     public float chaseLength;
-    public float hitpoint = 10;
-    public float maxHitpoint = 10;
-    public float mana = 10;
-    public float maxMana = 10;
-    public float stamina = 10;
-    public float maxStamina = 10;
-    protected float immuneTime = 0.1f;
+    public float hitpoint;
+    public float maxHitpoint;
+    public float mana;
+    public float maxMana;
+    public float stamina;
+    public float maxStamina;
+    protected float immuneTime;
     protected float lastImmune;
     protected Vector3 pushDirection;
     public float pushRecoverySpeed = 0.2f;
+    public int xpValue;
+    public float baseDamage;
+    public float baseSpeed;
+    public float baseForce;
+    public float baseAtkRange;
+    public float baseSwingTime;
+    protected float cooldown;
+    protected float lastAttack;
 
     protected override void Start()
     {

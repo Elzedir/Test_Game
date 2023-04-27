@@ -9,26 +9,19 @@ using UnityEngine.UIElements.Experimental;
 public class Enemyhuman : Actor
 {
     // General
-
+    protected LayerMask enemyHumanCanAttack;
     protected Rigidbody2D enemyHumanBody;
     protected SpriteRenderer enemyHumanSprite;
     protected BoxCollider2D enemyHumanSize;
     protected Animator anim;
 
-    // Combat
-
-    public int xpValue;
-    protected float enemyBaseDamage;
-    protected float enemyBaseSpeed;
-    protected float enemyBaseForce;
-    protected float enemyBaseAtkRange;
-    protected float enemyBaseAtkTime;
+    // Overrides
     protected override LayerMask CanAttack => enemyHumanCanAttack;
     protected override BoxCollider2D ActorColl => enemyHumanSize;
     protected override BoxCollider2D Coll => enemyHumanSize;
     protected override Rigidbody2D Rigidbody2D => enemyHumanBody;
 
-    protected LayerMask enemyHumanCanAttack;
+    
 
     protected override void Start()
     {

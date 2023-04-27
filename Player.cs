@@ -257,7 +257,6 @@ public class Player : Actor
         playerBody = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         playerCanAttack = FactionManager.instance.AttackableFactions()[1];
-        immuneTime = 1f;
     }
     protected override void FixedUpdate()
     {

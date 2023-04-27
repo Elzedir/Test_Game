@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -99,7 +100,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Inventory
-
+    
 
 
     // Experience
@@ -200,5 +201,13 @@ public class GameManager : MonoBehaviour
             LayerMask enemyMonsterCanAttack = attackableFactions[4];
             LayerMask destructable = attackableFactions[5];
         }
+    }
+
+    // Utility
+    public static float Randomise(double minValue, double maxValue)
+    {
+        System.Random random = new System.Random();
+        float randomFloat = (float)(random.NextDouble() * (maxValue - minValue) + minValue);
+        return (float)Math.Round(randomFloat, 2);
     }
 }
