@@ -10,6 +10,7 @@ using System;
 using static UnityEditor.Progress;
 using System.Linq;
 using UnityEngine.Events;
+using static Equipment_Manager;
 
 public class Manager_Inventory : MonoBehaviour
 {
@@ -72,7 +73,7 @@ public class Manager_Inventory : MonoBehaviour
         }
     }
 
-    public void AddItem(int itemID)
+    public void ItemPickup(int itemID)
     {
         Manager_Item newItem = Manager_Item.GetItemData(itemID) as Manager_Item;
 
@@ -115,7 +116,7 @@ public class Manager_Inventory : MonoBehaviour
         }
     }
 
-    public void RemoveItem(int itemID)
+    public void ItemDrop(int itemID)
     {
         Inventory_Slot existingSlot = inventorySlots.FirstOrDefault(slot => slot.item != null && slot.item.itemID == itemID);
         if (existingSlot != null)
@@ -132,8 +133,12 @@ public class Manager_Inventory : MonoBehaviour
             Debug.Log("Trying to RemoveItem, nothing to remove");
             return;
         }
+
+        // Spawn the item in the scene
+
         inventoryChanged.Invoke();
     }
+
     public static void UpdateSlotUI(int slot, Inventory_Slot inventorySlot)
     {
         Manager_Item item = inventorySlot.item;

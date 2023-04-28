@@ -8,18 +8,22 @@ public class Manager_Stats : MonoBehaviour
     private Equipment_Manager equipmentManager;
     public float currentHealth;
     public float maxHealth;
+    private Equipment_Manager EquipmentManager;
 
-    void Start()
+    private void Awake()
     {
         Manager_Stats instance = this;
-        currentHealth = maxHealth = 100;
-        equipmentManager = GetComponent<Equipment_Manager>();
-        equipmentManager.equipmentChanged += UpdateStatsOnEquipmentChanged;
         UpdateStats();
     }
 
-    void UpdateStatsOnEquipmentChanged(Equipment newEquipment, Equipment defaultEquipment)
+    void Start()
     {
+        
+    }
+
+    void UpdateStatsOnEquipmentChanged(Equipment newEquipment, Equipment previousEquipment)
+    {
+        // Need to change
         UpdateStats();
     }
 

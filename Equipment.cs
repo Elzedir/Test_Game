@@ -13,6 +13,8 @@ public class Equipment : Equipment_Manager
     public Animator equipAnimator;
     public Equipment_Manager[] statModifiers;
     public int allowedItemType;
+    public string equipName;
+    public string equipType;
 
     public BoxCollider2D WepColl;
     protected LayerMask wepCanAttack;
@@ -26,39 +28,22 @@ public class Equipment : Equipment_Manager
     protected virtual void FixedUpdate()
     {
         if (wepCanAttack == 1)
-        // Check to see if this is the correct layer
+        // If wepCanAttack belongs to the player layer, then attack when we button press.
         {
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
                 Attack();
-                //Weapon_Manager.instance.SwitchWeapon(1);
-                // Test with another button
-                // Use a switch for controls, like block and attack?
             }
         }
     }
     public void Equip()
     {
-        //if (newSprite != null)
-        //{
-        //    defaultSkin = equipSlot
-        //    equipSlot.sprite = newSprite;
-
-        //    foreach (StatModifier modifier in statModifiers)
-        //    {
-        //        Equipment_Manager.instance.AddModifier(modifier);
-        //    }
-        //}
+        
     }
 
     public void Unequip()
     {
-        //equipSlot.sprite = defaultSkin;
-
-        // foreach (StatModifier modifier in statModifiers)
-        {
-            //Equipment_Manager.instance.RemoveModifier(modifier);
-        }
+        
     }
 
     protected virtual void Attack()
@@ -104,9 +89,9 @@ public class Equipment : Equipment_Manager
 
             Damage dmg = new()
             {
-                damageAmount = parent.baseDamage * wepDamage,
+                damageAmount = parent.baseDamage * itemDamage,
                 origin = transform.position,
-                pushForce = parent.baseForce * wepForce
+                pushForce = parent.baseForce * itemForce
                 //damageRange = parent.baseAtkRange * wepDamage,
             };
 
