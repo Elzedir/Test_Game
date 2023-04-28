@@ -67,7 +67,10 @@ public class GameManager : MonoBehaviour
             Destroy(factionManager.gameObject);
             Destroy(weaponManager.gameObject);
             return;
-        }   
+        }
+
+        Manager_Inventory.instance.LoadInventory();
+        Manager_UI.instance.UpdateInventoryUI();
     }
 
     protected virtual void Start()

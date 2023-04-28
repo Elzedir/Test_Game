@@ -6,43 +6,77 @@ using UnityEngine.UIElements;
 [System.Serializable]
 public class Equipment_Manager : MonoBehaviour
 {
-    public int equipSlot = 5;
-    public EquipmentSlot EquipSlot = EquipmentSlot.Weapon;
-    public enum EquipmentSlot { Head, Chest, Legs, Weapon, Shield, Feet }
-    public Equipment[] currentEquipment;
-    public delegate void EquipmentChanged(Equipment newEquipment, Equipment defaultEquipment);
-    public event EquipmentChanged equipmentChanged;
+    public int equipSlot = 6;
+    public enum EquipmentSlot { 
+        Head = 0, 
+        Chest = 1, 
+        LeftArm = 2, 
+        RightArm = 3, 
+        Legs = 4, 
+        Feet = 5
+    }
+    public Equipment[] currentEquipment = new Equipment[System.Enum.GetNames(typeof(EquipmentSlot)).Length];
+
+    public delegate void EquipmentChanged(Equipment newEquipment, Equipment oldEquipment);
+
+    public Sprite[] equippedIcons;
+    public Manager_Item[] equippedItems;
     public SpriteRenderer[] equippedSprites;
+
+    public static UnityEngine.Events.UnityEvent equipmentChanged;
 
     void Start()
     {
+        equippedIcons = new Sprite[equipSlot];
+        equippedItems = new Manager_Item[equipSlot];
+        equippedSprites = new SpriteRenderer[equipSlot];
+
+        for (int i = 0; i < equipSlot; i++)
+        {
+            equippedIcons[i] = null;
+            equippedItems[i] = null;
+            equippedSprites[i] = null;
+        }
+
         currentEquipment = new Equipment[equipSlot];
     }
 
-    public void EquipItem(Manager_Item item, int slot)
+    public void EquipItem(Manager_Item equipment, int equipSlot)
     {
-        if (item == null)
+        if (equipment == null)
         {
             Debug.LogWarning("Tried to equip null item.");
             return;
         }
 
-        if (item.itemID != currentEquipment[slot].allowedItemType)
+        if (equipSlot >= currentEquipment.Length)
         {
-            Debug.LogWarning($"Tried to equip {item.itemName} in invalid slot.");
+            Debug.LogWarning("Tried to equip item to invalid slot.");
             return;
         }
 
-        if (currentEquipment[slot] != null)
+        if (!(equipment is Equipment))
         {
-            Unequip(slot);
+            Debug.LogWarning($"Tried to equip {equipment.itemName}, which is not an equipment item.");
+            return;
         }
 
-        currentEquipment[slot] = (Equipment)item;
+        if (equipment.itemID != currentEquipment[equipSlot].allowedItemType)
+        {
+            Debug.LogWarning($"Tried to equip {equipment.itemName} in invalid slot.");
+            return;
+        }
+
+        if (currentEquipment[equipSlot] != null)
+        {
+            Unequip(equipSlot);
+        }
+
+        currentEquipment[equipSlot] = (Equipment)equipment;
 
         // Modify character's stats based on equipped item
         
-        Manager_Inventory.UpdateSlot(slot, item);
+        Manager_UI.instance.UpdateInventoryUI();
     }
 
     public void Equip(Equipment newEquipment)
@@ -100,5 +134,42 @@ public class Equipment_Manager : MonoBehaviour
         {
             equipmentChanged.Invoke(null, null);
         }
+    }
+
+    public void SwitchWeapon(int weaponID)
+    {
+        if (!itemDictionary.ContainsKey(weaponID))
+        {
+            Debug.Log("Cannot find weaponID");
+            return;
+        }
+
+        List_Weapon weaponData = GetItemData(weaponID);
+
+        GameObject playerWeapon = GameObject.Find("PlayerWeapon");
+        if (playerWeapon != null)
+        {
+            return;
+        }
+
+        Equipment equipmentScript = playerWeapon.GetComponent<Equipment>();
+
+        if (equipmentScript == null)
+        {
+            Debug.Log("PlayerWeapon script not found.");
+            return;
+        }
+        SpriteRenderer WepSkin = playerWeapon.GetComponent<SpriteRenderer>();
+        BoxCollider2D WepCollider = playerWeapon.GetComponent<BoxCollider2D>();
+
+        equipmentScript.wepID = weaponData.itemID;
+        equipmentScript.wepName = weaponData.wepName;
+        equipmentScript.wepDamage = weaponData.itemDamage;
+        equipmentScript.wepSpeed = weaponData.itemSpeed;
+        equipmentScript.wepForce = weaponData.itemForce;
+        equipmentScript.wepRange = weaponData.itemRange;
+        equipmentScript.equipSkin = weaponData.wepIcon;
+
+        equipmentScript.SetWeaponData(weaponData);
     }
 }

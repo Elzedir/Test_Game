@@ -2,15 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class List_Consumables : List_Item
+public class List_Consumables : Manager_Item
 {
     public static List<List_Consumables> allConsumableData;
 
-    public List_Consumables(int itemID, string itemName, string itemType, float consValue, Sprite consIcon) : base(itemID, itemName)
+    public List_Consumables(int itemID, string itemName, float consValue, Sprite consIcon)
     {
-        List_Item.itemID = itemID;
+        this.itemID = itemID;
         this.itemName = itemName;
-        this.itemType = itemType;
         this.itemValue = consValue;
         this.itemIcon = consIcon;
     }

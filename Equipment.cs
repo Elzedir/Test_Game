@@ -6,38 +6,16 @@ using UnityEditor.UIElements;
 using UnityEngine;
 
 [System.Serializable]
-public class Equipment : Manager_Item
+public class Equipment : Equipment_Manager
 {
     // General
-    public Sprite icon;
-    public Sprite equipSkin;
-    public SpriteRenderer defaultSkin;
-    public int equipSlot;
+
     public Animator equipAnimator;
     public Equipment_Manager[] statModifiers;
     public int allowedItemType;
 
-    public float health;
-
-    // Weapon
-    public int wepID;
-    public int wepType;
-    public string wepName;
-    public float wepDamage = 1.0f;
-    public float wepSpeed = 1.0f;
-    public float wepForce = 1.0f;
-    public float wepRange;
     public BoxCollider2D WepColl;
     protected LayerMask wepCanAttack;
-
-    // Armour
-    public int armID;
-    public int armType;
-    public string armName;
-    public float armDefPhys;
-    public float armDefMag;
-    public float armDefPure;
-
 
     protected virtual void Start()
     {
@@ -58,20 +36,6 @@ public class Equipment : Manager_Item
                 // Use a switch for controls, like block and attack?
             }
         }
-    }
-    public virtual void SetWeaponData(int id, string name, float damage, float speed, float force, float range, Sprite skin)
-    {
-        wepID = id;
-        wepName = name;
-        wepDamage = damage;
-        wepSpeed = speed;
-        wepForce = force;
-        wepRange = range;
-        equipSkin = skin;
-    }
-    public virtual void SetWeaponData(List_Weapon weaponData)
-    {
-        SetWeaponData(wepID, wepName, wepDamage, wepSpeed, wepForce, wepRange, equipSkin);
     }
     public void Equip()
     {
