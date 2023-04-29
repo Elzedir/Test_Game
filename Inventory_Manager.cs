@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Security.Cryptography;
 using Unity.VisualScripting;
 using UnityEngine.EventSystems;
 using System;
@@ -11,44 +10,66 @@ using static UnityEditor.Progress;
 using System.Linq;
 using UnityEngine.Events;
 using static Equipment_Manager;
+using System.ComponentModel;
 
-public class Manager_Inventory : MonoBehaviour
+public abstract class Inventory_Manager : MonoBehaviour
 {
-    public static Manager_Inventory instance;
-
+    #region fields
     // Inventory items
-    public int inventorySize = 16;
-    public static List<Inventory_Slot> inventorySlots = new List<Inventory_Slot>();
-    public static List<int> inventoryItemIDs = new List<int>();
-    public static List<Manager_Item> inventoryItems = new List<Manager_Item>();
-    
-    public static UnityEngine.Events.UnityEvent inventoryChanged;
+    private int _inventorySize = 16;
+    private List<Inventory_Slot> _inventorySlots = new();
+    private List<int> _inventoryItemIDs = new();
+    private List<Manager_Item> _inventoryItems = new();
 
-    private void Awake()
+    public event Action InventoryChanged;
+
+    public int InventorySize
     {
-        instance = this;
-        inventoryChanged = new UnityEvent();
+        get { return _inventorySize; }
+        set { _inventorySize = value; }
+    }
 
-        for (int i = 0; i < inventorySize; i++)
+    public List<Inventory_Slot> InventorySlots
+    {
+        get { return _inventorySlots; }
+        set { _inventorySlots = value; }
+    }
+
+    public List<int> InventoryItemIDs
+    {
+        get { return _inventoryItemIDs; }
+        set { _inventoryItemIDs = value; }
+    }
+
+    public List<Manager_Item> InventoryItems
+    {
+        get { return _inventoryItems; }
+        set { _inventoryItems = value; }
+    }
+    #endregion
+
+    protected virtual void Awake()
+    {
+        for (int i = 0; i < _inventorySize; i++)
         {
-            inventorySlots.Add(new Inventory_Slot(i, null, 64));
+            _inventorySlots.Add(ScriptableObject.CreateInstance<Inventory_Slot>());
         }
     }
 
-    public void SaveInventory()
+    protected  virtual void SaveInventory()
     {
-        string itemIDString = string.Join(",", inventoryItemIDs.Select(x => x.ToString()).ToArray());
+        string itemIDString = string.Join(",", _inventoryItemIDs.Select(x => x.ToString()).ToArray());
         PlayerPrefs.SetString("InventoryItemIds", itemIDString);
         PlayerPrefs.Save();
     }
 
-    public void LoadInventory()
+    public virtual void LoadInventory()
     {
         string itemIDString = PlayerPrefs.GetString("InventoryItemIds", "");
 
         if (!string.IsNullOrEmpty(itemIDString))
         {
-            inventoryItemIDs = itemIDString.Split(',').Select(x => int.Parse(x)).ToList();
+            _inventoryItemIDs = itemIDString.Split(',').Select(x => int.Parse(x)).ToList();
             Debug.Log("Inventory lodaded");
         }
 
@@ -58,12 +79,12 @@ public class Manager_Inventory : MonoBehaviour
             Debug.Log("No saved inventory found");
         }
 
-        foreach (int itemId in inventoryItemIDs)
+        foreach (int itemId in _inventoryItemIDs)
         {
             Manager_Item item = (Manager_Item)Manager_Item.GetItemData(itemId);
             if (item != null)
             {
-                inventoryItems.Add(item);
+                _inventoryItems.Add(item);
             }
 
             else
@@ -73,13 +94,13 @@ public class Manager_Inventory : MonoBehaviour
         }
     }
 
-    public void ItemPickup(int itemID)
+    public virtual void AddItem(int itemID)
     {
         Manager_Item newItem = Manager_Item.GetItemData(itemID) as Manager_Item;
 
         if (newItem != null)
         {
-            Inventory_Slot existingSlot = inventorySlots.FirstOrDefault(slotIndex => slotIndex.item != null && slotIndex.item.itemID == itemID && slotIndex.currentStackSize < Manager_Item.instance.maxStackSize);
+            Inventory_Slot existingSlot = _inventorySlots.FirstOrDefault(slotIndex => slotIndex.item != null && slotIndex.item.itemID == itemID && slotIndex.currentStackSize < Manager_Item.instance.maxStackSize);
 
             if (existingSlot != null)
             {
@@ -87,20 +108,20 @@ public class Manager_Inventory : MonoBehaviour
             }
             else
             {
-                Inventory_Slot emptySlot = inventorySlots.FirstOrDefault(slot => slot.item == null);
+                Inventory_Slot emptySlot = _inventorySlots.FirstOrDefault(slot => slot.item == null);
 
                 if (emptySlot != null)
                 {
                     switch (newItem)
                     {
-                        case List_Weapon weaponData:
-                            inventoryItems.Add(new List_Weapon(itemID, weaponData.itemName, weaponData.itemDamage, weaponData.itemSpeed, weaponData.itemForce, weaponData.itemRange, weaponData.itemIcon));
+                        case ItemType.Weapon:
+                            _inventoryItems.Add(new List_Weapon(itemID, newItem.itemType, newItem.itemName, newItem.itemDamage, newItem.itemSpeed, newItem.itemForce, newItem.itemRange, newItem.itemIcon));
                             break;
-                        case List_Armour armourData:
-                            inventoryItems.Add(new List_Armour(itemID, armourData.itemName, armourData.itemIcon));
+                        case ItemType.Armour:
+                            _inventoryItems.Add(new List_Armour(itemID, newItem.itemName, newItem.itemIcon));
                             break;
-                        case List_Consumables consumableData:
-                            inventoryItems.Add(new List_Consumables(itemID, consumableData.itemName, consumableData.itemValue, consumableData.itemIcon));
+                        case ItemType.Consumable:
+                            _inventoryItems.Add(new List_Consumables(itemID, newItem.itemName, newItem.itemValue, newItem.itemIcon));
                             break;
                         default:
                             Debug.LogError("Invalid item type");
@@ -116,15 +137,15 @@ public class Manager_Inventory : MonoBehaviour
         }
     }
 
-    public void ItemDrop(int itemID)
+    public virtual void RemoveItem(int itemID)
     {
-        Inventory_Slot existingSlot = inventorySlots.FirstOrDefault(slot => slot.item != null && slot.item.itemID == itemID);
+        Inventory_Slot existingSlot = _inventorySlots.FirstOrDefault(slot => slot.item != null && slot.item.itemID == itemID);
         if (existingSlot != null)
         {
             existingSlot.currentStackSize--;
             if (existingSlot.currentStackSize <= 0)
             {
-                inventoryItems.Remove(existingSlot.item);
+                _inventoryItems.Remove(existingSlot.item);
                 existingSlot.item = null;
             }
         }
@@ -136,13 +157,12 @@ public class Manager_Inventory : MonoBehaviour
 
         // Spawn the item in the scene
 
-        inventoryChanged.Invoke();
+        InventoryChanged.Invoke();
     }
 
-    public static void UpdateSlotUI(int slot, Inventory_Slot inventorySlot)
+    public virtual void UpdateSlotUI(int slot, Inventory_Slot inventorySlot)
     {
         Manager_Item item = inventorySlot.item;
-        Sprite slotIcon = item.itemIcon;
 
         if (item == null)
         {
@@ -150,6 +170,7 @@ public class Manager_Inventory : MonoBehaviour
             return;
         }
 
+        Sprite slotIcon = item.itemIcon;
         inventorySlot.GetComponent<Image>().sprite = item.itemIcon;
 
         if (inventorySlot.currentStackSize > 1)
@@ -164,16 +185,16 @@ public class Manager_Inventory : MonoBehaviour
         }
     }
 
-    public static void Add(Manager_Item item)
+    public virtual void Add(Manager_Item item)
     {
-        inventoryItems.Add(item);
-        inventoryChanged.Invoke();
+        _inventoryItems.Add(item);
+        InventoryChanged.Invoke();
     }
 
-    public void MoveItem(int sourceSlotIndex, int targetSlotIndex)
+    public virtual void MoveItem(int sourceSlotIndex, int targetSlotIndex)
     {
-        Inventory_Slot sourceSlot = inventorySlots[sourceSlotIndex];
-        Inventory_Slot targetSlot = inventorySlots[targetSlotIndex];
+        Inventory_Slot sourceSlot = _inventorySlots[sourceSlotIndex];
+        Inventory_Slot targetSlot = _inventorySlots[targetSlotIndex];
 
         if (sourceSlot.IsEmpty() || targetSlot.IsFull())
         {

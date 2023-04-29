@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 using UnityEngine.UIElements.Experimental;
 
 public abstract class Actor : Hitbox
@@ -14,8 +15,7 @@ public abstract class Actor : Hitbox
     public float triggerRadius = 3.0f;
 
     //States
-
-    protected bool alerted;
+    protected bool alerted = false;
     protected bool withinAttackRange = false;
     protected bool attacking = false;
     protected bool dead = false;
@@ -40,8 +40,7 @@ public abstract class Actor : Hitbox
     public float maxMana;
     public float stamina;
     public float maxStamina;
-    protected float immuneTime;
-    protected float lastImmune;
+    
     protected Vector3 pushDirection;
     public float pushRecoverySpeed = 0.2f;
     public int xpValue;
@@ -92,20 +91,24 @@ public abstract class Actor : Hitbox
     
     protected virtual void Alerted()
     {
-        float distanceFromStart = Vector3.Distance(transform.position, startingPosition);
-
+        float distanceFromStart = Vector2.Distance(transform.position, startingPosition);
+        
         if (distanceFromStart > chaseLength)
         {
             Move(startingPosition - transform.position);
             alerted = false;
         }
 
-        else if (closestEnemy != null)
+        if (closestEnemy != null)
         {
-            if (Vector3.Distance(closestEnemy.transform.position, transform.position) < chaseLength)
+            float distanceToTarget = Vector2.Distance(closestEnemy.transform.position, transform.position);
+
+            if (distanceToTarget < chaseLength)
             {
-                if (Vector3.Distance(closestEnemy.transform.position, transform.position) < triggerLength)
+                if (distanceToTarget < triggerLength)
+                {
                     alerted = true;
+                }
             }
 
             if (alerted)
@@ -157,7 +160,12 @@ public abstract class Actor : Hitbox
 
             if (target != null && !attackableTargets.Contains(target))
             {
-                attackableTargets.Add(target);
+                BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
+
+                if (targetCollider != null && targetCollider.enabled)
+                {
+                    attackableTargets.Add(target);
+                }
             }
         }
 
@@ -180,18 +188,14 @@ public abstract class Actor : Hitbox
     {
         if (!dead)
         {
-            if (Time.time - lastImmune > immuneTime)
-            {
-                lastImmune = Time.time;
-                hitpoint -= dmg.damageAmount;
-                pushDirection = (transform.position - dmg.origin).normalized * dmg.pushForce;
-                GameManager.instance.ShowFloatingText(dmg.damageAmount.ToString(), 25, Color.red, transform.position, Vector3.up * 30, 0.5f);
+            hitpoint -= dmg.damageAmount;
+            pushDirection = (transform.position - dmg.origin).normalized * dmg.pushForce;
+            GameManager.instance.ShowFloatingText(dmg.damageAmount.ToString(), 25, Color.red, transform.position, Vector3.up * 30, 0.5f);
 
-                if (hitpoint <= 0)
-                {
-                    hitpoint = 0;
-                    Death();
-                }
+            if (hitpoint <= 0)
+            {
+                hitpoint = 0;
+                Death();
             }
         }
     }

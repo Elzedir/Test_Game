@@ -2,40 +2,45 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class Manager_Stats : MonoBehaviour
 {
-    public Manager_Stats instance;
-    private Equipment_Manager equipmentManager;
+    // General
+    private Equipment_Manager EquipmentManager;
+    private Actor actor;
+
+    // Damager
+    public float damageAmount;
+    public float pureDamage;
+    public float pushForce;
+
+    //Defence
     public float currentHealth;
     public float maxHealth;
-    private Equipment_Manager EquipmentManager;
+    public float physicalDefence;
+    public float magicalDefence;
+    public float pureDefence;
 
-    private void Awake()
+    private void Start()
     {
-        Manager_Stats instance = this;
         UpdateStats();
     }
 
-    void Start()
-    {
-        
-    }
-
-    void UpdateStatsOnEquipmentChanged(Equipment newEquipment, Equipment previousEquipment)
+    void UpdateStatsOnEquipmentChanged(Manager_Item newEquipment, Manager_Item previousEquipment)
     {
         // Need to change
         UpdateStats();
     }
 
-    void UpdateStats()
+    public void UpdateStats()
     {
-        maxHealth = 100;
-
-        for (int i = 0; i < equipmentManager.currentEquipment.Length; i++)
+        // Complete update stats for damage, resistance, health, 
+        
+        for (int i = 0; i < EquipmentManager.currentEquipment.Length; i++)
         {
-            if (equipmentManager.currentEquipment[i] != null)
+            if (EquipmentManager.currentEquipment[i] != null)
             {
-                maxHealth += equipmentManager.currentEquipment[i].health;
+                //maxHealth += equipmentManager.currentEquipment[i].health;
             }
         }
 
@@ -45,28 +50,14 @@ public class Manager_Stats : MonoBehaviour
         }
     }
 
-    public void TakeDamage(int damage)
+    public void ReciveDamage(int damage)
     {
-        currentHealth -= damage;
-
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
+        //Actor.ReceiveDamage();
     }
 
     public void RestoreHealth(int amount)
     {
-        currentHealth += amount;
-
-        if (currentHealth > maxHealth)
-        {
-            currentHealth = maxHealth;
-        }
-    }
-
-    void Die()
-    {
-        Debug.Log("Player died.");
+        // Simply do the opposite of this
+        //Actor.ReceiveDamage();
     }
 }

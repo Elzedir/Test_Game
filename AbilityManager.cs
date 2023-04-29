@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static Equipment_Manager;
 
 public class AbilityManager : MonoBehaviour
 {
@@ -15,7 +16,8 @@ public class AbilityManager : MonoBehaviour
     [SerializeField] protected float chargeCooldown = 3.0f;
     protected bool withinChargeRange;
     protected bool charging;
-    protected float lastCharge = 0;
+    protected float immuneTime;
+    protected float lastImmune;
 
     private Dictionary<string, float> cooldowns = new Dictionary<string, float>();
 
@@ -27,15 +29,17 @@ public class AbilityManager : MonoBehaviour
 
     public virtual void FixedUpdate()
     {
-        foreach (KeyValuePair<string, float> cooldown in cooldowns)
+        List<string> keys = new List<string>(cooldowns.Keys);
+
+        foreach (string key in keys)
         {
-            if (cooldown.Value < 0)
+            if (cooldowns[key] < 0)
             {
-                cooldowns[cooldown.Key] = 0;
+                cooldowns[key] = 0;
             }
             else
             {
-                cooldowns[cooldown.Key] -= Time.fixedDeltaTime;
+                cooldowns[key] -= Time.fixedDeltaTime;
             }
         }
     }
@@ -47,18 +51,47 @@ public class AbilityManager : MonoBehaviour
             float distanceToTarget = Vector2.Distance(transform.position, target.transform.position);
             bool withinChargeDistance = distanceToTarget < maxCharge && distanceToTarget > minCharge;
             bool chargeAvailable = cooldowns["Charge"] <= 0;
-            Debug.Log(chargeAvailable);
 
             if (withinChargeDistance && chargeAvailable)
             {
-                Vector2 chargeDirection = (target.transform.position - transform.position);
-                float chargeForce = Mathf.Clamp(distanceToTarget, 0f, maxCharge);
-                Vector2 charge = chargeDirection * chargeForce;
+                cooldowns["Charge"] = chargeCooldown;
+                Vector2 chargeDirection = target.transform.position - transform.position;
+                float chargeForce = distanceToTarget;
+                Vector2 charge = chargeDirection * chargeForce; // * chargeSpeedMultiplier
                 self.AddForce(charge, ForceMode2D.Impulse);
-                lastCharge = 0;
                 Debug.Log(this.name + "Charged");
+            }
+
+            if (distanceToTarget > maxCharge)
+            {
+                self.velocity = Vector2.zero;
+            }
+
+            else if (distanceToTarget < minCharge)
+            {
+                self.velocity = Vector2.zero;
             }
         }
     }
 
+    //public virtual void Invulnerability()
+    //{
+    //    if (!dead)
+    //    {
+    //        if (Time.time - lastImmune > immuneTime)
+    //        {
+    //            lastImmune = Time.time;
+    //            hitpoint -= dmg.damageAmount;
+    //            pushDirection = (transform.position - dmg.origin).normalized * dmg.pushForce;
+    //            GameManager.instance.ShowFloatingText(dmg.damageAmount.ToString(), 25, Color.red, transform.position, Vector3.up * 30, 0.5f);
+
+    //            if (hitpoint <= 0)
+    //            {
+    //                hitpoint = 0;
+    //                Death();
+    //            }
+    //        }
+    //    }
+    //}
+    
 }

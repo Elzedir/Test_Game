@@ -6,7 +6,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class Inventory_Slot : MonoBehaviour, IDropHandler
+[CreateAssetMenu(fileName = "New Inventory Slot", menuName = "Inventory/Inventory Slot")]
+
+public class Inventory_Slot : ScriptableObject, IDropHandler
 {
     public int slotIndex;
     public Manager_Item item;
@@ -49,6 +51,6 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
     {
         Inventory_Slot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().itemSlotIndex;
         int targetSlotIndex = slotIndex;
-        Manager_Inventory.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
+        // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
 }

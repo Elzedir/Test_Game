@@ -6,6 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using static Unity.VisualScripting.Member;
 
+
 public class Manager_Item
 {
     public static Manager_Item instance;
@@ -17,6 +18,14 @@ public class Manager_Item
     // General
     public int maxStackSize;
     public int itemID;
+    public ItemType itemType;
+    public enum ItemType
+    {
+        Weapon,
+        Armour,
+        Consumable
+    }
+
     public string itemName;
     public float itemValue;
     public Sprite itemIcon;

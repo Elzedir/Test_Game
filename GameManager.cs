@@ -27,7 +27,8 @@ public class GameManager : MonoBehaviour
     public GameObject menu;
     public GameObject eventSystemContainer;
     public GameObject factionManager;
-    public GameObject weaponManager;
+    public GameObject inventoryManager;
+    public GameObject uiManager;
     private static bool exists = false;
 
     public RectTransform healthBar;
@@ -53,7 +54,7 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(menu);
             DontDestroyOnLoad(eventSystemContainer);
             DontDestroyOnLoad(factionManager);
-            DontDestroyOnLoad(weaponManager);
+            DontDestroyOnLoad(uiManager);
         }
         
         else
@@ -65,12 +66,11 @@ public class GameManager : MonoBehaviour
             Destroy(menu.gameObject);
             Destroy(eventSystemContainer.gameObject);
             Destroy(factionManager.gameObject);
-            Destroy(weaponManager.gameObject);
+            Destroy (uiManager.gameObject);
             return;
         }
 
-        Manager_Inventory.instance.LoadInventory();
-        Manager_UI.instance.UpdateInventoryUI();
+        // Manager_UI.instance.UpdateInventoryUI();
     }
 
     protected virtual void Start()

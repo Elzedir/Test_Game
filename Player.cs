@@ -221,7 +221,12 @@ public class Player : Actor
 
     #endregion
 
-    // Implemented
+    // Implemented     
+
+    // References
+    public Equipment_Manager equipmentManager;
+    public Manager_Item[] currentEquipment;
+    public Inventory_Manager inventory;
 
     protected BoxCollider2D playerColl;
     protected Animator anim;
@@ -257,6 +262,9 @@ public class Player : Actor
         playerBody = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         playerCanAttack = FactionManager.instance.AttackableFactions()[1];
+        equipmentManager = GetComponent<Equipment_Manager>();
+        currentEquipment = equipmentManager.currentEquipment;
+        inventory = GetComponent<Inventory_Manager>();
     }
     protected override void FixedUpdate()
     {
@@ -328,14 +336,10 @@ public class Player : Actor
     {
         Heal(maxHitpoint);
         dead = false;
-        lastImmune = Time.time;
         pushDirection = Vector3.zero;
     }
     protected override void ReceiveDamage(Damage dmg)
     {
-        if (dead)
-            return;
-
         base.ReceiveDamage(dmg);
         GameManager.instance.HUDBarChange();
     }

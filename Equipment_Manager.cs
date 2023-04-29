@@ -12,9 +12,9 @@ public class Equipment_Manager : MonoBehaviour
     public int equipIndex = 6;
     public enum EquipmentSlot { 
         Head = 0, 
-        Chest = 1, 
-        LeftArm = 2, 
-        RightArm = 3, 
+        Chest = 1,
+        Weapon = 2,
+        LeftArm = 3, 
         Legs = 4, 
         Feet = 5
     }
@@ -82,7 +82,7 @@ public class Equipment_Manager : MonoBehaviour
         Sprite itemSprite = (Sprite)data[6];
         equippedIcons[(int)equipSlot] = itemSprite;
         
-        Manager_Stats.UpdateStats(equipment, true);
+        // Manager_Stats.UpdateStats(equipment, true);
         Manager_UI.instance.UpdateInventoryUI();
 
         Debug.Log("New equipment does not exist? Weird...");
@@ -97,7 +97,7 @@ public class Equipment_Manager : MonoBehaviour
 
             equippedIcons[(int)equipSlot] = null;
 
-            Manager_Stats.UpdateStats(previousEquipment, false);
+            // Manager_Stats.UpdateStats(previousEquipment, false);
             Manager_UI.instance.UpdateInventoryUI();
 
             return previousEquipment;

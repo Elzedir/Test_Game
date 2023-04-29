@@ -2,8 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Weapons
+public class Inventory_Humanoid : Inventory_Manager
 {
-    public Animator animator;
     
 }

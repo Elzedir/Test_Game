@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 
-public class Manager_Inventory_Quickbar : Manager_Inventory
+public class Manager_Inventory_Quickbar : Inventory_Manager
 {
     public UnityEngine.UI.Button[] quickbarButtons;
     public Manager_Item[] quickbarItems;

@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Shortsword : Equipment_Weapon
+public class Spear : Equipment_Weapon
 {
     protected override void Start()
     {
-        AttackAnimation = ShortswordAttackAnimation;
+        AttackAnimation = SpearAttackAnimation;
     }
 
-    private void ShortswordAttackAnimation(Animator animator)
+    private void SpearAttackAnimation(Animator animator)
     {
         animator.SetTrigger("ShortswordAttack");
     }

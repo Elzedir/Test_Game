@@ -10,17 +10,17 @@ public class Enemyhuman : Actor
 {
     // General
     protected LayerMask enemyHumanCanAttack;
-    protected Rigidbody2D enemyHumanBody;
-    protected SpriteRenderer enemyHumanSprite;
-    protected BoxCollider2D enemyHumanSize;
-    protected Animator anim;
+    public Rigidbody2D enemyHumanBody;
+    public SpriteRenderer enemyHumanSprite;
+    public BoxCollider2D enemyHumanSize;
+    public Animator anim;
 
     // Overrides
     protected override LayerMask CanAttack => enemyHumanCanAttack;
     protected override BoxCollider2D ActorColl => enemyHumanSize;
     protected override BoxCollider2D Coll => enemyHumanSize;
     protected override Rigidbody2D Rigidbody2D => enemyHumanBody;
-
+    private AbilityManager abilityManager;
     
 
     protected override void Start()
@@ -31,6 +31,7 @@ public class Enemyhuman : Actor
         enemyHumanSprite = GetComponent<SpriteRenderer>();
         enemyHumanBody = GetComponent<Rigidbody2D>();
         enemyHumanCanAttack = FactionManager.instance.AttackableFactions()[3];
+        abilityManager = new AbilityManager();
     }
 
 
@@ -41,13 +42,20 @@ public class Enemyhuman : Actor
         if (closestEnemy != null)
         {
             Alerted();
-            AbilityUse();
+
+            if (alerted)
+            {
+                AbilityUse();
+            }
         }
     }
 
     protected void AbilityUse()
     {
-        AbilityManager.instance.Charge(closestEnemy, enemyHumanBody);
+        if (closestEnemy != null && enemyHumanBody != null)
+        {   
+            AbilityManager.instance.Charge(closestEnemy, enemyHumanBody);
+        }
     }
     
     protected override void Death()
