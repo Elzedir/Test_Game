@@ -11,6 +11,6 @@ public abstract class Shortsword : Equipment_Weapon
 
     private void ShortswordAttackAnimation(Animator animator)
     {
-        animator.SetTrigger("ShortswordAttack");
+        animator.SetTrigger("ShortswordBasicAttack");
     }
 }

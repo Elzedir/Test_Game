@@ -2,13 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class List_Consumables : Manager_Item
+public class List_Consumable : Manager_Item
 {
-    public static List<List_Consumables> allConsumableData;
+    public static List<List_Consumable> allConsumableData;
 
-    public List_Consumables(int itemID, string itemName, float consValue, Sprite consIcon)
+    public ConsumableType consumableType;
+    public enum ConsumableType
+    {
+        HealthPotion,
+        ManaPotion,
+        StaminaPotion
+    }
+
+    public List_Consumable(int itemID, ItemType itemType, ConsumableType consumableType, string itemName, float consValue, Sprite consIcon)
     {
         this.itemID = itemID;
+        this.itemType = itemType;
+        this.consumableType = consumableType;
         this.itemName = itemName;
         this.itemValue = consValue;
         this.itemIcon = consIcon;

@@ -6,6 +6,9 @@ using UnityEngine.UIElements.Experimental;
 
 public abstract class Actor : Hitbox
 {
+    // General
+    private AbilityManager abilityManager;
+
     // Layers
     protected abstract LayerMask CanAttack { get; }
     protected GameObject closestEnemy = null;
@@ -52,20 +55,37 @@ public abstract class Actor : Hitbox
     protected float cooldown;
     protected float lastAttack;
 
+    protected bool berserk = false;
+
     protected override void Start()
     {
         base.Start();
 
         startingPosition = transform.position;
+        abilityManager = GetComponent<AbilityManager>();
         LayerCount();
     }
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
         TargetCheck();
+        PlayerMove();
+
+        if (closestEnemy != null)
+        {
+            if (GetComponent<Player>() != null)
+            {
+                Chase();
+
+                if (alerted)
+                {
+                    // AbilityUse();
+                }
+            }
+        }
     }
 
-    protected virtual void Move(Vector3 input)
+    public virtual void Move(Vector3 input)
     {
         if (!dead && !jumping)
         {
@@ -86,68 +106,36 @@ public abstract class Actor : Hitbox
             {
                 transform.Translate(move.x * Time.deltaTime, 0, 0);
             }
+
         }
     }
-    
-    protected virtual void Alerted()
+
+    public virtual void PlayerMove()
     {
-        float distanceFromStart = Vector2.Distance(transform.position, startingPosition);
-        
-        if (distanceFromStart > chaseLength)
+        if (GetComponent<Player>() != null)
         {
-            Move(startingPosition - transform.position);
-            alerted = false;
-        }
+            float x = Input.GetAxisRaw("Horizontal");
+            float y = Input.GetAxisRaw("Vertical");
+            var dir = Input.mousePosition - Camera.main.WorldToScreenPoint(transform.position);
 
-        if (closestEnemy != null)
-        {
-            float distanceToTarget = Vector2.Distance(closestEnemy.transform.position, transform.position);
-
-            if (distanceToTarget < chaseLength)
+            if (!dead)
             {
-                if (distanceToTarget < triggerLength)
+                Move(new Vector3(x, y, 0));
+
+                if (dir.x > 0)
                 {
-                    alerted = true;
+                    transform.localScale = new Vector3(1, 1, 1);
+                }
+
+                else if (dir.x < 0)
+                {
+                    transform.localScale = new Vector3(-1, 1, 1);
                 }
             }
-
-            if (alerted)
-            {
-                if (!withinAttackRange)
-                {
-                    Move((closestEnemy.transform.position - transform.position).normalized);
-                }
-            }
-            else
-            {
-                Move(startingPosition - transform.position);
-            }
-        }
-        else
-        {
-            Move(startingPosition - transform.position);
-            alerted = false;
-        }
-
-        for (int i = 0; i < hits.Length; i++)
-        {
-            if (hits[i] == null)
-
-                continue;
-
-            if (hits[i] == closestEnemy)
-            {
-                withinAttackRange = true;
-
-                Attack();
-                Debug.Log(this.name + " is not within attack range");
-                Debug.Log(withinAttackRange);
-            }
-
-            hits[i] = null;
         }
     }
-    protected virtual void TargetCheck()
+
+    public virtual void TargetCheck()
     {
         float maxTargetDistance = float.MaxValue;
         List<GameObject> attackableTargets = new List<GameObject>();
@@ -180,9 +168,79 @@ public abstract class Actor : Hitbox
             }
         }
     }
-    protected virtual void Attack()
+
+    public virtual void Chase()
+    {
+        if (GetComponent<Player>() == null || berserk)
+        {
+            float distanceFromStart = Vector2.Distance(transform.position, startingPosition);
+
+            if (GetComponent<Player>() == null && distanceFromStart > chaseLength)
+            {
+                Move(startingPosition - transform.position);
+                alerted = false;
+            }
+
+            if (closestEnemy != null)
+            {
+                float distanceToTarget = Vector2.Distance(closestEnemy.transform.position, transform.position);
+
+                if (distanceToTarget < chaseLength)
+                {
+                    if (distanceToTarget < triggerLength)
+                    {
+                        alerted = true;
+                    }
+                }
+
+                if (alerted)
+                {
+                    if (!withinAttackRange)
+                    {
+                        Move((closestEnemy.transform.position - transform.position).normalized);
+                    }
+                }
+                else
+                {
+                    Move(startingPosition - transform.position);
+                }
+            }
+            else
+            {
+                Move(startingPosition - transform.position);
+                alerted = false;
+            }
+
+            for (int i = 0; i < hits.Length; i++)
+            {
+                if (hits[i] == null)
+
+                    continue;
+
+                if (hits[i] == closestEnemy)
+                {
+                    withinAttackRange = true;
+
+                    Attack();
+                    Debug.Log(this.name + " is not within attack range");
+                    Debug.Log(withinAttackRange);
+                }
+
+                hits[i] = null;
+            }
+        }
+    }
+
+    public virtual void Attack()
     {
         Debug.Log("Default attack function not overriddden");
+    }
+    public void AbilityUse(Rigidbody2D self)
+    {
+        if (closestEnemy != null && self != null)
+        {
+            AbilityManager.instance.Charge(closestEnemy, self);
+        }
     }
     protected virtual void ReceiveDamage(Damage dmg)
     {
@@ -203,7 +261,7 @@ public abstract class Actor : Hitbox
     {
         dead = true;
     }
-    protected void LayerCount()
+    public void LayerCount()
     {
         for (int i = 0; i < 32; i++)
         {
@@ -213,7 +271,7 @@ public abstract class Actor : Hitbox
             }
         }
     }
-    private void OnDrawGizmosSelected()
+    public void OnDrawGizmosSelected()
     {
         if (closestEnemy != null)
         {

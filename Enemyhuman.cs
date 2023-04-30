@@ -20,9 +20,8 @@ public class Enemyhuman : Actor
     protected override BoxCollider2D ActorColl => enemyHumanSize;
     protected override BoxCollider2D Coll => enemyHumanSize;
     protected override Rigidbody2D Rigidbody2D => enemyHumanBody;
-    private AbilityManager abilityManager;
     
-
+    
     protected override void Start()
     {
         base.Start();
@@ -31,31 +30,6 @@ public class Enemyhuman : Actor
         enemyHumanSprite = GetComponent<SpriteRenderer>();
         enemyHumanBody = GetComponent<Rigidbody2D>();
         enemyHumanCanAttack = FactionManager.instance.AttackableFactions()[3];
-        abilityManager = new AbilityManager();
-    }
-
-
-    protected override void FixedUpdate()
-    {
-        base.FixedUpdate();
-
-        if (closestEnemy != null)
-        {
-            Alerted();
-
-            if (alerted)
-            {
-                AbilityUse();
-            }
-        }
-    }
-
-    protected void AbilityUse()
-    {
-        if (closestEnemy != null && enemyHumanBody != null)
-        {   
-            AbilityManager.instance.Charge(closestEnemy, enemyHumanBody);
-        }
     }
     
     protected override void Death()

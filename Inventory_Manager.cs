@@ -11,10 +11,13 @@ using System.Linq;
 using UnityEngine.Events;
 using static Equipment_Manager;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using UnityEngine.UIElements;
 
 public abstract class Inventory_Manager : MonoBehaviour
 {
     #region fields
+
     // Inventory items
     private int _inventorySize = 16;
     private List<Inventory_Slot> _inventorySlots = new();
@@ -56,28 +59,19 @@ public abstract class Inventory_Manager : MonoBehaviour
         }
     }
 
-    protected  virtual void SaveInventory()
+    protected void SaveInventory()
     {
         string itemIDString = string.Join(",", _inventoryItemIDs.Select(x => x.ToString()).ToArray());
         PlayerPrefs.SetString("InventoryItemIds", itemIDString);
         PlayerPrefs.Save();
     }
 
-    public virtual void LoadInventory()
+    protected void LoadInventory()
     {
         string itemIDString = PlayerPrefs.GetString("InventoryItemIds", "");
 
-        if (!string.IsNullOrEmpty(itemIDString))
-        {
-            _inventoryItemIDs = itemIDString.Split(',').Select(x => int.Parse(x)).ToList();
-            Debug.Log("Inventory lodaded");
-        }
-
-        else
-
-        {
-            Debug.Log("No saved inventory found");
-        }
+        _inventoryItemIDs = (itemIDString ?? "").Split(',').Select(int.Parse).ToList();
+        Debug.Log(_inventoryItemIDs.Count > 0 ? "Inventory loaded" : "No saved inventory found");
 
         foreach (int itemId in _inventoryItemIDs)
         {
@@ -96,32 +90,33 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public virtual void AddItem(int itemID)
     {
-        Manager_Item newItem = Manager_Item.GetItemData(itemID) as Manager_Item;
+        Manager_Item newItem = (Manager_Item)Manager_Item.GetItemData(itemID);
 
         if (newItem != null)
         {
-            Inventory_Slot existingSlot = _inventorySlots.FirstOrDefault(slotIndex => slotIndex.item != null && slotIndex.item.itemID == itemID && slotIndex.currentStackSize < Manager_Item.instance.maxStackSize);
+            Inventory_Slot existingSlot = _inventorySlots.Where(slot => slot.item != null && slot.item.itemID == itemID && slot.currentStackSize < Manager_Item.instance.maxStackSize).FirstOrDefault();
 
             if (existingSlot != null)
             {
                 existingSlot.currentStackSize++;
             }
+
             else
             {
                 Inventory_Slot emptySlot = _inventorySlots.FirstOrDefault(slot => slot.item == null);
 
                 if (emptySlot != null)
                 {
-                    switch (newItem)
+                    switch (newItem.itemType)
                     {
                         case ItemType.Weapon:
-                            _inventoryItems.Add(new List_Weapon(itemID, newItem.itemType, newItem.itemName, newItem.itemDamage, newItem.itemSpeed, newItem.itemForce, newItem.itemRange, newItem.itemIcon));
+                            _inventoryItems.Add(new List_Weapon(itemID, ItemType.Weapon, (newItem as List_Weapon).weaponType, newItem.itemName, newItem.maxStackSize, newItem.itemValue,  newItem.itemDamage, newItem.itemSpeed, newItem.itemForce, newItem.itemRange, newItem.itemIcon));
                             break;
                         case ItemType.Armour:
-                            _inventoryItems.Add(new List_Armour(itemID, newItem.itemName, newItem.itemIcon));
+                            _inventoryItems.Add(new List_Armour(itemID, newItem.itemType, (newItem as List_Armour).armourType, newItem.itemName, newItem.itemIcon));
                             break;
                         case ItemType.Consumable:
-                            _inventoryItems.Add(new List_Consumables(itemID, newItem.itemName, newItem.itemValue, newItem.itemIcon));
+                            _inventoryItems.Add(new List_Consumable(itemID, newItem.itemType, (newItem as List_Consumable).consumableType, newItem.itemName, newItem.itemValue, newItem.itemIcon));
                             break;
                         default:
                             Debug.LogError("Invalid item type");
@@ -166,12 +161,14 @@ public abstract class Inventory_Manager : MonoBehaviour
 
         if (item == null)
         {
-            inventorySlot.GetComponent<Image>().sprite = null;
+            UnityEngine.UI.Image image = inventorySlot.GetComponent<UnityEngine.UI.Image>();
+            image.sprite = null;
             return;
         }
 
         Sprite slotIcon = item.itemIcon;
-        inventorySlot.GetComponent<Image>().sprite = item.itemIcon;
+        UnityEngine.UI.Image img = inventorySlot.GetComponent<UnityEngine.UI.Image>();
+        img.sprite = item.itemIcon;
 
         if (inventorySlot.currentStackSize > 1)
         {

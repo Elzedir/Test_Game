@@ -9,7 +9,7 @@ using static UnityEditor.Progress;
 [System.Serializable]
 public class Equipment_Manager : MonoBehaviour
 {
-    public int equipIndex = 6;
+    private int equipIndex = 6;
     public enum EquipmentSlot { 
         Head = 0, 
         Chest = 1,
@@ -20,7 +20,7 @@ public class Equipment_Manager : MonoBehaviour
     }
 
     public Manager_Item[] currentEquipment = new Manager_Item[System.Enum.GetNames(typeof(EquipmentSlot)).Length];
-    public Sprite[] equippedIcons;
+    protected Sprite[] equippedIcons;
     public Manager_Item item;
     
     void Start()
@@ -37,10 +37,6 @@ public class Equipment_Manager : MonoBehaviour
 
     public void EquipCheck(Manager_Item item, EquipmentSlot equipSlot)
     {
-        object itemData = Manager_Item.GetItemData(item.itemID);
-        object[] data = (object[])itemData;
-        Sprite itemSprite = (Sprite)data[6];
-
         if (item == null)
         {
             Debug.LogWarning("Tried to equip null item.");
@@ -58,11 +54,11 @@ public class Equipment_Manager : MonoBehaviour
             Unequip(equipSlot);
         }
 
-        if (itemData is Manager_Item equipment)
+        if (item is Manager_Item equipment)
         {
             Equip(equipment, equipSlot);
             currentEquipment[(int)equipSlot] = equipment;
-            Manager_UI.instance.UpdateInventoryUI();
+            // Manager_UI.instance.UpdateInventoryUI();
         }
         else
         {
@@ -70,22 +66,36 @@ public class Equipment_Manager : MonoBehaviour
         }
     }
 
-    public void Equip(Manager_Item equipment, EquipmentSlot equipSlot)
+    public void Equip(Manager_Item item, EquipmentSlot equipSlot)
     {
         if (currentEquipment[(int)equipSlot] != null)
         {
             Unequip(equipSlot);
         }
 
-        currentEquipment[(int)equipSlot] = equipment;
-        object[] data = (object[])Manager_Item.GetItemData(equipment.itemID);
-        Sprite itemSprite = (Sprite)data[6];
-        equippedIcons[(int)equipSlot] = itemSprite;
-        
-        // Manager_Stats.UpdateStats(equipment, true);
-        Manager_UI.instance.UpdateInventoryUI();
+        currentEquipment[(int)equipSlot] = item;
 
-        Debug.Log("New equipment does not exist? Weird...");
+        switch (item.itemType)
+        {
+            case ItemType.Weapon:
+                List_Weapon weaponData = (List_Weapon)Manager_Item.GetItemData(item.itemID);
+                equippedIcons[(int)equipSlot] = weaponData.itemIcon;
+                break;
+            case ItemType.Armour:
+                List_Armour armourData = (List_Armour)Manager_Item.GetItemData(item.itemID);
+                equippedIcons[(int)equipSlot] = armourData.itemIcon;
+                break;
+            case ItemType.Consumable:
+                List_Consumable consumableData = (List_Consumable)Manager_Item.GetItemData(item.itemID);
+                equippedIcons[(int)equipSlot] = consumableData.itemIcon;
+                break;
+            default:
+                Debug.LogError("Invalid item type");
+                break;
+        }
+
+        // Manager_Stats.UpdateStats(equipment, true);
+        // Manager_UI.instance.UpdateInventoryUI();
     }
 
     public Manager_Item Unequip(EquipmentSlot equipSlot)
@@ -98,7 +108,7 @@ public class Equipment_Manager : MonoBehaviour
             equippedIcons[(int)equipSlot] = null;
 
             // Manager_Stats.UpdateStats(previousEquipment, false);
-            Manager_UI.instance.UpdateInventoryUI();
+            // Manager_UI.instance.UpdateInventoryUI();
 
             return previousEquipment;
         }

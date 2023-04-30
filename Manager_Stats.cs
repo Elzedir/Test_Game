@@ -23,7 +23,7 @@ public class Manager_Stats : MonoBehaviour
 
     private void Start()
     {
-        UpdateStats();
+        // UpdateStats();
     }
 
     void UpdateStatsOnEquipmentChanged(Manager_Item newEquipment, Manager_Item previousEquipment)

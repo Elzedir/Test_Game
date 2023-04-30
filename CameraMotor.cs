@@ -5,16 +5,26 @@ using UnityEngine;
 public class CameraMotor : MonoBehaviour
 {
     private Transform lookAt;
+    public Player player;
     public float boundX = 0.15f;
     public float boundY = 0.05f;
 
     private void Start()
     {
-        lookAt = GameObject.Find("Player").transform;
+        player = FindObjectOfType<Player>();
+        lookAt = player.transform;
     }
 
     private void LateUpdate()
     {
+        
+        // Need to replace this with an event or delegate which will change the camara focus on playerscript change.
+        Player player = FindObjectOfType<Player>();
+        if (player != null)
+        {
+            lookAt = player.transform;
+        }
+
         Vector3 delta = Vector3.zero;
 
         // This is to check if we're inside the bounds on the X axis.

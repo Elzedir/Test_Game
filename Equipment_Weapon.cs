@@ -15,7 +15,7 @@ public class Equipment_Weapon : Equipment_Manager
     public Equipment_Manager equipmentManager;
     public Manager_Stats statsManager;
 
-    public EquipmentSlot weaponSlot = EquipmentSlot.Weapon;
+    private EquipmentSlot weaponSlot = EquipmentSlot.Weapon;
 
     public delegate void AttackAnimationDelegate(Animator animator);
 
@@ -24,29 +24,13 @@ public class Equipment_Weapon : Equipment_Manager
     public Animator weaponAnimator;
     public Equipment_Manager[] statModifiers;
     public int allowedWeaponType;
-    public string weaponName;
-    public string weaponType
-    {
-        get
-        {
-            if (item != null && item is List_Weapon weapon)
-            {
-                return weapon.itemType;
-            }
-
-            else
-            {
-                return "Invalid weapon type for " + this.item;
-            }
-        }
-    }
+    protected string weaponName;
 
     public BoxCollider2D WepCollider;
-    protected LayerMask wepCanAttack;
+    public LayerMask wepCanAttack;
 
     protected virtual void Start()
     {
-        equipmentManager = GetComponentInParent<Equipment_Manager>();
         statsManager = GetComponentInParent<Manager_Stats>();
         weaponAnimator = GetComponent<Animator>();
         WepCollider = GetComponent<BoxCollider2D>();
@@ -54,19 +38,11 @@ public class Equipment_Weapon : Equipment_Manager
     }
     protected virtual void FixedUpdate()
     {
-        if (wepCanAttack == 1)
-        // If wepCanAttack belongs to the player layer, then attack when we button press.
-        {
-            if (Input.GetKeyDown(KeyCode.Mouse0))
-            {
-                Attack();
-            }
-        }
+        
     }
    
-    protected virtual void Attack()
+    public virtual void Attack()
     {
-        Debug.Log(this.name + " attacked");
         Debug.Log(this.name + " attacked");
 
         AttackAnimation?.Invoke(weaponAnimator);
