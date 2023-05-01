@@ -2,26 +2,38 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class List_Armour : Manager_Item
+public enum ArmourType
 {
-    public static List<List_Armour> allArmourData;
+    Chest,
+    Head,
+    Legs,
+    Feet
+}
+
+public class List_Armour : List_Item
+{
+    public static List<List_Item> allArmourData = new List<List_Item>();
 
     public ArmourType armourType;
-    public enum ArmourType
+
+    public string armourName;
+    public Sprite armourIcon;
+    public float healthBonus;
+    public float physicalDefence;
+    public float magicalDefence;
+
+    public override void Start()
     {
-        Chest,
-        Head,
-        Legs,
-        Feet
+        List_Armour.allArmourData = new List<List_Item>();
+        List_Armour.InitializeArmourData();
     }
 
-    public List_Armour(int itemID, ItemType itemType, ArmourType armourType, string itemName, Sprite itemIcon)
+    public List_Armour(int itemID, ArmourType armourType, string armourName, Sprite armourIcon)
     {
         this.itemID = itemID;
-        this.itemType = itemType;
         this.armourType = armourType;
-        this.itemName = itemName;
-        this.itemIcon = itemIcon;
+        this.armourName = armourName;
+        this.armourIcon = armourIcon;
     }
 
     public static void InitializeArmourData()

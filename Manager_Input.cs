@@ -16,6 +16,10 @@ public class Manager_Input : MonoBehaviour
 
     public static Manager_Input Instance { get { return instance; } }
 
+    public GameObject inventoryEquippable;
+    public GameObject inventoryNotEquippable;
+    public GameObject inventoryCanvas;
+
     private void Awake()
     {
         instance = this;
@@ -38,35 +42,81 @@ public class Manager_Input : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
                 Debug.Log("Left mouse button clicked");
-                Actor actor = player.GetComponent<Actor>();
 
-                if (actor != null)
+                GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
+
+                Inventory_Manager inventoryWindowScript = Inventory_Manager.GetInventoryType(interactedObject);
+
+                if (inventoryWindowScript is Inventory_Equippable)
                 {
-                    actor.Attack();
+                    _ = Instantiate(inventoryEquippable);
                 }
+                else if (inventoryWindowScript is Inventory_Animal)
+                {
+                    _ = Instantiate(inventoryNotEquippable);
+                }
+                else
+                {
+                    Debug.Log("Inventory invalid");
+                }
+
+                if (inventoryWindowScript != null)
+                {
+                    inventoryWindowScript.SetName(gameObject.name);
+                }
+
+                inventoryCanvas.transform.SetParent(inventoryCanvas.transform, false);
+                inventoryCanvas.transform.position = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+
+
             }
+        }
+
+            #region hidden
+            //Actor actor = player.GetComponent<Actor>();
+
+            //if (actor != null)
+            //{
+            //    actor.Attack();
+            //}
+            #endregion
+        
 
             if (Input.GetKeyDown(KeyCode.Mouse1))
             {
                 int itemID = 1;
 
-                Manager_Item item = Manager_Item.GetItemData(itemID);
+                List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
 
-                if (item != null)
+                if (player != null)
                 {
-                    Equipment_Manager manager = player.GetComponent<Equipment_Manager>();
+                    Inventory_Manager inventoryManager = player.GetComponent<Inventory_Manager>();
 
-                    if (manager != null)
+                    if (inventoryManager != null)
                     {
-                        manager.EquipCheck(item, Equipment_Manager.EquipmentSlot.Weapon);
+                        inventoryManager.AddItem(item);
                     }
                 }
-                else
-                {
-                    Debug.Log("Item " + itemID + " is not a weapon");
-                }
+
+                #region GetItemData
+
+                // List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
+
+                //if (item != null)
+                //{
+                //    Equipment_Manager manager = player.GetComponent<Equipment_Manager>();
+
+                //    if (manager != null)
+                //    {
+                //        manager.EquipCheck(item, Equipment_Manager.EquipmentSlot.Weapon);
+                //    }
+                //}
+                //else
+                //{
+                //    Debug.Log("Item " + itemID + " is not a weapon");
+                //}
+                #endregion
             }
-        }
 
         if (Input.GetKeyDown(KeyCode.E))
         {

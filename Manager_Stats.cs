@@ -6,7 +6,7 @@ using UnityEngine;
 public class Manager_Stats : MonoBehaviour
 {
     // General
-    private Equipment_Manager EquipmentManager;
+    private Equipment_Manager equipmentManager;
     private Actor actor;
 
     // Damager
@@ -23,10 +23,11 @@ public class Manager_Stats : MonoBehaviour
 
     private void Start()
     {
-        // UpdateStats();
+        equipmentManager = GetComponent<Equipment_Manager>();
+        UpdateStats();
     }
 
-    void UpdateStatsOnEquipmentChanged(Manager_Item newEquipment, Manager_Item previousEquipment)
+    void UpdateStatsOnEquipmentChanged(List_Item newEquipment, List_Item previousEquipment)
     {
         // Need to change
         UpdateStats();
@@ -34,15 +35,26 @@ public class Manager_Stats : MonoBehaviour
 
     public void UpdateStats()
     {
-        // Complete update stats for damage, resistance, health, 
-        
-        for (int i = 0; i < EquipmentManager.currentEquipment.Length; i++)
+        maxHealth = 0;
+        physicalDefence = 0;
+        magicalDefence = 0;
+
+        for (int i = 0; i < equipmentManager.currentEquipment.Length; i++)
         {
-            if (EquipmentManager.currentEquipment[i] != null)
+            if (equipmentManager.currentEquipment[i] is List_Weapon weapon)
             {
-                //maxHealth += equipmentManager.currentEquipment[i].health;
+                damageAmount += weapon.weaponDamage;
+                pushForce += weapon.weaponForce;
+            }
+            else if (equipmentManager.currentEquipment[i] is List_Armour armour)
+            {
+                maxHealth += armour.healthBonus;
+                physicalDefence += armour.physicalDefence;
+                magicalDefence += armour.magicalDefence;
             }
         }
+
+        maxHealth += actor.baseHitpoints;
 
         if (currentHealth > maxHealth)
         {
@@ -52,12 +64,26 @@ public class Manager_Stats : MonoBehaviour
 
     public void ReciveDamage(int damage)
     {
-        //Actor.ReceiveDamage();
+        // Apply damage and calculate damage reduction
+        float totalDefence = physicalDefence + magicalDefence;
+        float damageReduction = totalDefence / (totalDefence + 100);
+        float finalDamage = damage * (1 - damageReduction);
+
+        currentHealth -= finalDamage;
+
+        if (currentHealth <= 0)
+        {
+            // Death();
+        }
     }
 
     public void RestoreHealth(int amount)
     {
-        // Simply do the opposite of this
-        //Actor.ReceiveDamage();
+        currentHealth += amount;
+
+        if (currentHealth > maxHealth)
+        {
+            currentHealth = maxHealth;
+        }
     }
 }

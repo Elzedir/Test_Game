@@ -19,12 +19,16 @@ public abstract class Inventory_Manager : MonoBehaviour
     #region fields
 
     // Inventory items
-    private int _inventorySize = 16;
+    private int _inventorySize = 10;
     private List<Inventory_Slot> _inventorySlots = new();
     private List<int> _inventoryItemIDs = new();
-    private List<Manager_Item> _inventoryItems = new();
-
+    private List<List_Item> _inventoryItems = new();
+    [SerializeField] private List<int> _inventoryItemData = new();
+    [SerializeField] public abstract RectTransform inventoryUIBase { get; }
+    
     public event Action InventoryChanged;
+
+    public Text nameText;
 
     public int InventorySize
     {
@@ -44,19 +48,29 @@ public abstract class Inventory_Manager : MonoBehaviour
         set { _inventoryItemIDs = value; }
     }
 
-    public List<Manager_Item> InventoryItems
+    public List<List_Item> InventoryItems
     {
         get { return _inventoryItems; }
         set { _inventoryItems = value; }
+    }
+
+    public List<int> InventoryItemData
+    {
+        get { return _inventoryItemData; }
+        set { _inventoryItemData = value; }
     }
     #endregion
 
     protected virtual void Awake()
     {
+        InventoryItemData = new List<int>();
+
         for (int i = 0; i < _inventorySize; i++)
         {
             _inventorySlots.Add(ScriptableObject.CreateInstance<Inventory_Slot>());
         }
+
+        Debug.Log(_inventorySlots.Count);
     }
 
     protected void SaveInventory()
@@ -75,7 +89,24 @@ public abstract class Inventory_Manager : MonoBehaviour
 
         foreach (int itemId in _inventoryItemIDs)
         {
-            Manager_Item item = (Manager_Item)Manager_Item.GetItemData(itemId);
+            List_Item item = null;
+
+            switch (item)
+            {
+                case List_Weapon weapon:
+                    item = List_Item.GetItemData(item.itemID, List_Weapon.allWeaponData);
+                    break;
+                case List_Armour armour:
+                    item = List_Item.GetItemData(item.itemID, List_Armour.allArmourData);
+                    break;
+                case List_Consumable consumable:
+                    item = List_Item.GetItemData(item.itemID, List_Consumable.allConsumableData);
+                    break;
+                default:
+                    item = null;
+                    break;
+            }
+
             if (item != null)
             {
                 _inventoryItems.Add(item);
@@ -88,13 +119,11 @@ public abstract class Inventory_Manager : MonoBehaviour
         }
     }
 
-    public virtual void AddItem(int itemID)
+    public virtual void AddItem(List_Item item)
     {
-        Manager_Item newItem = (Manager_Item)Manager_Item.GetItemData(itemID);
-
-        if (newItem != null)
+        if (item != null)
         {
-            Inventory_Slot existingSlot = _inventorySlots.Where(slot => slot.item != null && slot.item.itemID == itemID && slot.currentStackSize < Manager_Item.instance.maxStackSize).FirstOrDefault();
+            Inventory_Slot existingSlot = _inventorySlots.Where(slot => slot.item != null && slot.item.itemID == item.itemID && slot.currentStackSize < item.maxStackSize).FirstOrDefault();
 
             if (existingSlot != null)
             {
@@ -105,30 +134,46 @@ public abstract class Inventory_Manager : MonoBehaviour
             {
                 Inventory_Slot emptySlot = _inventorySlots.FirstOrDefault(slot => slot.item == null);
 
+                Debug.Log(emptySlot);
+
                 if (emptySlot != null)
                 {
-                    switch (newItem.itemType)
-                    {
-                        case ItemType.Weapon:
-                            _inventoryItems.Add(new List_Weapon(itemID, ItemType.Weapon, (newItem as List_Weapon).weaponType, newItem.itemName, newItem.maxStackSize, newItem.itemValue,  newItem.itemDamage, newItem.itemSpeed, newItem.itemForce, newItem.itemRange, newItem.itemIcon));
-                            break;
-                        case ItemType.Armour:
-                            _inventoryItems.Add(new List_Armour(itemID, newItem.itemType, (newItem as List_Armour).armourType, newItem.itemName, newItem.itemIcon));
-                            break;
-                        case ItemType.Consumable:
-                            _inventoryItems.Add(new List_Consumable(itemID, newItem.itemType, (newItem as List_Consumable).consumableType, newItem.itemName, newItem.itemValue, newItem.itemIcon));
-                            break;
-                        default:
-                            Debug.LogError("Invalid item type");
-                            break;
-                    }
+                    emptySlot.item = item;
+                    emptySlot.currentStackSize = 1;
+
+                    _inventoryItems.Add(item);
+                    InventoryItemData.Add(item.itemID);
+
+                    int emptySlotIndex = _inventorySlots.FindIndex(slot => slot.item == null);
+                    // get the inventory slot game object at the empty slot index
+                    GameObject emptySlotGO = inventoryUIBase.GetChild(emptySlotIndex).gameObject;
+                    // get the Inventory_Slot component on the inventory slot game object
+                    Inventory_Slot inventorySlot = emptySlotGO.GetComponent<Inventory_Slot>();
+                    UpdateSlotUI(emptySlotIndex, emptySlot);
+                }
+                else
+                {
+                    Debug.Log("Inventory full");
+                    return;
                 }
             }
         }
 
+
         else
         {
-            Debug.LogError("Invalid item ID: " + itemID);
+            Debug.LogError("Invalid item ID: " + item.itemID);
+        }
+    }
+
+    public void PrintInventory()
+    {
+        for (int i = 0; i < _inventorySlots.Count; i++)
+        {
+            if (_inventorySlots[i].item != null)
+            {
+                Debug.Log($"Slot {i}: Item ID {_inventorySlots[i].item.itemID}");
+            }
         }
     }
 
@@ -157,7 +202,7 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public virtual void UpdateSlotUI(int slot, Inventory_Slot inventorySlot)
     {
-        Manager_Item item = inventorySlot.item;
+        List_Item item = inventorySlot.item;
 
         if (item == null)
         {
@@ -182,7 +227,7 @@ public abstract class Inventory_Manager : MonoBehaviour
         }
     }
 
-    public virtual void Add(Manager_Item item)
+    public virtual void Add(List_Item item)
     {
         _inventoryItems.Add(item);
         InventoryChanged.Invoke();
@@ -222,5 +267,39 @@ public abstract class Inventory_Manager : MonoBehaviour
                 sourceSlot.item = null;
             }
         }
+    }
+
+    public void SetName(string name)
+    {
+        nameText.text = name;
+    }
+
+    public static Inventory_Manager GetInventoryType(GameObject actor)
+    {
+        Inventory_Manager inventoryType = null;
+
+        Inventory_Equippable equippableInventory = actor.GetComponent<Inventory_Equippable>();
+
+        if (equippableInventory != null)
+        {
+            inventoryType = equippableInventory;
+        }
+
+        else
+        {
+            Inventory_Animal notEquippableInventory = actor.GetComponent<Inventory_Animal>();
+
+            if (notEquippableInventory != null)
+            {
+                inventoryType = notEquippableInventory;
+            }
+
+            else
+            {
+                Debug.Log("Does not have an inventory");
+            }
+        }
+
+        return inventoryType;
     }
 }

@@ -76,6 +76,13 @@ public class GameManager : MonoBehaviour
     protected virtual void Start()
     {
         SetFactions();
+
+        InitializeGameData();
+    }
+
+    void InitializeGameData()
+    {
+        List_Weapon.InitializeWeaponData();
     }
 
     // Floating Text
@@ -94,7 +101,7 @@ public class GameManager : MonoBehaviour
     //HUD Bar
     public void HUDBarChange()
     {
-        float healthRatio = (float)player.hitpoint / (float)player.maxHitpoint;
+        float healthRatio = (float)player.baseHitpoints / (float)player.maxHitpoint;
         healthBar.localScale = new Vector3(1, healthRatio, 1);
         // float manaRatio = (float)player.mana / (float)player.maxMana
         // manahBar.localScale = new Vector3(1, manaRatio, 1)
@@ -103,8 +110,6 @@ public class GameManager : MonoBehaviour
     }
 
     // Inventory
-    
-
 
     // Experience
     public int playerLevel()

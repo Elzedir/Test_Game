@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class Inventory_Animal : Inventory_Manager
+public class Inventory_Equippable : Inventory_Manager
 {
     public RectTransform inventoryUI;
     [SerializeField] public override RectTransform inventoryUIBase => inventoryUI;
@@ -13,4 +15,5 @@ public class Inventory_Animal : Inventory_Manager
 
         inventoryUI = GetComponent<RectTransform>();
     }
+
 }

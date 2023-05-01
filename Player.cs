@@ -10,7 +10,7 @@ public class Player : Actor
 {
     // References
     public Equipment_Manager equipmentManager;
-    public Manager_Item[] currentEquipment;
+    public List_Item[] currentEquipment;
     public Inventory_Manager inventory;
     public Manager_Stats statsManager;
 
@@ -65,7 +65,7 @@ public class Player : Actor
     public void LevelUp()
     {
         maxHitpoint++;
-        hitpoint = maxHitpoint;
+        baseHitpoints = maxHitpoint;
         maxMana++;
         mana = maxMana;
         maxStamina++;
@@ -81,13 +81,13 @@ public class Player : Actor
     }
     public void Heal(float healthRestore)
     {
-        if (hitpoint == maxHitpoint)
+        if (baseHitpoints == maxHitpoint)
             return;
 
-        hitpoint += healthRestore;
+        baseHitpoints += healthRestore;
         
-        if (hitpoint > maxHitpoint)
-            hitpoint = maxHitpoint;
+        if (baseHitpoints > maxHitpoint)
+            baseHitpoints = maxHitpoint;
 
         GameManager.instance.ShowFloatingText("+" + healthRestore.ToString() + "hp" , 25, Color.green, transform.position, Vector3.up * 30, 1.0f);
         GameManager.instance.HUDBarChange();

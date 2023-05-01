@@ -65,7 +65,7 @@ public class Menu : MonoBehaviour
     public void UpdateMenu()
     {
         // UI Bars
-        hitpointText.text = GameManager.instance.player.hitpoint.ToString();
+        hitpointText.text = GameManager.instance.player.baseHitpoints.ToString();
         goldText.text = GameManager.instance.gold.ToString();
         levelText.text = GameManager.instance.playerLevel().ToString();
 

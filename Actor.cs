@@ -37,7 +37,7 @@ public abstract class Actor : Hitbox
     protected Vector3 startingPosition;
     public float triggerLength;
     public float chaseLength;
-    public float hitpoint;
+    public float baseHitpoints;
     public float maxHitpoint;
     public float mana;
     public float maxMana;
@@ -246,13 +246,13 @@ public abstract class Actor : Hitbox
     {
         if (!dead)
         {
-            hitpoint -= dmg.damageAmount;
+            baseHitpoints -= dmg.damageAmount;
             pushDirection = (transform.position - dmg.origin).normalized * dmg.pushForce;
             GameManager.instance.ShowFloatingText(dmg.damageAmount.ToString(), 25, Color.red, transform.position, Vector3.up * 30, 0.5f);
 
-            if (hitpoint <= 0)
+            if (baseHitpoints <= 0)
             {
-                hitpoint = 0;
+                baseHitpoints = 0;
                 Death();
             }
         }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UIElements;
 using static UnityEditor.Progress;
 
@@ -19,14 +20,14 @@ public class Equipment_Manager : MonoBehaviour
         Feet = 5
     }
 
-    public Manager_Item[] currentEquipment = new Manager_Item[System.Enum.GetNames(typeof(EquipmentSlot)).Length];
+    public List_Item[] currentEquipment = new List_Item[System.Enum.GetNames(typeof(EquipmentSlot)).Length];
     protected Sprite[] equippedIcons;
-    public Manager_Item item;
+    public List_Item item;
     
     void Start()
     {
         equippedIcons = new Sprite[equipIndex];
-        currentEquipment = new Manager_Item[equipIndex];
+        currentEquipment = new List_Item[equipIndex];
 
         for (int i = 0; i < equipIndex; i++)
         {
@@ -35,7 +36,7 @@ public class Equipment_Manager : MonoBehaviour
         }
     }
 
-    public void EquipCheck(Manager_Item item, EquipmentSlot equipSlot)
+    public void EquipCheck(List_Item item, EquipmentSlot equipSlot)
     {
         if (item == null)
         {
@@ -54,7 +55,7 @@ public class Equipment_Manager : MonoBehaviour
             Unequip(equipSlot);
         }
 
-        if (item is Manager_Item equipment)
+        if (item is List_Item equipment)
         {
             Equip(equipment, equipSlot);
             currentEquipment[(int)equipSlot] = equipment;
@@ -66,7 +67,7 @@ public class Equipment_Manager : MonoBehaviour
         }
     }
 
-    public void Equip(Manager_Item item, EquipmentSlot equipSlot)
+    public void Equip(List_Item item, EquipmentSlot equipSlot)
     {
         if (currentEquipment[(int)equipSlot] != null)
         {
@@ -74,35 +75,19 @@ public class Equipment_Manager : MonoBehaviour
         }
 
         currentEquipment[(int)equipSlot] = item;
+        equippedIcons[(int)equipSlot] = item.itemIcon;
 
-        switch (item.itemType)
-        {
-            case ItemType.Weapon:
-                List_Weapon weaponData = (List_Weapon)Manager_Item.GetItemData(item.itemID);
-                equippedIcons[(int)equipSlot] = weaponData.itemIcon;
-                break;
-            case ItemType.Armour:
-                List_Armour armourData = (List_Armour)Manager_Item.GetItemData(item.itemID);
-                equippedIcons[(int)equipSlot] = armourData.itemIcon;
-                break;
-            case ItemType.Consumable:
-                List_Consumable consumableData = (List_Consumable)Manager_Item.GetItemData(item.itemID);
-                equippedIcons[(int)equipSlot] = consumableData.itemIcon;
-                break;
-            default:
-                Debug.LogError("Invalid item type");
-                break;
-        }
+        Debug.Log(item.itemName + " equipped");
 
-        // Manager_Stats.UpdateStats(equipment, true);
+        // Manager_Stats.UpdateStats();
         // Manager_UI.instance.UpdateInventoryUI();
     }
 
-    public Manager_Item Unequip(EquipmentSlot equipSlot)
+    public List_Item Unequip(EquipmentSlot equipSlot)
     {
         if (currentEquipment[(int)equipSlot] != null)
         {
-            Manager_Item previousEquipment = currentEquipment[(int)equipSlot];
+            List_Item previousEquipment = currentEquipment[(int)equipSlot];
             currentEquipment[(int)equipSlot] = null;
 
             equippedIcons[(int)equipSlot] = null;

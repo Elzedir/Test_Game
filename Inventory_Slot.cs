@@ -11,7 +11,7 @@ using UnityEngine.UI;
 public class Inventory_Slot : ScriptableObject, IDropHandler
 {
     public int slotIndex;
-    public Manager_Item item;
+    public List_Item item;
     public int item_ID
     {
         get
@@ -30,7 +30,7 @@ public class Inventory_Slot : ScriptableObject, IDropHandler
     public int currentStackSize;
     public TextMeshProUGUI stackSizeText;
 
-    public Inventory_Slot(int slotIndex, Manager_Item item, int currentStackSize)
+    public Inventory_Slot(int slotIndex, List_Item item, int currentStackSize)
     {
         this.slotIndex = slotIndex;
         this.item = item;

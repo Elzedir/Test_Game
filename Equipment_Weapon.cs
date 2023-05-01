@@ -15,7 +15,7 @@ public class Equipment_Weapon : Equipment_Manager
     public Equipment_Manager equipmentManager;
     public Manager_Stats statsManager;
 
-    private EquipmentSlot weaponSlot = EquipmentSlot.Weapon;
+    // private EquipmentSlot weaponSlot = EquipmentSlot.Weapon;
 
     public delegate void AttackAnimationDelegate(Animator animator);
 
@@ -65,7 +65,7 @@ public class Equipment_Weapon : Equipment_Manager
 
         if ((FactionManager.instance.enemyHumanCanAttack & targetLayerMask) != 0)
         {
-            Manager_Item weapon = currentEquipment[(int)EquipmentSlot.Weapon];
+            List_Item weapon = currentEquipment[(int)EquipmentSlot.Weapon];
 
             if (weapon == null)
             {

@@ -2,26 +2,43 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class List_Consumable : Manager_Item
+public enum ConsumableType
 {
-    public static List<List_Consumable> allConsumableData;
+    HealthPotion,
+    ManaPotion,
+    StaminaPotion
+}
+
+public class List_Consumable : List_Item
+{
+    public static List<List_Item> allConsumableData = new List<List_Item>();
 
     public ConsumableType consumableType;
-    public enum ConsumableType
+    
+    public string consName;
+    public int consValue;
+    public Sprite consIcon;
+
+    public override void Start()
     {
-        HealthPotion,
-        ManaPotion,
-        StaminaPotion
+        allConsumableData = new List<List_Item>();
+        InitializeConsumableData();
     }
 
-    public List_Consumable(int itemID, ItemType itemType, ConsumableType consumableType, string itemName, float consValue, Sprite consIcon)
+    public List_Consumable
+        (int itemID, 
+        ConsumableType consumableType, 
+        string consName, 
+        int consValue, 
+        Sprite consIcon, 
+        int maxStackSize)
     {
         this.itemID = itemID;
-        this.itemType = itemType;
         this.consumableType = consumableType;
-        this.itemName = itemName;
-        this.itemValue = consValue;
-        this.itemIcon = consIcon;
+        this.consName = consName;
+        this.consValue = consValue;
+        this.consIcon = consIcon;
+        this.maxStackSize = maxStackSize;
     }
 
     public static void InitializeConsumableData()
@@ -31,6 +48,15 @@ public class List_Consumable : Manager_Item
 
     static void Potions()
     {
+        Sprite test_spr = Resources.Load<Sprite>("Assets/Artwork/Assets/0_Assets/Atlas/at_dungeon_01/obj_wep_m_ss_01");
+        List_Consumable potions = new List_Consumable
+            (2, 
+            ConsumableType.HealthPotion, 
+            "Health Potion", 
+            100, 
+            test_spr, 
+            99);
 
+        AddToList(allConsumableData, potions);
     }
 }

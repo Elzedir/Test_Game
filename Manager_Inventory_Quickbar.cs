@@ -10,9 +10,19 @@ using UnityEngine.UIElements;
 public class Manager_Inventory_Quickbar : Inventory_Manager
 {
     public UnityEngine.UI.Button[] quickbarButtons;
-    public Manager_Item[] quickbarItems;
+    public List_Item[] quickbarItems;
     public int quickbarIndex;
     public int selectedItemIndex = -1;
+
+    public RectTransform inventoryUI;
+    [SerializeField] public override RectTransform inventoryUIBase => inventoryUI;
+
+    protected override void Awake()
+    {
+        base.Awake();
+
+        inventoryUI = GetComponent<RectTransform>();
+    }
 
     public void Start()
     {
@@ -60,8 +70,8 @@ public class Manager_Inventory_Quickbar : Inventory_Manager
 
     public void SwapQuickbarSlots(int slotIndex1, int slotIndex2)
     {
-        Manager_Item item1 = quickbarItems[slotIndex1];
-        Manager_Item item2 = quickbarItems[slotIndex2];
+        List_Item item1 = quickbarItems[slotIndex1];
+        List_Item item2 = quickbarItems[slotIndex2];
 
         quickbarItems[slotIndex1] = item2;
         quickbarItems[slotIndex2] = item1;
@@ -73,7 +83,7 @@ public class Manager_Inventory_Quickbar : Inventory_Manager
     {
         for (int i = 0; i < quickbarItems.Length; i++)
         {
-            Manager_Item item = quickbarItems[i];
+            List_Item item = quickbarItems[i];
             Manager_Inventory_Quickbar_Button button = quickbarButtons[i];
 
             if (item != null)
