@@ -24,7 +24,7 @@ public class Manager_Stats : MonoBehaviour
     private void Start()
     {
         equipmentManager = GetComponent<Equipment_Manager>();
-        UpdateStats();
+        //UpdateStats();
     }
 
     void UpdateStatsOnEquipmentChanged(List_Item newEquipment, List_Item previousEquipment)

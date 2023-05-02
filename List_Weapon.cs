@@ -57,10 +57,10 @@ public class List_Weapon : List_Item
             weapon.Start();
         }
 
-        foreach (var item in allWeaponData)
-        {
-            Debug.Log("item itemID: " + item.itemID + ", itemName: " + item.itemName);
-        }
+        //foreach (var item in allWeaponData)
+        //{
+        //    Debug.Log("item itemID: " + item.itemID + ", itemName: " + item.itemName);
+        //}
     }
 
     static void Shortswords()

@@ -1,15 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using static UnityEditor.Progress;
 
 public class Manager_Input : MonoBehaviour
 {
     public static Manager_Input instance;
-    private Actor actor;
-    private Inventory_Manager inventory;
-    public GameObject player;
+    public Player player;
 
     private Dictionary<string, KeyCode> keyBindings = new Dictionary<string, KeyCode>();
     private Dictionary<string, System.Action> keyListeners = new Dictionary<string, System.Action>();
@@ -23,8 +22,11 @@ public class Manager_Input : MonoBehaviour
     private void Awake()
     {
         instance = this;
-        actor = GetComponent<Actor>();
-        inventory = GetComponent<Inventory_Manager>();
+    }
+
+    private void Start()
+    {
+        
     }
 
     public void AddKeyListener(string keyName, System.Action action, KeyCode keyCode)
@@ -33,57 +35,55 @@ public class Manager_Input : MonoBehaviour
         keyListeners.Add(keyName, action);
     }
 
-    void FixedUpdate()
+    void Update()
     {
-        Player player = FindObjectOfType<Player>();
+        player = FindObjectOfType<Player>(); // Need to change this to a function so that it only happens as a part of character change that it will
+        // update finding who is the player
 
         if (player != null)
         {
-            if (Input.GetKeyDown(KeyCode.Mouse0))
+            if (Input.GetKeyDown(KeyCode.I))
             {
-                Debug.Log("Left mouse button clicked");
+                Debug.Log("I pressed");
+
+                OpenInventory();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Debug.Log("Escape key pressed");
+
+                GameObject mostRecentInventory = Inventory_Manager.GetMostRecentInventory();
+                Inventory_Window inventoryWindow = mostRecentInventory.GetComponent<Inventory_Window>();
 
                 GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
+                Inventory_Manager inventoryScript = Inventory_Manager.InventoryType(interactedObject);
 
-                Inventory_Manager inventoryWindowScript = Inventory_Manager.GetInventoryType(interactedObject);
+                if (mostRecentInventory != null)
+                {
+                    inventoryScript.ClosedInventoryWindow();
+                    inventoryWindow.DestroyInventoryWindow();
+                }
 
-                if (inventoryWindowScript is Inventory_Equippable)
-                {
-                    _ = Instantiate(inventoryEquippable);
-                }
-                else if (inventoryWindowScript is Inventory_Animal)
-                {
-                    _ = Instantiate(inventoryNotEquippable);
-                }
                 else
                 {
-                    Debug.Log("Inventory invalid");
+                    Debug.Log("Most recent inventory is null");
                 }
-
-                if (inventoryWindowScript != null)
-                {
-                    inventoryWindowScript.SetName(gameObject.name);
-                }
-
-                inventoryCanvas.transform.SetParent(inventoryCanvas.transform, false);
-                inventoryCanvas.transform.position = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
-
-
             }
-        }
 
-            #region hidden
-            //Actor actor = player.GetComponent<Actor>();
+            if (Input.GetKeyDown(KeyCode.Mouse6))
+            {
+                Actor actor = player.GetComponent<Actor>();
 
-            //if (actor != null)
-            //{
-            //    actor.Attack();
-            //}
-            #endregion
-        
+                if (actor != null)
+                {
+                    actor.Attack();
+                }
+            }
 
             if (Input.GetKeyDown(KeyCode.Mouse1))
             {
+                Debug.Log("Right mouse click");
                 int itemID = 1;
 
                 List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
@@ -118,11 +118,12 @@ public class Manager_Input : MonoBehaviour
                 #endregion
             }
 
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            // Interact, can use a delegate for the interact button which would see what it is you're interacting with.
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                // Interact, can use a delegate for the interact button which would see what it is you're interacting with.
+            }
         }
-
+        
         foreach (KeyValuePair<string, KeyCode> keyBinding in keyBindings)
         {
             if (Input.GetKeyDown(keyBinding.Value))
@@ -134,4 +135,41 @@ public class Manager_Input : MonoBehaviour
             }
         }
     }
+    void OpenInventory()
+    {
+        GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
+        Inventory_Manager inventoryScript = Inventory_Manager.InventoryType(interactedObject); ;
+        if (!inventoryScript.IsOpen)
+        {
+            if (inventoryScript is Inventory_Equippable)
+            {
+                GameObject inventoryWindow = Instantiate(inventoryEquippable);
+                inventoryWindow.transform.SetParent(inventoryCanvas.transform, false);
+                inventoryWindow.transform.position = new UnityEngine.Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+                Inventory_Window inventoryWindowController = inventoryWindow.GetComponent<Inventory_Window>();
+                inventoryWindowController.SetInventoryWindow(interactedObject.name);
+                inventoryScript.OpenedInventoryWindow(inventoryWindow);
+
+            }
+            else if (inventoryScript is Inventory_NotEquippable)
+            {
+                GameObject inventoryWindow = Instantiate(inventoryNotEquippable);
+                inventoryWindow.transform.SetParent(inventoryCanvas.transform, false);
+                inventoryWindow.transform.position = new UnityEngine.Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+                Inventory_Window inventoryWindowController = inventoryWindow.GetComponent<Inventory_Window>();
+                inventoryWindowController.SetInventoryWindow(interactedObject.name);
+                inventoryScript.OpenedInventoryWindow(inventoryWindow);
+            }
+            else
+            {
+                Debug.Log("Inventory invalid");
+            }
+        }
+
+        else
+        {
+            inventoryScript.InventoryMoveToFront();
+            Debug.Log(inventoryScript.name + "'s inventory is already open");
+        }
+    }   
 }

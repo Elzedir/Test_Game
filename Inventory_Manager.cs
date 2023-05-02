@@ -13,6 +13,8 @@ using static Equipment_Manager;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using UnityEngine.UIElements;
+using System.Numerics;
+using Unity.VisualScripting.Antlr3.Runtime;
 
 public abstract class Inventory_Manager : MonoBehaviour
 {
@@ -24,11 +26,11 @@ public abstract class Inventory_Manager : MonoBehaviour
     private List<int> _inventoryItemIDs = new();
     private List<List_Item> _inventoryItems = new();
     [SerializeField] private List<int> _inventoryItemData = new();
+    public static List<GameObject> openInventories = new List<GameObject>();
     [SerializeField] public abstract RectTransform inventoryUIBase { get; }
+    public bool IsOpen;
     
     public event Action InventoryChanged;
-
-    public Text nameText;
 
     public int InventorySize
     {
@@ -69,10 +71,8 @@ public abstract class Inventory_Manager : MonoBehaviour
         {
             _inventorySlots.Add(ScriptableObject.CreateInstance<Inventory_Slot>());
         }
-
-        Debug.Log(_inventorySlots.Count);
     }
-
+    #region Save and Load
     protected void SaveInventory()
     {
         string itemIDString = string.Join(",", _inventoryItemIDs.Select(x => x.ToString()).ToArray());
@@ -118,7 +118,8 @@ public abstract class Inventory_Manager : MonoBehaviour
             }
         }
     }
-
+    #endregion
+    #region Adding and Removing items
     public virtual void AddItem(List_Item item)
     {
         if (item != null)
@@ -268,17 +269,12 @@ public abstract class Inventory_Manager : MonoBehaviour
             }
         }
     }
-
-    public void SetName(string name)
-    {
-        nameText.text = name;
-    }
-
-    public static Inventory_Manager GetInventoryType(GameObject actor)
+    #endregion
+    #region Inventory Windows
+    public static Inventory_Manager InventoryType(GameObject interactedObject)
     {
         Inventory_Manager inventoryType = null;
-
-        Inventory_Equippable equippableInventory = actor.GetComponent<Inventory_Equippable>();
+        Inventory_Equippable equippableInventory = interactedObject.GetComponent<Inventory_Equippable>();
 
         if (equippableInventory != null)
         {
@@ -287,7 +283,7 @@ public abstract class Inventory_Manager : MonoBehaviour
 
         else
         {
-            Inventory_Animal notEquippableInventory = actor.GetComponent<Inventory_Animal>();
+            Inventory_NotEquippable notEquippableInventory = interactedObject.GetComponent<Inventory_NotEquippable>();
 
             if (notEquippableInventory != null)
             {
@@ -301,5 +297,49 @@ public abstract class Inventory_Manager : MonoBehaviour
         }
 
         return inventoryType;
+
     }
+    public static GameObject GetMostRecentInventory()
+    {
+        if (openInventories.Count > 0)
+        {
+            return openInventories[openInventories.Count - 1];
+        }
+        else
+        {
+            return null;
+        }
+    }
+    public void OpenedInventoryWindow(GameObject inventoryGameObject)
+    {
+        openInventories.Add(inventoryGameObject);
+        Debug.Log(openInventories.Count);
+
+        if (!IsOpen)
+        {
+            IsOpen = true;
+        }
+    }
+    public void ClosedInventoryWindow()
+    {
+        if (openInventories.Count > 0)
+        {
+            GameObject mostRecentInventory = openInventories[openInventories.Count - 1];
+            openInventories.RemoveAt(openInventories.Count - 1);
+
+            if (IsOpen)
+            {
+                IsOpen = false;
+            }
+        }
+    }
+    public void InventoryMoveToFront()
+    {
+        if (openInventories.Count > 1)
+        {
+            openInventories.Remove(this.gameObject);
+            openInventories.Add(this.gameObject);
+        }
+    }
+    #endregion
 }
