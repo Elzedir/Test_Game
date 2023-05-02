@@ -18,6 +18,7 @@ public class Manager_Input : MonoBehaviour
     public GameObject inventoryEquippable;
     public GameObject inventoryNotEquippable;
     public GameObject inventoryCanvas;
+    public GameObject inventoryWindow;
 
     private void Awake()
     {
@@ -42,13 +43,51 @@ public class Manager_Input : MonoBehaviour
 
         if (player != null)
         {
-            if (Input.GetKeyDown(KeyCode.I))
+            if (Input.GetKeyDown(KeyCode.Mouse0))
             {
-                Debug.Log("I pressed");
+                Actor actor = player.GetComponent<Actor>();
 
-                OpenInventory();
+                if (actor != null)
+                {
+                    actor.Attack();
+                }
             }
+            if (Input.GetKeyDown(KeyCode.Mouse1))
+            {
+                Debug.Log("Right mouse click");
 
+                int itemID = 1;
+
+                List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
+
+                if (player != null)
+                {
+                    Inventory_Manager inventoryManager = player.GetComponent<Inventory_Manager>();
+
+                    if (inventoryManager != null)
+                    {
+                        inventoryManager.AddItem(item);
+                    }
+                }
+
+                #region EquipCheck
+                // List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
+
+                //if (item != null)
+                //{
+                //    Equipment_Manager manager = player.GetComponent<Equipment_Manager>();
+
+                //    if (manager != null)
+                //    {
+                //        manager.EquipCheck(item, Equipment_Manager.EquipmentSlot.Weapon);
+                //    }
+                //}
+                //else
+                //{
+                //    Debug.Log("Item " + itemID + " is not a weapon");
+                //}
+                #endregion
+            }
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 Debug.Log("Escape key pressed");
@@ -70,60 +109,18 @@ public class Manager_Input : MonoBehaviour
                     Debug.Log("Most recent inventory is null");
                 }
             }
-
-            if (Input.GetKeyDown(KeyCode.Mouse6))
-            {
-                Actor actor = player.GetComponent<Actor>();
-
-                if (actor != null)
-                {
-                    actor.Attack();
-                }
-            }
-
-            if (Input.GetKeyDown(KeyCode.Mouse1))
-            {
-                Debug.Log("Right mouse click");
-                int itemID = 1;
-
-                List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
-
-                if (player != null)
-                {
-                    Inventory_Manager inventoryManager = player.GetComponent<Inventory_Manager>();
-
-                    if (inventoryManager != null)
-                    {
-                        inventoryManager.AddItem(item);
-                    }
-                }
-
-                #region GetItemData
-
-                // List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
-
-                //if (item != null)
-                //{
-                //    Equipment_Manager manager = player.GetComponent<Equipment_Manager>();
-
-                //    if (manager != null)
-                //    {
-                //        manager.EquipCheck(item, Equipment_Manager.EquipmentSlot.Weapon);
-                //    }
-                //}
-                //else
-                //{
-                //    Debug.Log("Item " + itemID + " is not a weapon");
-                //}
-                #endregion
-            }
-
             if (Input.GetKeyDown(KeyCode.E))
             {
                 // Interact, can use a delegate for the interact button which would see what it is you're interacting with.
             }
+            if (Input.GetKeyDown(KeyCode.I))
+            {
+                Debug.Log("I pressed");
+
+                OpenInventory();
+            }
         }
-        
+
         foreach (KeyValuePair<string, KeyCode> keyBinding in keyBindings)
         {
             if (Input.GetKeyDown(keyBinding.Value))
@@ -139,31 +136,43 @@ public class Manager_Input : MonoBehaviour
     {
         GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
         Inventory_Manager inventoryScript = Inventory_Manager.InventoryType(interactedObject); ;
+
         if (!inventoryScript.IsOpen)
         {
             if (inventoryScript is Inventory_Equippable)
             {
-                GameObject inventoryWindow = Instantiate(inventoryEquippable);
-                inventoryWindow.transform.SetParent(inventoryCanvas.transform, false);
-                inventoryWindow.transform.position = new UnityEngine.Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
-                Inventory_Window inventoryWindowController = inventoryWindow.GetComponent<Inventory_Window>();
-                inventoryWindowController.SetInventoryWindow(interactedObject.name);
-                inventoryScript.OpenedInventoryWindow(inventoryWindow);
+                inventoryWindow = Instantiate(inventoryEquippable);
 
             }
             else if (inventoryScript is Inventory_NotEquippable)
             {
-                GameObject inventoryWindow = Instantiate(inventoryNotEquippable);
-                inventoryWindow.transform.SetParent(inventoryCanvas.transform, false);
-                inventoryWindow.transform.position = new UnityEngine.Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
-                Inventory_Window inventoryWindowController = inventoryWindow.GetComponent<Inventory_Window>();
-                inventoryWindowController.SetInventoryWindow(interactedObject.name);
-                inventoryScript.OpenedInventoryWindow(inventoryWindow);
+                inventoryWindow = Instantiate(inventoryNotEquippable);
             }
             else
             {
                 Debug.Log("Inventory invalid");
+                return;
             }
+
+            inventoryWindow.transform.SetParent(inventoryCanvas.transform, false);
+            inventoryWindow.transform.position = new UnityEngine.Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+            Inventory_Window inventoryWindowController = inventoryWindow.GetComponent<Inventory_Window>();
+            inventoryWindowController.SetInventoryWindow(interactedObject.name);
+
+            Inventory_Slot slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Slot>();
+            int inventorySize = inventoryScript.GetComponent<Inventory_Manager>().GetInventorySize();
+
+            if (inventoryScript.InventoryItemData == null || inventoryScript.InventoryItemData.Count == 0)
+            {
+                Debug.LogWarning("Inventory has no items.");
+            }
+            else
+            {
+                slotCreator.CreateSlots(inventorySize);
+            }
+
+            inventoryScript.OpenedInventoryWindow(inventoryWindow);
+            inventoryScript.UpdateInventoryUI();
         }
 
         else

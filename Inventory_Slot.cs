@@ -6,10 +6,11 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-[CreateAssetMenu(fileName = "New Inventory Slot", menuName = "Inventory/Inventory Slot")]
-
-public class Inventory_Slot : ScriptableObject, IDropHandler
+public class Inventory_Slot : MonoBehaviour, IDropHandler
 {
+    public GameObject inventorySlotPrefab;
+    public Transform inventoryArea;
+
     public int slotIndex;
     public List_Item item;
     public int item_ID
@@ -37,6 +38,14 @@ public class Inventory_Slot : ScriptableObject, IDropHandler
         this.currentStackSize = currentStackSize;
     }
 
+    public void CreateSlots(int numSlots)
+    {
+        for (int i = 0; i < numSlots; i++)
+        {
+            Instantiate(inventorySlotPrefab, inventoryArea);
+        }
+    }
+
     public bool IsEmpty()
     {
         return item == null;
@@ -52,5 +61,32 @@ public class Inventory_Slot : ScriptableObject, IDropHandler
         Inventory_Slot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().itemSlotIndex;
         int targetSlotIndex = slotIndex;
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
+    }
+
+    public virtual void UpdateSlotUI(int slot, Inventory_Slot inventorySlot)
+    {
+        List_Item item = inventorySlot.item;
+
+        if (item == null)
+        {
+            UnityEngine.UI.Image image = inventorySlot.GetComponent<UnityEngine.UI.Image>();
+            image.sprite = null;
+            return;
+        }
+
+        Sprite slotIcon = item.itemIcon;
+        UnityEngine.UI.Image img = inventorySlot.GetComponent<UnityEngine.UI.Image>();
+        img.sprite = item.itemIcon;
+
+        if (inventorySlot.currentStackSize > 1)
+        {
+            TextMeshProUGUI stackSizeText = inventorySlot.stackSizeText;
+            stackSizeText.text = inventorySlot.currentStackSize.ToString();
+            stackSizeText.enabled = true;
+        }
+        else
+        {
+            inventorySlot.stackSizeText.enabled = false;
+        }
     }
 }

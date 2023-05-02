@@ -21,8 +21,8 @@ public abstract class Inventory_Manager : MonoBehaviour
     #region fields
 
     // Inventory items
-    private int _inventorySize = 10;
-    private List<Inventory_Slot> _inventorySlots = new();
+    public int _inventorySize;
+    private List<Inventory_Slot> inventorySlots = new();
     private List<int> _inventoryItemIDs = new();
     private List<List_Item> _inventoryItems = new();
     [SerializeField] private List<int> _inventoryItemData = new();
@@ -40,8 +40,8 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public List<Inventory_Slot> InventorySlots
     {
-        get { return _inventorySlots; }
-        set { _inventorySlots = value; }
+        get { return inventorySlots; }
+        set { inventorySlots = value; }
     }
 
     public List<int> InventoryItemIDs
@@ -66,11 +66,6 @@ public abstract class Inventory_Manager : MonoBehaviour
     protected virtual void Awake()
     {
         InventoryItemData = new List<int>();
-
-        for (int i = 0; i < _inventorySize; i++)
-        {
-            _inventorySlots.Add(ScriptableObject.CreateInstance<Inventory_Slot>());
-        }
     }
     #region Save and Load
     protected void SaveInventory()
@@ -124,7 +119,7 @@ public abstract class Inventory_Manager : MonoBehaviour
     {
         if (item != null)
         {
-            Inventory_Slot existingSlot = _inventorySlots.Where(slot => slot.item != null && slot.item.itemID == item.itemID && slot.currentStackSize < item.maxStackSize).FirstOrDefault();
+            Inventory_Slot existingSlot = inventorySlots.Where(slot => slot.item != null && slot.item.itemID == item.itemID && slot.currentStackSize < item.maxStackSize).FirstOrDefault();
 
             if (existingSlot != null)
             {
@@ -133,7 +128,7 @@ public abstract class Inventory_Manager : MonoBehaviour
 
             else
             {
-                Inventory_Slot emptySlot = _inventorySlots.FirstOrDefault(slot => slot.item == null);
+                Inventory_Slot emptySlot = inventorySlots.FirstOrDefault(slot => slot.item == null);
 
                 Debug.Log(emptySlot);
 
@@ -145,12 +140,12 @@ public abstract class Inventory_Manager : MonoBehaviour
                     _inventoryItems.Add(item);
                     InventoryItemData.Add(item.itemID);
 
-                    int emptySlotIndex = _inventorySlots.FindIndex(slot => slot.item == null);
-                    // get the inventory slot game object at the empty slot index
+                    int emptySlotIndex = inventorySlots.FindIndex(slot => slot.item == null);
                     GameObject emptySlotGO = inventoryUIBase.GetChild(emptySlotIndex).gameObject;
-                    // get the Inventory_Slot component on the inventory slot game object
                     Inventory_Slot inventorySlot = emptySlotGO.GetComponent<Inventory_Slot>();
-                    UpdateSlotUI(emptySlotIndex, emptySlot);
+                    inventorySlot.UpdateSlotUI(emptySlotIndex, emptySlot);
+
+                    // Use floating text to display gold picked up
                 }
                 else
                 {
@@ -169,18 +164,18 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public void PrintInventory()
     {
-        for (int i = 0; i < _inventorySlots.Count; i++)
+        for (int i = 0; i < inventorySlots.Count; i++)
         {
-            if (_inventorySlots[i].item != null)
+            if (inventorySlots[i].item != null)
             {
-                Debug.Log($"Slot {i}: Item ID {_inventorySlots[i].item.itemID}");
+                Debug.Log($"Slot {i}: Item ID {inventorySlots[i].item.itemID}");
             }
         }
     }
 
     public virtual void RemoveItem(int itemID)
     {
-        Inventory_Slot existingSlot = _inventorySlots.FirstOrDefault(slot => slot.item != null && slot.item.itemID == itemID);
+        Inventory_Slot existingSlot = inventorySlots.FirstOrDefault(slot => slot.item != null && slot.item.itemID == itemID);
         if (existingSlot != null)
         {
             existingSlot.currentStackSize--;
@@ -201,32 +196,29 @@ public abstract class Inventory_Manager : MonoBehaviour
         InventoryChanged.Invoke();
     }
 
-    public virtual void UpdateSlotUI(int slot, Inventory_Slot inventorySlot)
+    #endregion
+    #region UI
+    public void UpdateInventoryUI()
     {
-        List_Item item = inventorySlot.item;
-
-        if (item == null)
+        for (int i = 0; i < inventorySlots.Count; i++)
         {
-            UnityEngine.UI.Image image = inventorySlot.GetComponent<UnityEngine.UI.Image>();
-            image.sprite = null;
-            return;
-        }
+            Inventory_Slot inventorySlot = inventorySlots[i];
 
-        Sprite slotIcon = item.itemIcon;
-        UnityEngine.UI.Image img = inventorySlot.GetComponent<UnityEngine.UI.Image>();
-        img.sprite = item.itemIcon;
+            if (inventorySlot == null) continue;
 
-        if (inventorySlot.currentStackSize > 1)
-        {
-            TextMeshProUGUI stackSizeText = inventorySlot.stackSizeText;
-            stackSizeText.text = inventorySlot.currentStackSize.ToString();
-            stackSizeText.enabled = true;
-        }
-        else
-        {
-            inventorySlot.stackSizeText.enabled = false;
+            if (inventorySlot.item != null)
+            {
+                //inventorySlot.gameObject.SetActive(true);
+                inventorySlot.UpdateSlotUI(i, inventorySlot);
+            }
+            else
+            {
+                //inventorySlot.gameObject.SetActive(false);
+            }
         }
     }
+    #endregion
+
 
     public virtual void Add(List_Item item)
     {
@@ -236,8 +228,8 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public virtual void MoveItem(int sourceSlotIndex, int targetSlotIndex)
     {
-        Inventory_Slot sourceSlot = _inventorySlots[sourceSlotIndex];
-        Inventory_Slot targetSlot = _inventorySlots[targetSlotIndex];
+        Inventory_Slot sourceSlot = inventorySlots[sourceSlotIndex];
+        Inventory_Slot targetSlot = inventorySlots[targetSlotIndex];
 
         if (sourceSlot.IsEmpty() || targetSlot.IsFull())
         {
@@ -269,8 +261,12 @@ public abstract class Inventory_Manager : MonoBehaviour
             }
         }
     }
-    #endregion
+
     #region Inventory Windows
+    public int GetInventorySize()
+    {
+        return _inventorySize;
+    }
     public static Inventory_Manager InventoryType(GameObject interactedObject)
     {
         Inventory_Manager inventoryType = null;

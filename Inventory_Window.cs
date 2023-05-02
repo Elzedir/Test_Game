@@ -15,5 +15,4 @@ public class Inventory_Window : MonoBehaviour
     {
         Destroy(gameObject);
     }
-
 }
