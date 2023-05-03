@@ -8,9 +8,6 @@ using UnityEngine.UI;
 
 public class Inventory_Slot : MonoBehaviour, IDropHandler
 {
-    public GameObject inventorySlotPrefab;
-    public Transform inventoryArea;
-
     public int slotIndex;
     public List_Item item;
     public int item_ID
@@ -36,14 +33,6 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         this.slotIndex = slotIndex;
         this.item = item;
         this.currentStackSize = currentStackSize;
-    }
-
-    public void CreateSlots(int numSlots)
-    {
-        for (int i = 0; i < numSlots; i++)
-        {
-            Instantiate(inventorySlotPrefab, inventoryArea);
-        }
     }
 
     public bool IsEmpty()

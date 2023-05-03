@@ -22,7 +22,6 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     // Inventory items
     public int _inventorySize;
-    private List<Inventory_Slot> inventorySlots = new();
     private List<int> _inventoryItemIDs = new();
     private List<List_Item> _inventoryItems = new();
     [SerializeField] private List<int> _inventoryItemData = new();
@@ -36,12 +35,6 @@ public abstract class Inventory_Manager : MonoBehaviour
     {
         get { return _inventorySize; }
         set { _inventorySize = value; }
-    }
-
-    public List<Inventory_Slot> InventorySlots
-    {
-        get { return inventorySlots; }
-        set { inventorySlots = value; }
     }
 
     public List<int> InventoryItemIDs
@@ -115,47 +108,42 @@ public abstract class Inventory_Manager : MonoBehaviour
     }
     #endregion
     #region Adding and Removing items
-    public virtual void AddItem(List_Item item)
+    public virtual void AddItem(List_Item item, Inventory_Window inventoryWindow)
     {
         if (item != null)
         {
-            Inventory_Slot existingSlot = inventorySlots.Where(slot => slot.item != null && slot.item.itemID == item.itemID && slot.currentStackSize < item.maxStackSize).FirstOrDefault();
+            Inventory_Manager inventoryManager = GetComponent<Inventory_Manager>();
+            int inventorySize = inventoryManager.GetInventorySize();
 
-            if (existingSlot != null)
+            if (inventoryManager.InventoryItemData.Count >= inventorySize)
             {
-                existingSlot.currentStackSize++;
+                Debug.Log("Inventory bigger than max size");
+                return;
             }
 
+            int existingItemIndex = _inventoryItemIDs.IndexOf(item.itemID);
+            Inventory_Slot slot = inventoryWindow.FindInventorySlots(item);
+            Debug.Log(slot);
+
+            if (slot.item != null)
+            {
+                slot.currentStackSize++;
+                slot.UpdateSlotUI(slot.slotIndex, slot);
+            }
+            else if (slot.item == null)
+            {
+                slot.item = item;
+                slot.currentStackSize = 1;
+                _inventoryItemIDs.Add(item.itemID);
+                _inventoryItems.Add(item);
+                slot.UpdateSlotUI(slot.slotIndex, slot);
+            }
             else
             {
-                Inventory_Slot emptySlot = inventorySlots.FirstOrDefault(slot => slot.item == null);
-
-                Debug.Log(emptySlot);
-
-                if (emptySlot != null)
-                {
-                    emptySlot.item = item;
-                    emptySlot.currentStackSize = 1;
-
-                    _inventoryItems.Add(item);
-                    InventoryItemData.Add(item.itemID);
-
-                    int emptySlotIndex = inventorySlots.FindIndex(slot => slot.item == null);
-                    GameObject emptySlotGO = inventoryUIBase.GetChild(emptySlotIndex).gameObject;
-                    Inventory_Slot inventorySlot = emptySlotGO.GetComponent<Inventory_Slot>();
-                    inventorySlot.UpdateSlotUI(emptySlotIndex, emptySlot);
-
-                    // Use floating text to display gold picked up
-                }
-                else
-                {
-                    Debug.Log("Inventory full");
-                    return;
-                }
+                Debug.Log("Inventory full");
+                return;
             }
         }
-
-
         else
         {
             Debug.LogError("Invalid item ID: " + item.itemID);
@@ -173,16 +161,32 @@ public abstract class Inventory_Manager : MonoBehaviour
         }
     }
 
-    public virtual void RemoveItem(int itemID)
+    public virtual void RemoveItem(List_Item item)
     {
-        Inventory_Slot existingSlot = inventorySlots.FirstOrDefault(slot => slot.item != null && slot.item.itemID == itemID);
-        if (existingSlot != null)
+        int existingItemIndex = _inventoryItemIDs.IndexOf(item.itemID);
+
+        if (existingItemIndex >= 0)
         {
+            Inventory_Slot existingSlot = inventorySlots[existingItemIndex];
+
             existingSlot.currentStackSize--;
+
             if (existingSlot.currentStackSize <= 0)
             {
-                _inventoryItems.Remove(existingSlot.item);
-                existingSlot.item = null;
+                _inventoryItems.RemoveAt(existingItemIndex);
+                _inventoryItemIDs.RemoveAt(existingItemIndex);
+
+                GameObject slotGO = inventoryUIBase.GetChild(existingItemIndex).gameObject;
+                Inventory_Slot slot = slotGO.GetComponent<Inventory_Slot>();
+                slot.item = null;
+                slot.currentStackSize = 0;
+                slot.UpdateSlotUI(existingItemIndex, slot);
+            }
+            else
+            {
+                GameObject slotGO = inventoryUIBase.GetChild(existingItemIndex).gameObject;
+                Inventory_Slot slot = slotGO.GetComponent<Inventory_Slot>();
+                slot.UpdateSlotUI(existingItemIndex, slot);
             }
         }
         else
@@ -190,8 +194,6 @@ public abstract class Inventory_Manager : MonoBehaviour
             Debug.Log("Trying to RemoveItem, nothing to remove");
             return;
         }
-
-        // Spawn the item in the scene
 
         InventoryChanged.Invoke();
     }

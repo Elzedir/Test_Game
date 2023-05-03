@@ -66,7 +66,8 @@ public class Manager_Input : MonoBehaviour
 
                     if (inventoryManager != null)
                     {
-                        inventoryManager.AddItem(item);
+                        inventoryManager.AddItem(item, inventoryWindow);
+                        // If inventory is open, then we update the UI here.
                     }
                 }
 
@@ -159,16 +160,17 @@ public class Manager_Input : MonoBehaviour
             Inventory_Window inventoryWindowController = inventoryWindow.GetComponent<Inventory_Window>();
             inventoryWindowController.SetInventoryWindow(interactedObject.name);
 
-            Inventory_Slot slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Slot>();
+            Inventory_Creator slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Creator>();
             int inventorySize = inventoryScript.GetComponent<Inventory_Manager>().GetInventorySize();
+            Debug.Log(inventorySize);
 
-            if (inventoryScript.InventoryItemData == null || inventoryScript.InventoryItemData.Count == 0)
+            if (slotCreator != null)
             {
-                Debug.LogWarning("Inventory has no items.");
+                slotCreator.CreateSlots(inventorySize);
             }
             else
             {
-                slotCreator.CreateSlots(inventorySize);
+                Debug.Log("Slot creator doesn't exist");
             }
 
             inventoryScript.OpenedInventoryWindow(inventoryWindow);
