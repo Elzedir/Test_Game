@@ -17,6 +17,7 @@ public enum WeaponType
 public class List_Weapon : List_Item
 {
     public static List<List_Item> allWeaponData = new List<List_Item>();
+    public override List<List_Item> list => allWeaponData;
 
     public WeaponType weaponType;
     public float weaponDamage;

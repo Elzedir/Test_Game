@@ -57,8 +57,9 @@ public class Manager_Input : MonoBehaviour
                 Debug.Log("Right mouse click");
 
                 int itemID = 1;
+                int stackSize = 1;
 
-                List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
+                List_Item item = List_Item.GetItemData(itemID);
 
                 if (player != null)
                 {
@@ -66,7 +67,7 @@ public class Manager_Input : MonoBehaviour
 
                     if (inventoryManager != null)
                     {
-                        inventoryManager.AddItem(item, inventoryWindow);
+                        inventoryManager.AddItem(item, stackSize);
                         // If inventory is open, then we update the UI here.
                     }
                 }
@@ -174,7 +175,7 @@ public class Manager_Input : MonoBehaviour
             }
 
             inventoryScript.OpenedInventoryWindow(inventoryWindow);
-            inventoryScript.UpdateInventoryUI();
+            inventoryScript.UpdateInventoryUI(inventoryWindow);
         }
 
         else

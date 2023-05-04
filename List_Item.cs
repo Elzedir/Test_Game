@@ -14,7 +14,7 @@ public abstract class List_Item
     public Sprite itemIcon;
     public int maxStackSize;
     public int itemValue;
-
+    public abstract List<List_Item> list { get; }
     public virtual void Start()
     {
        
@@ -31,7 +31,7 @@ public abstract class List_Item
         list.Add(item);
     }
 
-    public static List_Item GetItemData(int itemID, List<List_Item> list)
+    public List_Item GetItemData(int itemID)
     {
         foreach (var data in list)
         {
@@ -42,5 +42,10 @@ public abstract class List_Item
         }
 
         return null;
+    }
+
+    public int GetMaxStackSize()
+    {
+        return maxStackSize;
     }
 }

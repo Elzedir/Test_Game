@@ -15,6 +15,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine.UIElements;
 using System.Numerics;
 using Unity.VisualScripting.Antlr3.Runtime;
+using System.Text;
 
 public abstract class Inventory_Manager : MonoBehaviour
 {
@@ -22,13 +23,12 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     // Inventory items
     public int _inventorySize;
-    private List<int> _inventoryItemIDs = new();
+    private Dictionary<int, (int, int)> _inventoryItemIDs = new();
     private List<List_Item> _inventoryItems = new();
-    [SerializeField] private List<int> _inventoryItemData = new();
     public static List<GameObject> openInventories = new List<GameObject>();
     [SerializeField] public abstract RectTransform inventoryUIBase { get; }
     public bool IsOpen;
-    
+
     public event Action InventoryChanged;
 
     public int InventorySize
@@ -37,7 +37,7 @@ public abstract class Inventory_Manager : MonoBehaviour
         set { _inventorySize = value; }
     }
 
-    public List<int> InventoryItemIDs
+    public Dictionary<int, (int, int)> InventoryItemIDs
     {
         get { return _inventoryItemIDs; }
         set { _inventoryItemIDs = value; }
@@ -48,58 +48,45 @@ public abstract class Inventory_Manager : MonoBehaviour
         get { return _inventoryItems; }
         set { _inventoryItems = value; }
     }
-
-    public List<int> InventoryItemData
-    {
-        get { return _inventoryItemData; }
-        set { _inventoryItemData = value; }
-    }
     #endregion
 
     protected virtual void Awake()
     {
-        InventoryItemData = new List<int>();
+
     }
     #region Save and Load
-    protected void SaveInventory()
+    protected void SaveInventory(Inventory_Manager inventoryManager)
     {
-        string itemIDString = string.Join(",", _inventoryItemIDs.Select(x => x.ToString()).ToArray());
-        PlayerPrefs.SetString("InventoryItemIds", itemIDString);
+        string inventoryData = JsonUtility.ToJson(InventoryItemIDs);
+        PlayerPrefs.SetString("InventoryData", inventoryData);
         PlayerPrefs.Save();
     }
 
     protected void LoadInventory()
     {
-        string itemIDString = PlayerPrefs.GetString("InventoryItemIds", "");
+        string inventoryData = PlayerPrefs.GetString("InventoryItemIds", "");
 
-        _inventoryItemIDs = (itemIDString ?? "").Split(',').Select(int.Parse).ToList();
-        Debug.Log(_inventoryItemIDs.Count > 0 ? "Inventory loaded" : "No saved inventory found");
-
-        foreach (int itemId in _inventoryItemIDs)
+        if (!string.IsNullOrEmpty(inventoryData))
         {
-            List_Item item = null;
+            InventoryItemIDs = JsonUtility.FromJson<Dictionary<int, (int, int)>>(inventoryData);
+            Debug.Log("Inventory loaded");
+        }
+        else
+        {
+            Debug.Log("No saved inventory found");
+        }
 
-            switch (item)
-            {
-                case List_Weapon weapon:
-                    item = List_Item.GetItemData(item.itemID, List_Weapon.allWeaponData);
-                    break;
-                case List_Armour armour:
-                    item = List_Item.GetItemData(item.itemID, List_Armour.allArmourData);
-                    break;
-                case List_Consumable consumable:
-                    item = List_Item.GetItemData(item.itemID, List_Consumable.allConsumableData);
-                    break;
-                default:
-                    item = null;
-                    break;
-            }
+        foreach (int slotIndex in InventoryItemIDs.Keys)
+        {
+            var itemTuple = InventoryItemIDs[slotIndex];
+            int itemId = itemTuple.Item1;
+            int currentStackSize = itemTuple.Item2;
+            List_Item item = item.GetItemData(itemId);
 
             if (item != null)
             {
                 _inventoryItems.Add(item);
             }
-
             else
             {
                 Debug.Log("Invalid Item ID" + itemId);
@@ -108,40 +95,68 @@ public abstract class Inventory_Manager : MonoBehaviour
     }
     #endregion
     #region Adding and Removing items
-    public virtual void AddItem(List_Item item, Inventory_Window inventoryWindow)
+    public virtual void AddItem(List_Item item, int stackSize)
     {
         if (item != null)
         {
             Inventory_Manager inventoryManager = GetComponent<Inventory_Manager>();
             int inventorySize = inventoryManager.GetInventorySize();
 
-            if (inventoryManager.InventoryItemData.Count >= inventorySize)
+            for (int i = 0; i < inventorySize; i++)
+            {
+                InventoryItemIDs.Add(i, (-1, 0));
+            }
+
+            if (InventoryItemIDs.Count >= inventorySize)
             {
                 Debug.Log("Inventory bigger than max size");
                 return;
             }
 
-            int existingItemIndex = _inventoryItemIDs.IndexOf(item.itemID);
-            Inventory_Slot slot = inventoryWindow.FindInventorySlots(item);
-            Debug.Log(slot);
+            LoadInventory();
 
-            if (slot.item != null)
+            int itemIndex = -1;
+
+            foreach (KeyValuePair<int, (int, int)> entry in InventoryItemIDs)
             {
-                slot.currentStackSize++;
-                slot.UpdateSlotUI(slot.slotIndex, slot);
+                if (entry.Value.Item1 == item.itemID)
+                {
+                    itemIndex = entry.Key;
+                    break;
+                }
             }
-            else if (slot.item == null)
+            if (itemIndex >= 0)
             {
-                slot.item = item;
-                slot.currentStackSize = 1;
-                _inventoryItemIDs.Add(item.itemID);
-                _inventoryItems.Add(item);
-                slot.UpdateSlotUI(slot.slotIndex, slot);
+                int currentStackSize = InventoryItemIDs[itemIndex].Item2 + stackSize;
+                SaveInventory(inventoryManager);
             }
             else
             {
-                Debug.Log("Inventory full");
-                return;
+                int emptyItemIndex = -1;
+
+                foreach (KeyValuePair<int, (int, int)> entry in InventoryItemIDs)
+                {
+                    if (entry.Value.Item1 < 0)
+                    {
+                        emptyItemIndex = entry.Key;
+                        break;
+                    }
+                }
+
+                if (emptyItemIndex < 0)
+                {
+                    Debug.Log("No empty slot found");
+                    return;
+                }
+                else
+                {
+                    int itemId = item.itemID;
+                    int currentStackSize = stackSize;
+
+                    _inventoryItems.Add(item);
+                    InventoryItemIDs[itemIndex] = (itemId, currentStackSize);
+                    SaveInventory(inventoryManager);
+                }
             }
         }
         else
@@ -152,41 +167,38 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public void PrintInventory()
     {
-        for (int i = 0; i < inventorySlots.Count; i++)
+        foreach (KeyValuePair<int, (int, int)> entry in InventoryItemIDs)
         {
-            if (inventorySlots[i].item != null)
+            if (entry.Value.Item1 >= 0)
             {
-                Debug.Log($"Slot {i}: Item ID {inventorySlots[i].item.itemID}");
+                int itemId = entry.Value.Item1;
+                int currentStackSize = entry.Value.Item2;
+                Debug.Log($"Slot {entry.Key}: Item ID {itemId}, Stack Size: {currentStackSize}");
             }
         }
     }
 
-    public virtual void RemoveItem(List_Item item)
+    public virtual void RemoveItem(List_Item item, int dropSize)
     {
-        int existingItemIndex = _inventoryItemIDs.IndexOf(item.itemID);
+        int itemIndex = -1;
 
-        if (existingItemIndex >= 0)
+        foreach (KeyValuePair<int, (int, int)> entry in InventoryItemIDs)
         {
-            Inventory_Slot existingSlot = inventorySlots[existingItemIndex];
-
-            existingSlot.currentStackSize--;
-
-            if (existingSlot.currentStackSize <= 0)
+            if (entry.Value.Item1 == item.itemID)
             {
-                _inventoryItems.RemoveAt(existingItemIndex);
-                _inventoryItemIDs.RemoveAt(existingItemIndex);
-
-                GameObject slotGO = inventoryUIBase.GetChild(existingItemIndex).gameObject;
-                Inventory_Slot slot = slotGO.GetComponent<Inventory_Slot>();
-                slot.item = null;
-                slot.currentStackSize = 0;
-                slot.UpdateSlotUI(existingItemIndex, slot);
+                itemIndex = entry.Key;
+                break;
             }
-            else
+        }
+
+        if (itemIndex >= 0)
+        {
+            int currentStackSize = InventoryItemIDs[itemIndex].Item2 - dropSize;
+
+            if (currentStackSize <= 0)
             {
-                GameObject slotGO = inventoryUIBase.GetChild(existingItemIndex).gameObject;
-                Inventory_Slot slot = slotGO.GetComponent<Inventory_Slot>();
-                slot.UpdateSlotUI(existingItemIndex, slot);
+                _inventoryItems.RemoveAt(itemIndex);
+                InventoryItemIDs[itemIndex] = (-1, 0);
             }
         }
         else
@@ -200,22 +212,28 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     #endregion
     #region UI
-    public void UpdateInventoryUI()
+    public void UpdateInventoryUI(GameObject inventoryWindow)
     {
-        for (int i = 0; i < inventorySlots.Count; i++)
+        for (int i = 0; i < InventoryItemIDs.Count; i++)
         {
-            Inventory_Slot inventorySlot = inventorySlots[i];
+            var itemTuple = InventoryItemIDs[i];
+            int itemId = itemTuple.Item1;
+            int currentStackSize = itemTuple.Item2;
+            Inventory_Window inventoryWindowScript = inventoryWindow.GetComponent<Inventory_Window>();
+            Inventory_Slot inventorySlot = inventoryWindowScript.inventorySlots[i];
 
-            if (inventorySlot == null) continue;
-
-            if (inventorySlot.item != null)
+            if (itemId >= 0)
             {
-                //inventorySlot.gameObject.SetActive(true);
+                List_Item item = _inventoryItems[itemId];
+                inventorySlot.item = item;
+                inventorySlot.currentStackSize = currentStackSize;
                 inventorySlot.UpdateSlotUI(i, inventorySlot);
             }
             else
             {
-                //inventorySlot.gameObject.SetActive(false);
+                inventorySlot.item = null;
+                inventorySlot.currentStackSize = 0;
+                inventorySlot.UpdateSlotUI(i, inventorySlot);
             }
         }
     }
@@ -230,44 +248,62 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public virtual void MoveItem(int sourceSlotIndex, int targetSlotIndex)
     {
-        Inventory_Slot sourceSlot = inventorySlots[sourceSlotIndex];
-        Inventory_Slot targetSlot = inventorySlots[targetSlotIndex];
+        if (sourceSlotIndex == targetSlotIndex) return;
 
-        if (sourceSlot.IsEmpty() || targetSlot.IsFull())
+        if (InventoryItemIDs.ContainsKey(sourceSlotIndex) && InventoryItemIDs.ContainsKey(targetSlotIndex))
         {
-            return;
-        }
+            var sourceItem = InventoryItemIDs[sourceSlotIndex];
+            var targetItem = InventoryItemIDs[targetSlotIndex];
 
-        if (targetSlot.IsEmpty())
-        {
-            targetSlot.item = sourceSlot.item;
-            targetSlot.currentStackSize = sourceSlot.currentStackSize;
-            sourceSlot.item = null;
-            sourceSlot.currentStackSize = 0;
-        }
-
-        else if (targetSlot.item_ID == sourceSlot.item_ID)
-        {
-            int stackLeft = targetSlot.item.maxStackSize - targetSlot.currentStackSize;
-
-            if (sourceSlot.currentStackSize > stackLeft)
+            if (sourceItem.Item1 != -1)
             {
-                targetSlot.currentStackSize = targetSlot.item.maxStackSize;
-                sourceSlot.currentStackSize -= stackLeft;
+                if (targetItem.Item1 == -1)
+                {
+                    InventoryItemIDs[targetSlotIndex] = sourceItem;
+                    InventoryItemIDs[sourceSlotIndex] = (-1, 0);
+                }
+                else if (sourceItem.Item1 == targetItem.Item1)
+                {
+                    List_Item item = List_Item.GetItemData(sourceItem.Item1);
+                    int maxStackSize = item.GetMaxStackSize();
+                    int totalStackSize = sourceItem.Item2 + targetItem.Item2;
+
+                    if (totalStackSize <= maxStackSize)
+                    {
+                        InventoryItemIDs[targetSlotIndex] = (sourceItem.Item1, totalStackSize);
+                        InventoryItemIDs[sourceSlotIndex] = (-1, 0);
+                    }
+                    else
+                    {
+                        InventoryItemIDs[targetSlotIndex] = (sourceItem.Item1, maxStackSize);
+                        InventoryItemIDs[sourceSlotIndex] = (sourceItem.Item1, totalStackSize - maxStackSize);
+                    }
+                }
+                else
+                {
+                    InventoryItemIDs[targetSlotIndex] = sourceItem;
+                    InventoryItemIDs[sourceSlotIndex] = targetItem;
+                }
             }
             else
             {
-                targetSlot.currentStackSize += sourceSlot.currentStackSize;
-                sourceSlot.currentStackSize = 0;
-                sourceSlot.item = null;
-            }
+                return;
+            }            
         }
+
+        InventoryChanged.Invoke();
+
     }
+
 
     #region Inventory Windows
     public int GetInventorySize()
     {
         return _inventorySize;
+    }
+    public int GetMaxStackSize(List_Item item)
+    {
+        return item.maxStackSize;
     }
     public static Inventory_Manager InventoryType(GameObject interactedObject)
     {

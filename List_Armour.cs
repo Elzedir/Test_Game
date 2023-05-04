@@ -13,6 +13,7 @@ public enum ArmourType
 public class List_Armour : List_Item
 {
     public static List<List_Item> allArmourData = new List<List_Item>();
+    public override List<List_Item> list => allArmourData;
 
     public ArmourType armourType;
 
