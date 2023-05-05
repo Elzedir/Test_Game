@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-
 public abstract class List_Item
 {
     private static HashSet<int> usedIDs = new HashSet<int>();
@@ -14,7 +12,6 @@ public abstract class List_Item
     public Sprite itemIcon;
     public int maxStackSize;
     public int itemValue;
-    public abstract List<List_Item> list { get; }
     public virtual void Start()
     {
        
@@ -31,7 +28,7 @@ public abstract class List_Item
         list.Add(item);
     }
 
-    public List_Item GetItemData(int itemID)
+    public static List_Item GetItemData(int itemID, List<List_Item> list)
     {
         foreach (var data in list)
         {

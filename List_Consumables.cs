@@ -12,7 +12,6 @@ public enum ConsumableType
 public class List_Consumable : List_Item
 {
     public static List<List_Item> allConsumableData = new List<List_Item>();
-    public override List<List_Item> list => allConsumableData;
 
     public ConsumableType consumableType;
     

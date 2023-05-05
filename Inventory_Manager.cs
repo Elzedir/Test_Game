@@ -22,74 +22,68 @@ public abstract class Inventory_Manager : MonoBehaviour
     #region fields
 
     // Inventory items
-    public int _inventorySize;
-    private Dictionary<int, (int, int)> _inventoryItemIDs = new();
-    private List<List_Item> _inventoryItems = new();
+    public int _inventorySize = 10;
+    [SerializeField] public Dictionary<int, (int, int, bool)> InventoryItemIDs = new();
     public static List<GameObject> openInventories = new List<GameObject>();
     [SerializeField] public abstract RectTransform inventoryUIBase { get; }
     public bool IsOpen;
-
-    public event Action InventoryChanged;
+    public bool InventoryIsInitialised = false;
 
     public int InventorySize
     {
         get { return _inventorySize; }
         set { _inventorySize = value; }
     }
-
-    public Dictionary<int, (int, int)> InventoryItemIDs
-    {
-        get { return _inventoryItemIDs; }
-        set { _inventoryItemIDs = value; }
-    }
-
-    public List<List_Item> InventoryItems
-    {
-        get { return _inventoryItems; }
-        set { _inventoryItems = value; }
-    }
     #endregion
 
-    protected virtual void Awake()
+    protected void InitialiseInventory()
     {
-
+        Debug.Log("Inventory initialised called");
+        for (int i = 0; i < 10; i++)
+        {
+            if (!InventoryItemIDs.ContainsKey(i))
+            {
+                InventoryItemIDs[i] = (-1, 0, false);
+            }
+            else if (InventoryItemIDs[i].Item1 == 0 && InventoryItemIDs[i].Item2 == 0)
+            {
+                InventoryItemIDs[i] = (-1, 0, false);
+            }
+        }
+        InventoryIsInitialised = true;
+        LoadInventory();
     }
+
     #region Save and Load
     protected void SaveInventory(Inventory_Manager inventoryManager)
     {
+        Debug.Log("SaveInventory called");
         string inventoryData = JsonUtility.ToJson(InventoryItemIDs);
-        PlayerPrefs.SetString("InventoryData", inventoryData);
+        PlayerPrefs.SetString("InventoryItemIDs", inventoryData);
+        //Debug.Log(inventoryData); // Inventory isn't saving and loading still
         PlayerPrefs.Save();
     }
 
     protected void LoadInventory()
     {
-        string inventoryData = PlayerPrefs.GetString("InventoryItemIds", "");
-
-        if (!string.IsNullOrEmpty(inventoryData))
+        if (!InventoryIsInitialised)
         {
-            InventoryItemIDs = JsonUtility.FromJson<Dictionary<int, (int, int)>>(inventoryData);
-            Debug.Log("Inventory loaded");
+            InitialiseInventory();
         }
         else
         {
-            Debug.Log("No saved inventory found");
-        }
+            // Debug.Log("LoadInventory called");
+            string inventoryData = PlayerPrefs.GetString("InventoryItemIDs", "");
+            // Debug.Log("inventoryData: " + inventoryData); // Inventory still isn't saving and loading
 
-        foreach (int slotIndex in InventoryItemIDs.Keys)
-        {
-            var itemTuple = InventoryItemIDs[slotIndex];
-            int itemId = itemTuple.Item1;
-            int currentStackSize = itemTuple.Item2;
-            List_Item item = item.GetItemData(itemId);
-
-            if (item != null)
+            if (string.IsNullOrEmpty(inventoryData) || inventoryData.Equals("{}"))
             {
-                _inventoryItems.Add(item);
+                Debug.Log("No saved inventory found");
             }
             else
             {
-                Debug.Log("Invalid Item ID" + itemId);
+                Debug.Log("Inventory loaded");
+                InventoryItemIDs = JsonUtility.FromJson<Dictionary<int, (int, int, bool)>>(inventoryData);
             }
         }
     }
@@ -102,41 +96,63 @@ public abstract class Inventory_Manager : MonoBehaviour
             Inventory_Manager inventoryManager = GetComponent<Inventory_Manager>();
             int inventorySize = inventoryManager.GetInventorySize();
 
-            for (int i = 0; i < inventorySize; i++)
+            LoadInventory();
+
+            int inventoryCount = 0;
+
+            foreach (KeyValuePair<int, (int, int, bool)> pair in InventoryItemIDs)
             {
-                InventoryItemIDs.Add(i, (-1, 0));
+                if (pair.Value.Item1 != -1)
+                {
+                    inventoryCount++;
+                }
             }
 
-            if (InventoryItemIDs.Count >= inventorySize)
+            if (inventoryCount >= inventorySize)
             {
-                Debug.Log("Inventory bigger than max size");
+                Debug.Log("Inventory is full");
                 return;
             }
 
-            LoadInventory();
-
             int itemIndex = -1;
 
-            foreach (KeyValuePair<int, (int, int)> entry in InventoryItemIDs)
+            foreach (KeyValuePair<int, (int, int, bool)> entry in InventoryItemIDs)
             {
-                if (entry.Value.Item1 == item.itemID)
+                if (entry.Value.Item1 == item.itemID && !entry.Value.Item3)
                 {
                     itemIndex = entry.Key;
                     break;
                 }
             }
+
             if (itemIndex >= 0)
             {
                 int currentStackSize = InventoryItemIDs[itemIndex].Item2 + stackSize;
-                SaveInventory(inventoryManager);
+                int maxStackSize = item.GetMaxStackSize();
+
+                if (currentStackSize > maxStackSize)
+                {
+                    int remainingStackSize = currentStackSize - maxStackSize;
+                    InventoryItemIDs[itemIndex] = (item.itemID, maxStackSize, true);
+                    Debug.Log("Existing item" + item.itemName + "added");
+                    Debug.Log("Reached max stack size");
+                    AddItem(item, remainingStackSize);
+                    SaveInventory(inventoryManager);
+                }
+                else
+                {
+                    InventoryItemIDs[itemIndex] = (item.itemID, currentStackSize, false);
+                    Debug.Log("Existing item" + item.itemName +  "added");
+                    SaveInventory(inventoryManager);
+                }
             }
             else
             {
                 int emptyItemIndex = -1;
 
-                foreach (KeyValuePair<int, (int, int)> entry in InventoryItemIDs)
+                foreach (KeyValuePair<int, (int, int, bool)> entry in InventoryItemIDs)
                 {
-                    if (entry.Value.Item1 < 0)
+                    if (entry.Value.Item1 == -1)
                     {
                         emptyItemIndex = entry.Key;
                         break;
@@ -152,10 +168,24 @@ public abstract class Inventory_Manager : MonoBehaviour
                 {
                     int itemId = item.itemID;
                     int currentStackSize = stackSize;
+                    int maxStackSize = item.GetMaxStackSize();
+                    Debug.Log(item.itemName + " added to inventory");
 
-                    _inventoryItems.Add(item);
-                    InventoryItemIDs[itemIndex] = (itemId, currentStackSize);
-                    SaveInventory(inventoryManager);
+                    if (currentStackSize > maxStackSize)
+                    {
+                        int remainingStackSize = currentStackSize - maxStackSize;
+                        InventoryItemIDs[itemIndex] = (item.itemID, maxStackSize, true);
+                        Debug.Log("Item" + item.itemName + "added");
+                        Debug.Log("Reached max stack size");
+                        AddItem(item, remainingStackSize);
+                        SaveInventory(inventoryManager);
+                    }
+                    else if (currentStackSize < maxStackSize)
+                    {
+                        InventoryItemIDs[emptyItemIndex] = (itemId, currentStackSize, false);
+                        Debug.Log("Item" + item.itemName + "added");
+                        SaveInventory(inventoryManager);
+                    }
                 }
             }
         }
@@ -164,10 +194,9 @@ public abstract class Inventory_Manager : MonoBehaviour
             Debug.LogError("Invalid item ID: " + item.itemID);
         }
     }
-
     public void PrintInventory()
     {
-        foreach (KeyValuePair<int, (int, int)> entry in InventoryItemIDs)
+        foreach (KeyValuePair<int, (int, int, bool)> entry in InventoryItemIDs)
         {
             if (entry.Value.Item1 >= 0)
             {
@@ -182,7 +211,7 @@ public abstract class Inventory_Manager : MonoBehaviour
     {
         int itemIndex = -1;
 
-        foreach (KeyValuePair<int, (int, int)> entry in InventoryItemIDs)
+        foreach (KeyValuePair<int, (int, int, bool)> entry in InventoryItemIDs)
         {
             if (entry.Value.Item1 == item.itemID)
             {
@@ -197,8 +226,7 @@ public abstract class Inventory_Manager : MonoBehaviour
 
             if (currentStackSize <= 0)
             {
-                _inventoryItems.RemoveAt(itemIndex);
-                InventoryItemIDs[itemIndex] = (-1, 0);
+                InventoryItemIDs[itemIndex] = (-1, 0, false);
             }
         }
         else
@@ -206,45 +234,9 @@ public abstract class Inventory_Manager : MonoBehaviour
             Debug.Log("Trying to RemoveItem, nothing to remove");
             return;
         }
-
-        InventoryChanged.Invoke();
     }
 
     #endregion
-    #region UI
-    public void UpdateInventoryUI(GameObject inventoryWindow)
-    {
-        for (int i = 0; i < InventoryItemIDs.Count; i++)
-        {
-            var itemTuple = InventoryItemIDs[i];
-            int itemId = itemTuple.Item1;
-            int currentStackSize = itemTuple.Item2;
-            Inventory_Window inventoryWindowScript = inventoryWindow.GetComponent<Inventory_Window>();
-            Inventory_Slot inventorySlot = inventoryWindowScript.inventorySlots[i];
-
-            if (itemId >= 0)
-            {
-                List_Item item = _inventoryItems[itemId];
-                inventorySlot.item = item;
-                inventorySlot.currentStackSize = currentStackSize;
-                inventorySlot.UpdateSlotUI(i, inventorySlot);
-            }
-            else
-            {
-                inventorySlot.item = null;
-                inventorySlot.currentStackSize = 0;
-                inventorySlot.UpdateSlotUI(i, inventorySlot);
-            }
-        }
-    }
-    #endregion
-
-
-    public virtual void Add(List_Item item)
-    {
-        _inventoryItems.Add(item);
-        InventoryChanged.Invoke();
-    }
 
     public virtual void MoveItem(int sourceSlotIndex, int targetSlotIndex)
     {
@@ -260,23 +252,43 @@ public abstract class Inventory_Manager : MonoBehaviour
                 if (targetItem.Item1 == -1)
                 {
                     InventoryItemIDs[targetSlotIndex] = sourceItem;
-                    InventoryItemIDs[sourceSlotIndex] = (-1, 0);
+                    InventoryItemIDs[sourceSlotIndex] = (-1, 0, false);
                 }
                 else if (sourceItem.Item1 == targetItem.Item1)
                 {
-                    List_Item item = List_Item.GetItemData(sourceItem.Item1);
+                    List_Item item;
+
+                    switch (sourceItem.Item1)
+                    {
+                        case 1:
+                            item = List_Item.GetItemData(sourceItem.Item1, List_Weapon.allWeaponData);
+
+                            break;
+                        case 2:
+                            item = List_Item.GetItemData(sourceItem.Item1, List_Armour.allArmourData);
+
+                            break;
+                        case 3:
+                            item = List_Item.GetItemData(sourceItem.Item1, List_Consumable.allConsumableData);
+
+                            break;
+                        default:
+                            item = null;
+                            break;
+                    }
+
                     int maxStackSize = item.GetMaxStackSize();
                     int totalStackSize = sourceItem.Item2 + targetItem.Item2;
 
                     if (totalStackSize <= maxStackSize)
                     {
-                        InventoryItemIDs[targetSlotIndex] = (sourceItem.Item1, totalStackSize);
-                        InventoryItemIDs[sourceSlotIndex] = (-1, 0);
+                        InventoryItemIDs[targetSlotIndex] = (sourceItem.Item1, totalStackSize, false);
+                        InventoryItemIDs[sourceSlotIndex] = (-1, 0, false);
                     }
                     else
                     {
-                        InventoryItemIDs[targetSlotIndex] = (sourceItem.Item1, maxStackSize);
-                        InventoryItemIDs[sourceSlotIndex] = (sourceItem.Item1, totalStackSize - maxStackSize);
+                        InventoryItemIDs[targetSlotIndex] = (sourceItem.Item1, maxStackSize, false);
+                        InventoryItemIDs[sourceSlotIndex] = (sourceItem.Item1, totalStackSize - maxStackSize, false);
                     }
                 }
                 else
@@ -290,9 +302,6 @@ public abstract class Inventory_Manager : MonoBehaviour
                 return;
             }            
         }
-
-        InventoryChanged.Invoke();
-
     }
 
 

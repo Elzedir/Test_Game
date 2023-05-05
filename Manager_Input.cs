@@ -59,7 +59,26 @@ public class Manager_Input : MonoBehaviour
                 int itemID = 1;
                 int stackSize = 1;
 
-                List_Item item = List_Item.GetItemData(itemID);
+                List_Item item;
+
+                switch (itemID)
+                {
+                    case 1:
+                        item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
+                        
+                        break;
+                    case 2:
+                        item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
+                        
+                        break;
+                    case 3:
+                        item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
+                        
+                        break;
+                    default:
+                        item = null;
+                        break;
+                }
 
                 if (player != null)
                 {
@@ -73,7 +92,7 @@ public class Manager_Input : MonoBehaviour
                 }
 
                 #region EquipCheck
-                // List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
+                //List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
 
                 //if (item != null)
                 //{
@@ -175,7 +194,6 @@ public class Manager_Input : MonoBehaviour
             }
 
             inventoryScript.OpenedInventoryWindow(inventoryWindow);
-            inventoryScript.UpdateInventoryUI(inventoryWindow);
         }
 
         else

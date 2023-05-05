@@ -24,20 +24,20 @@ public class Manager_Inventory_Quickbar : Inventory_Manager
         inventoryUI = GetComponent<RectTransform>();
     }
 
-    public void Start()
+    protected void Start()
     {
-        for(int i = 0; i < quickbarButtons.Length; i++)
-        {
-            int slotIndex = i;
-            quickbarButtons[i].onClick.AddListener(() => ActivateQuickbarSlot(slotIndex));
-        }
+        //for(int i = 0; i < quickbarButtons.Length; i++)
+        //{
+        //    int slotIndex = i;
+        //    quickbarButtons[i].onClick.AddListener(() => ActivateQuickbarSlot(slotIndex));
+        //}
         
-        for (int i = 0; i < 10; i++)
-        {
-            int slotIndex = i;
-            KeyCode keyCode = (KeyCode)Enum.Parse(typeof(KeyCode), "Alpha" + i);
-            Manager_Input.instance.AddKeyListener("ActivateQuickbarSlot" + i, () => ActivateQuickbarSlot(slotIndex), keyCode);
-        }
+        //for (int i = 0; i < 10; i++)
+        //{
+        //    int slotIndex = i;
+        //    KeyCode keyCode = (KeyCode)Enum.Parse(typeof(KeyCode), "Alpha" + i);
+        //    Manager_Input.instance.AddKeyListener("ActivateQuickbarSlot" + i, () => ActivateQuickbarSlot(slotIndex), keyCode);
+        //}
     }
 
     public void FixedUpdate()

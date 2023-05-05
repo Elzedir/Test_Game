@@ -17,7 +17,6 @@ public enum WeaponType
 public class List_Weapon : List_Item
 {
     public static List<List_Item> allWeaponData = new List<List_Item>();
-    public override List<List_Item> list => allWeaponData;
 
     public WeaponType weaponType;
     public float weaponDamage;
@@ -71,7 +70,7 @@ public class List_Weapon : List_Item
             1,
             WeaponType.Shortsword,
             "Wood shortsword",
-            1,
+            3,
             10,
             GameManager.Randomise(1, 2),
             GameManager.Randomise(1, 1.3),
