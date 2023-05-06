@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using Unity.IO.LowLevel.Unsafe;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public enum WeaponType
 {
@@ -27,25 +28,25 @@ public class List_Weapon : List_Item
     public List_Weapon
         (int itemID,
         WeaponType weaponType,
-        string weaponName,
+        string itemName,
+        Sprite itemIcon,
         int maxStackSize,
         int weaponValue,
         float weaponDamage,
         float weaponSpeed,
         float weaponForce,
-        float weaponRange,
-        Sprite weaponIcon)
+        float weaponRange)
     {
         this.itemID = itemID;
         this.weaponType = weaponType;
-        this.itemName = weaponName;
+        this.itemName = itemName;
+        this.itemIcon = itemIcon;
         this.maxStackSize = maxStackSize;
         this.itemValue = weaponValue;
         this.weaponDamage = weaponDamage;
         this.weaponSpeed = weaponSpeed;
         this.weaponForce = weaponForce;
         this.weaponRange = weaponRange;
-        this.itemIcon = weaponIcon;
     }
 
     public static void InitializeWeaponData()
@@ -65,18 +66,30 @@ public class List_Weapon : List_Item
 
     static void Shortswords()
     {
-        Sprite shortsword_Wood_spr = Resources.Load<Sprite>("Assets/Artwork/Assets/0_Assets/Atlas/at_dungeon_01/obj_wep_m_ss_01");
+        Sprite[] at_dungeon_01 = Resources.LoadAll<Sprite>("at_dungeon_01");
+        Sprite weaponSprite = null;
+
+        foreach (Sprite sprite in at_dungeon_01)
+        {
+            if (sprite.name == "obj_wep_m_ss_01")
+            {
+                weaponSprite = sprite;
+            }
+        }
+
+        Debug.Log(weaponSprite);
+
         List_Weapon shortSwordData = new List_Weapon(
             1,
             WeaponType.Shortsword,
             "Wood shortsword",
+            weaponSprite,
             3,
             10,
             GameManager.Randomise(1, 2),
             GameManager.Randomise(1, 1.3),
             GameManager.Randomise(1, 1.3),
-            GameManager.Randomise(1, 1.3),
-            shortsword_Wood_spr);
+            GameManager.Randomise(1, 1.3));
 
         AddToList(allWeaponData, shortSwordData);
     }
@@ -89,12 +102,14 @@ public class List_Weapon : List_Item
             {
                 return "ItemID: " + itemID + 
                     ", Type: " + weaponType + 
-                    ", Name: " + itemName + 
+                    ", Name: " + itemName +
+                    ", Icon: " + (itemIcon != null ? itemIcon.name : "null") +
+                    ", MaxStackSize: " + maxStackSize +
+                    ", Value: " + itemValue +
                     ", Damage: " + weaponDamage + 
                     ", Speed: " + weaponSpeed + 
                     ", Force: " + weaponForce + 
-                    ", Range: " + weaponRange + 
-                    ", Icon: " + itemIcon;
+                    ", Range: " + weaponRange;
             }
         }
 

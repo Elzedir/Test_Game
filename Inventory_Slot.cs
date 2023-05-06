@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -9,41 +10,9 @@ using UnityEngine.UI;
 public class Inventory_Slot : MonoBehaviour, IDropHandler
 {
     public int slotIndex;
-    public List_Item item;
-    public int item_ID
-    {
-        get
-        {
-            if (item !=  null)
-            {
-                return item.itemID;
-            }
-
-            else
-            {
-                return -1;
-            }
-        }
-    }
-    public int currentStackSize;
+    public bool atMaxStackSize = false;
     public TextMeshProUGUI stackSizeText;
-
-    public Inventory_Slot(int slotIndex, List_Item item, int currentStackSize)
-    {
-        this.slotIndex = slotIndex;
-        this.item = item;
-        this.currentStackSize = currentStackSize;
-    }
-
-    public bool IsEmpty()
-    {
-        return item == null;
-    }
-
-    public bool IsFull()
-    {
-        return !IsEmpty() && currentStackSize >= item.maxStackSize;
-    }
+    public Image itemIcon;
 
     public void OnDrop(PointerEventData eventData)
     {
@@ -52,30 +21,52 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
 
-    public virtual void UpdateSlotUI(int slot, Inventory_Slot inventorySlot)
-    {
-        List_Item item = inventorySlot.item;
+    public virtual void UpdateSlotUI(int itemID, int stackSize)
+    {   
+        Debug.Log("Item ID: " + itemID);
+        Debug.Log("Stack Size: " + stackSize);
 
-        if (item == null)
+        if (itemID == -1)
         {
-            UnityEngine.UI.Image image = inventorySlot.GetComponent<UnityEngine.UI.Image>();
-            image.sprite = null;
-            return;
-        }
-
-        Sprite slotIcon = item.itemIcon;
-        UnityEngine.UI.Image img = inventorySlot.GetComponent<UnityEngine.UI.Image>();
-        img.sprite = item.itemIcon;
-
-        if (inventorySlot.currentStackSize > 1)
-        {
-            TextMeshProUGUI stackSizeText = inventorySlot.stackSizeText;
-            stackSizeText.text = inventorySlot.currentStackSize.ToString();
-            stackSizeText.enabled = true;
+            itemIcon = null;
+            stackSizeText.enabled = false;
         }
         else
         {
-            inventorySlot.stackSizeText.enabled = false;
+            List_Item item;
+
+            switch (itemID)
+            {
+                case 1:
+                    item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
+                    break;
+                case 2:
+                    item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
+                    break;
+                case 3:
+                    item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
+                    break;
+                default:
+                    item = null;
+                    break;
+            }
+
+            Sprite itemSprite = item.itemIcon;
+            Debug.Log(itemSprite);
+
+
+            itemIcon.sprite = itemSprite;
+
+
+            if (stackSize > 1)
+            {
+                stackSizeText.text = stackSize.ToString();
+                stackSizeText.enabled = true;
+            }
+            else
+            {
+                stackSizeText.enabled = false;
+            }
         }
     }
 }

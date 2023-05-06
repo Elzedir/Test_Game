@@ -16,6 +16,10 @@ using UnityEngine.UIElements;
 using System.Numerics;
 using Unity.VisualScripting.Antlr3.Runtime;
 using System.Text;
+using UnityEditor.PackageManager.UI;
+using UnityEditor;
+
+public delegate void InventoryChangeEvent();
 
 public abstract class Inventory_Manager : MonoBehaviour
 {
@@ -23,11 +27,13 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     // Inventory items
     public int _inventorySize = 10;
-    [SerializeField] public Dictionary<int, (int, int, bool)> InventoryItemIDs = new();
+    public Dictionary<int, (int, int, bool)> InventoryItemIDs = new();
     public static List<GameObject> openInventories = new List<GameObject>();
     [SerializeField] public abstract RectTransform inventoryUIBase { get; }
     public bool IsOpen;
     public bool InventoryIsInitialised = false;
+    public event InventoryChangeEvent OnInventoryChange;
+    
 
     public int InventorySize
     {
@@ -36,7 +42,23 @@ public abstract class Inventory_Manager : MonoBehaviour
     }
     #endregion
 
-    protected void InitialiseInventory()
+    protected virtual void Awake()
+    {
+        Inventory_Manager inventoryManager = GetComponent<Inventory_Manager>();
+        inventoryManager.OnInventoryChange += DeleteList;
+        inventoryManager.OnInventoryChange += PopulateInventory;
+
+    }
+
+    public void TriggerInventoryChangeEvent()
+    {
+        if (OnInventoryChange != null)
+        {
+            OnInventoryChange();
+        }
+    }
+
+    public void InitialiseInventory()
     {
         Debug.Log("Inventory initialised called");
         for (int i = 0; i < 10; i++)
@@ -142,7 +164,7 @@ public abstract class Inventory_Manager : MonoBehaviour
                 else
                 {
                     InventoryItemIDs[itemIndex] = (item.itemID, currentStackSize, false);
-                    Debug.Log("Existing item" + item.itemName +  "added");
+                    Debug.Log("Existing item" + item.itemName + "added");
                     SaveInventory(inventoryManager);
                 }
             }
@@ -300,7 +322,7 @@ public abstract class Inventory_Manager : MonoBehaviour
             else
             {
                 return;
-            }            
+            }
         }
     }
 
@@ -385,4 +407,57 @@ public abstract class Inventory_Manager : MonoBehaviour
         }
     }
     #endregion
+
+    
+
+    [Serializable]
+    public struct InventoryItem
+    {
+        public int itemID;
+        public int stackSize;
+        public Sprite itemIcon;
+    }
+    
+    public List<InventoryItem> displayInventoryList = new List<InventoryItem>();
+
+    
+
+    public void PopulateInventory()
+    {
+        Debug.Log("Populate inventory called");
+
+        foreach (var item in InventoryItemIDs)
+        {
+            int itemID = item.Value.Item1;
+            int stackSize = item.Value.Item2;
+            Sprite itemIcon = null;
+
+            InventoryItem inventoryItem = new InventoryItem()
+            {
+                itemID = itemID,
+                stackSize = stackSize,
+                itemIcon = itemIcon
+            };
+
+            displayInventoryList.Add(inventoryItem);
+        }
+    }
+    public void DeleteList()
+    {
+        displayInventoryList.Clear();
+    }
+
+    private void OnDisable()
+    {
+        Inventory_Manager inventoryManager = GetComponent<Inventory_Manager>();
+        inventoryManager.OnInventoryChange -= DeleteList;
+        inventoryManager.OnInventoryChange -= PopulateInventory;
+    }
+
+    private void OnDestroy()
+    {
+        Inventory_Manager inventoryManager = GetComponent<Inventory_Manager>();
+        inventoryManager.OnInventoryChange -= DeleteList;
+        inventoryManager.OnInventoryChange -= PopulateInventory;
+    }
 }

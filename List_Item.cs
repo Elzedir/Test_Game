@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public abstract class List_Item
 {
@@ -44,5 +45,18 @@ public abstract class List_Item
     public int GetMaxStackSize()
     {
         return maxStackSize;
+    }
+
+    public static Sprite GetItemSprite(int itemID, List<List_Item> list)
+    {
+        foreach (var data in list)
+        {
+            if (data.itemID == itemID)
+            {
+                return data.itemIcon;
+            }
+        }
+
+        return null;
     }
 }

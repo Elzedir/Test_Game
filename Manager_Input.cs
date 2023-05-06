@@ -83,11 +83,21 @@ public class Manager_Input : MonoBehaviour
                 if (player != null)
                 {
                     Inventory_Manager inventoryManager = player.GetComponent<Inventory_Manager>();
+                    Inventory_Creator slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Creator>();
 
                     if (inventoryManager != null)
                     {
                         inventoryManager.AddItem(item, stackSize);
-                        // If inventory is open, then we update the UI here.
+                        inventoryManager.TriggerInventoryChangeEvent();
+                        
+                        if (slotCreator != null)
+                        {
+                            slotCreator.UpdateSlotUI(inventoryManager);
+                        }
+                        else
+                        {
+                            Debug.Log("Slot creator doesn't exist");
+                        }
                     }
                 }
 
@@ -117,11 +127,11 @@ public class Manager_Input : MonoBehaviour
                 Inventory_Window inventoryWindow = mostRecentInventory.GetComponent<Inventory_Window>();
 
                 GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
-                Inventory_Manager inventoryScript = Inventory_Manager.InventoryType(interactedObject);
+                Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
 
                 if (mostRecentInventory != null)
                 {
-                    inventoryScript.ClosedInventoryWindow();
+                    inventoryManager.ClosedInventoryWindow();
                     inventoryWindow.DestroyInventoryWindow();
                 }
 
@@ -156,16 +166,21 @@ public class Manager_Input : MonoBehaviour
     void OpenInventory()
     {
         GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
-        Inventory_Manager inventoryScript = Inventory_Manager.InventoryType(interactedObject); ;
+        Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject); ;
 
-        if (!inventoryScript.IsOpen)
+        if (!inventoryManager.IsOpen)
         {
-            if (inventoryScript is Inventory_Equippable)
+            if (!inventoryManager.InventoryIsInitialised)
+            {
+                inventoryManager.InitialiseInventory();
+            }
+
+            if (inventoryManager is Inventory_Equippable)
             {
                 inventoryWindow = Instantiate(inventoryEquippable);
 
             }
-            else if (inventoryScript is Inventory_NotEquippable)
+            else if (inventoryManager is Inventory_NotEquippable)
             {
                 inventoryWindow = Instantiate(inventoryNotEquippable);
             }
@@ -181,25 +196,26 @@ public class Manager_Input : MonoBehaviour
             inventoryWindowController.SetInventoryWindow(interactedObject.name);
 
             Inventory_Creator slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Creator>();
-            int inventorySize = inventoryScript.GetComponent<Inventory_Manager>().GetInventorySize();
+            int inventorySize = inventoryManager.GetComponent<Inventory_Manager>().GetInventorySize();
             Debug.Log(inventorySize);
 
             if (slotCreator != null)
             {
                 slotCreator.CreateSlots(inventorySize);
+                slotCreator.UpdateSlotUI(inventoryManager);
             }
             else
             {
                 Debug.Log("Slot creator doesn't exist");
             }
 
-            inventoryScript.OpenedInventoryWindow(inventoryWindow);
+            inventoryManager.OpenedInventoryWindow(inventoryWindow);
         }
 
         else
         {
-            inventoryScript.InventoryMoveToFront();
-            Debug.Log(inventoryScript.name + "'s inventory is already open");
+            inventoryManager.InventoryMoveToFront();
+            Debug.Log(inventoryManager.name + "'s inventory is already open");
         }
     }   
 }
