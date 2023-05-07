@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,21 +20,11 @@ public class Manager_Input : MonoBehaviour
     public GameObject inventoryNotEquippable;
     public GameObject inventoryCanvas;
     public GameObject inventoryWindow;
+    public GameObject menuRightClick;
 
     private void Awake()
     {
         instance = this;
-    }
-
-    private void Start()
-    {
-        
-    }
-
-    public void AddKeyListener(string keyName, System.Action action, KeyCode keyCode)
-    {
-        keyBindings.Add(keyName, keyCode);
-        keyListeners.Add(keyName, action);
     }
 
     void Update()
@@ -56,50 +47,10 @@ public class Manager_Input : MonoBehaviour
             {
                 Debug.Log("Right mouse click");
 
-                int itemID = 1;
-                int stackSize = 1;
-
-                List_Item item;
-
-                switch (itemID)
-                {
-                    case 1:
-                        item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
-                        
-                        break;
-                    case 2:
-                        item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
-                        
-                        break;
-                    case 3:
-                        item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
-                        
-                        break;
-                    default:
-                        item = null;
-                        break;
-                }
-
-                if (player != null)
-                {
-                    Inventory_Manager inventoryManager = player.GetComponent<Inventory_Manager>();
-                    Inventory_Creator slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Creator>();
-
-                    if (inventoryManager != null)
-                    {
-                        inventoryManager.AddItem(item, stackSize);
-                        inventoryManager.TriggerInventoryChangeEvent();
-                        
-                        if (slotCreator != null)
-                        {
-                            slotCreator.UpdateSlotUI(inventoryManager);
-                        }
-                        else
-                        {
-                            Debug.Log("Slot creator doesn't exist");
-                        }
-                    }
-                }
+                Menu_RightClick menuRightClickScript = menuRightClick.GetComponent<Menu_RightClick>();
+                menuRightClickScript.OnRightClick();
+                RectTransform menuRightClickTransform = menuRightClick.GetComponent<RectTransform>();
+                menuRightClickTransform.position = Input.mousePosition;
 
                 #region EquipCheck
                 //List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
@@ -131,8 +82,7 @@ public class Manager_Input : MonoBehaviour
 
                 if (mostRecentInventory != null)
                 {
-                    inventoryManager.ClosedInventoryWindow();
-                    inventoryWindow.DestroyInventoryWindow();
+                    ClosedInventory(inventoryManager, inventoryWindow);
                 }
 
                 else
@@ -148,7 +98,9 @@ public class Manager_Input : MonoBehaviour
             {
                 Debug.Log("I pressed");
 
-                OpenInventory();
+                GameObject self = player.gameObject;
+
+                OpenInventory(self);
             }
         }
 
@@ -163,10 +115,9 @@ public class Manager_Input : MonoBehaviour
             }
         }
     }
-    void OpenInventory()
+    void OpenInventory(GameObject interactedObject)
     {
-        GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
-        Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject); ;
+        Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
 
         if (!inventoryManager.IsOpen)
         {
@@ -189,20 +140,18 @@ public class Manager_Input : MonoBehaviour
                 Debug.Log("Inventory invalid");
                 return;
             }
-
             inventoryWindow.transform.SetParent(inventoryCanvas.transform, false);
-            inventoryWindow.transform.position = new UnityEngine.Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+            inventoryWindow.transform.position = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
             Inventory_Window inventoryWindowController = inventoryWindow.GetComponent<Inventory_Window>();
-            inventoryWindowController.SetInventoryWindow(interactedObject.name);
+            inventoryWindowController.SetInventoryWindowName(interactedObject.name);
 
             Inventory_Creator slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Creator>();
             int inventorySize = inventoryManager.GetComponent<Inventory_Manager>().GetInventorySize();
-            Debug.Log(inventorySize);
 
             if (slotCreator != null)
             {
                 slotCreator.CreateSlots(inventorySize);
-                slotCreator.UpdateSlotUI(inventoryManager);
+                slotCreator.UpdateInventoryUI(inventoryManager);
             }
             else
             {
@@ -217,5 +166,59 @@ public class Manager_Input : MonoBehaviour
             inventoryManager.InventoryMoveToFront();
             Debug.Log(inventoryManager.name + "'s inventory is already open");
         }
-    }   
+    }
+    
+    public void ClosedInventory(Inventory_Manager inventoryManager, Inventory_Window inventoryWindow)
+    {
+        inventoryManager.ClosedInventoryWindow();
+        inventoryWindow.DestroyInventoryWindow();
+    }
+
+    public void OnItemPickup()
+    {
+        int itemID = 1;
+        int stackSize = 1;
+
+        List_Item item;
+
+        switch (itemID)
+        {
+            case 1:
+                item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
+
+                break;
+            case 2:
+                item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
+
+                break;
+            case 3:
+                item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
+
+                break;
+            default:
+                item = null;
+                break;
+        }
+
+        if (player != null)
+        {
+            Inventory_Manager inventoryManager = player.GetComponent<Inventory_Manager>();
+
+            if (inventoryManager != null)
+            {
+                inventoryManager.AddItem(item, stackSize);
+                inventoryManager.TriggerChangeInventory();
+
+                if (inventoryWindow != null)
+                {
+                    Inventory_Creator slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Creator>();
+                    slotCreator.UpdateInventoryUI(inventoryManager);
+                }
+                else
+                {
+                    Debug.Log("Slot creator not found.");
+                }
+            }
+        }
+    }
 }

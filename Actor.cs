@@ -73,7 +73,7 @@ public abstract class Actor : Hitbox
 
         if (closestEnemy != null)
         {
-            if (GetComponent<Player>() != null)
+            if (GetComponent<Player>() == null)
             {
                 Chase();
 
@@ -170,17 +170,17 @@ public abstract class Actor : Hitbox
     }
 
     public virtual void Chase()
-    {
+    {        
         if (GetComponent<Player>() == null || berserk)
         {
             float distanceFromStart = Vector2.Distance(transform.position, startingPosition);
 
-            if (GetComponent<Player>() == null && distanceFromStart > chaseLength)
+            if (distanceFromStart > chaseLength)
             {
                 Move(startingPosition - transform.position);
                 alerted = false;
             }
-
+            
             if (closestEnemy != null)
             {
                 float distanceToTarget = Vector2.Distance(closestEnemy.transform.position, transform.position);
@@ -222,8 +222,6 @@ public abstract class Actor : Hitbox
                     withinAttackRange = true;
 
                     Attack();
-                    Debug.Log(this.name + " is not within attack range");
-                    Debug.Log(withinAttackRange);
                 }
 
                 hits[i] = null;

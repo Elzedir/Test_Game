@@ -50,7 +50,7 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     }
 
-    public void TriggerInventoryChangeEvent()
+    public void TriggerChangeInventory()
     {
         if (OnInventoryChange != null)
         {
@@ -378,7 +378,6 @@ public abstract class Inventory_Manager : MonoBehaviour
     public void OpenedInventoryWindow(GameObject inventoryGameObject)
     {
         openInventories.Add(inventoryGameObject);
-        Debug.Log(openInventories.Count);
 
         if (!IsOpen)
         {
@@ -419,8 +418,6 @@ public abstract class Inventory_Manager : MonoBehaviour
     }
     
     public List<InventoryItem> displayInventoryList = new List<InventoryItem>();
-
-    
 
     public void PopulateInventory()
     {

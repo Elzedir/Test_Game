@@ -15,12 +15,13 @@ public class Inventory_Window : MonoBehaviour
         set { inventorySlots = value; }
     }
 
-    public void SetInventoryWindow(string name)
+    public void SetInventoryWindowName(string name)
     {
         nameText.text = name;
     }
     public void DestroyInventoryWindow()
     {
+        Debug.Log("Destroy inventory window function called");
         Destroy(gameObject);
     }
 }

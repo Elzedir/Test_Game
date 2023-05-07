@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public class Inventory_Creator : MonoBehaviour
 {
@@ -15,36 +16,41 @@ public class Inventory_Creator : MonoBehaviour
         }
     }
 
-    public void UpdateSlotUI(Inventory_Manager inventoryManager)
+    public void UpdateInventoryUI(Inventory_Manager inventoryManager)
     {
         Dictionary<int, (int, int, bool)> inventoryItems = inventoryManager.InventoryItemIDs;
 
+        int currentSlot = 0;
         bool hasItems = false;
 
         foreach (KeyValuePair<int, (int, int, bool)> item in inventoryItems)
         {
             if (item.Value.Item1 != -1)
             {
+                Transform slot = inventoryArea.GetChild(currentSlot);
+                Inventory_Slot slotScript = slot.GetComponent<Inventory_Slot>();
+
+                if (item.Value.Item3)
+                {
+                    currentSlot++;
+                }
+
+                if (currentSlot >= inventoryArea.childCount)
+                {
+                    break;
+                }
+
+                slotScript.UpdateSlotUI(item.Value.Item1, item.Value.Item2);
                 hasItems = true;
-                break;
+            }
+            else
+            {
+                continue;
             }
         }
-
         if (!hasItems)
         {
             Debug.Log("No items in the inventory.");
-            return;
-        }
-
-        for (int i = 0; i < inventoryArea.childCount; i++)
-        {
-            Transform slot = inventoryArea.GetChild(i);
-            Inventory_Slot slotScript = slot.GetComponent<Inventory_Slot>();
-
-            int itemID = inventoryItems[i].Item1;
-            int stackSize = inventoryItems[i].Item2;
-
-            slotScript.UpdateSlotUI(itemID, stackSize);
         }
     }
 }

@@ -23,10 +23,7 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
 
     public virtual void UpdateSlotUI(int itemID, int stackSize)
     {   
-        Debug.Log("Item ID: " + itemID);
-        Debug.Log("Stack Size: " + stackSize);
-
-        if (itemID == -1)
+        if (itemID == -1 || stackSize == 0)
         {
             itemIcon = null;
             stackSizeText.enabled = false;
@@ -52,11 +49,9 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
             }
 
             Sprite itemSprite = item.itemIcon;
-            Debug.Log(itemSprite);
-
 
             itemIcon.sprite = itemSprite;
-
+            int maxStackSize = item.GetMaxStackSize();
 
             if (stackSize > 1)
             {
