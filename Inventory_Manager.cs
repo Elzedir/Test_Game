@@ -26,19 +26,18 @@ public abstract class Inventory_Manager : MonoBehaviour
     #region fields
 
     // Inventory items
-    public int _inventorySize = 10;
+    public int inventorySize = 10;
     public Dictionary<int, (int, int, bool)> InventoryItemIDs = new();
     public static List<GameObject> openInventories = new List<GameObject>();
     [SerializeField] public abstract RectTransform inventoryUIBase { get; }
     public bool IsOpen;
     public bool InventoryIsInitialised = false;
     public event InventoryChangeEvent OnInventoryChange;
-    
 
     public int InventorySize
     {
-        get { return _inventorySize; }
-        set { _inventorySize = value; }
+        get { return inventorySize; }
+        set { inventorySize = value; }
     }
     #endregion
 
@@ -47,7 +46,6 @@ public abstract class Inventory_Manager : MonoBehaviour
         Inventory_Manager inventoryManager = GetComponent<Inventory_Manager>();
         inventoryManager.OnInventoryChange += DeleteList;
         inventoryManager.OnInventoryChange += PopulateInventory;
-
     }
 
     public void TriggerChangeInventory()
@@ -330,11 +328,7 @@ public abstract class Inventory_Manager : MonoBehaviour
     #region Inventory Windows
     public int GetInventorySize()
     {
-        return _inventorySize;
-    }
-    public int GetMaxStackSize(List_Item item)
-    {
-        return item.maxStackSize;
+        return inventorySize;
     }
     public static Inventory_Manager InventoryType(GameObject interactedObject)
     {

@@ -22,6 +22,10 @@ public class Manager_Input : MonoBehaviour
     public GameObject inventoryWindow;
     public GameObject menuRightClick;
 
+    private float holdTime;
+    private float heldDuration;
+    private bool isHoldingDown = false;
+
     private void Awake()
     {
         instance = this;
@@ -52,43 +56,33 @@ public class Manager_Input : MonoBehaviour
                 RectTransform menuRightClickTransform = menuRightClick.GetComponent<RectTransform>();
                 menuRightClickTransform.position = Input.mousePosition;
 
-                #region EquipCheck
-                //List_Item item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
 
-                //if (item != null)
-                //{
-                //    Equipment_Manager manager = player.GetComponent<Equipment_Manager>();
-
-                //    if (manager != null)
-                //    {
-                //        manager.EquipCheck(item, Equipment_Manager.EquipmentSlot.Weapon);
-                //    }
-                //}
-                //else
-                //{
-                //    Debug.Log("Item " + itemID + " is not a weapon");
-                //}
-                #endregion
+                
             }
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 Debug.Log("Escape key pressed");
 
                 GameObject mostRecentInventory = Inventory_Manager.GetMostRecentInventory();
-                Inventory_Window inventoryWindow = mostRecentInventory.GetComponent<Inventory_Window>();
 
-                GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
-                Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
-
-                if (mostRecentInventory != null)
+                if(mostRecentInventory != null)
                 {
-                    ClosedInventory(inventoryManager, inventoryWindow);
+                    Inventory_Window inventoryWindow = mostRecentInventory.GetComponent<Inventory_Window>();
+
+                    GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
+                    Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
+
+                    if (mostRecentInventory != null)
+                    {
+                        ClosedInventory(inventoryManager, inventoryWindow);
+                    }
+
+                    else
+                    {
+                        Debug.Log("Most recent inventory is null");
+                    }
                 }
 
-                else
-                {
-                    Debug.Log("Most recent inventory is null");
-                }
             }
             if (Input.GetKeyDown(KeyCode.E))
             {
@@ -140,6 +134,7 @@ public class Manager_Input : MonoBehaviour
                 Debug.Log("Inventory invalid");
                 return;
             }
+
             inventoryWindow.transform.SetParent(inventoryCanvas.transform, false);
             inventoryWindow.transform.position = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
             Inventory_Window inventoryWindowController = inventoryWindow.GetComponent<Inventory_Window>();
@@ -173,7 +168,7 @@ public class Manager_Input : MonoBehaviour
         inventoryManager.ClosedInventoryWindow();
         inventoryWindow.DestroyInventoryWindow();
     }
-
+    
     public void OnItemPickup()
     {
         int itemID = 1;
@@ -219,6 +214,46 @@ public class Manager_Input : MonoBehaviour
                     Debug.Log("Slot creator not found.");
                 }
             }
+        }
+    }
+
+    public void OnEquip()
+    {
+        int itemID = 1;
+
+        List_Item item;
+
+        switch (itemID)
+        {
+            case 1:
+                item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
+
+                break;
+            case 2:
+                item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
+
+                break;
+            case 3:
+                item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
+
+                break;
+            default:
+                item = null;
+                break;
+        }
+
+        if (item != null)
+        {
+            Equipment_Manager manager = player.GetComponent<Equipment_Manager>();
+
+            if (manager != null)
+            {
+                manager.EquipCheck(item);
+            }
+        }
+        else
+        {
+            Debug.Log("Item " + itemID + " is not a weapon");
         }
     }
 }
