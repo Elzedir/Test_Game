@@ -27,8 +27,8 @@ public class Inventory_Creator : MonoBehaviour
         {
             if (item.Value.Item1 != -1)
             {
-                Transform slot = inventoryArea.GetChild(currentSlot);
-                Inventory_Slot slotScript = slot.GetComponent<Inventory_Slot>();
+                Transform inventorySlot = inventoryArea.GetChild(currentSlot);
+                Inventory_Slot slotScript = inventorySlot.GetComponent<Inventory_Slot>();
 
                 if (item.Value.Item3)
                 {
@@ -45,7 +45,7 @@ public class Inventory_Creator : MonoBehaviour
             }
             else
             {
-                continue;
+                currentSlot++;
             }
         }
         if (!hasItems)

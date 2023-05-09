@@ -143,10 +143,14 @@ public class Manager_Input : MonoBehaviour
             Inventory_Creator slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Creator>();
             int inventorySize = inventoryManager.GetComponent<Inventory_Manager>().GetInventorySize();
 
+            Equipment_Window equipmentWindow = inventoryWindow.GetComponentInChildren<Equipment_Window>();
+            Equipment_Manager equipmentManager = interactedObject.GetComponent<Equipment_Manager>();
+
             if (slotCreator != null)
             {
                 slotCreator.CreateSlots(inventorySize);
                 slotCreator.UpdateInventoryUI(inventoryManager);
+                equipmentWindow.UpdateEquipmentUI(equipmentManager);
             }
             else
             {
@@ -202,7 +206,6 @@ public class Manager_Input : MonoBehaviour
             if (inventoryManager != null)
             {
                 inventoryManager.AddItem(item, stackSize);
-                inventoryManager.TriggerChangeInventory();
 
                 if (inventoryWindow != null)
                 {
@@ -220,6 +223,7 @@ public class Manager_Input : MonoBehaviour
     public void OnEquip()
     {
         int itemID = 1;
+        int stackSize = 1; // Need to put in the code that will lift the stack size from the item wherever it is from.
 
         List_Item item;
 
@@ -248,7 +252,7 @@ public class Manager_Input : MonoBehaviour
 
             if (manager != null)
             {
-                manager.EquipCheck(item);
+                manager.EquipCheck(item, stackSize);
             }
         }
         else

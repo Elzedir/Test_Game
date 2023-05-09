@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Spear : Equipment_Weapon
+public class Spear : Equipment_Slot
 {
     protected override void Start()
     {
-        AttackAnimation = SpearAttackAnimation;
+        // AttackAnimation = SpearAttackAnimation;
     }
 
     private void SpearAttackAnimation(Animator animator)

@@ -7,9 +7,19 @@ using UnityEngine;
 
 public class Equipment_Window : MonoBehaviour
 {
+    public Transform equipmentArea;
+    public Manager_Stats statsManager;
+
+    public void Start()
+    {
+
+        statsManager = GetComponentInParent<Manager_Stats>();
+    }
+
     public void UpdateEquipmentUI(Equipment_Manager equipmentManager)
     {
-        Dictionary<Equipment_Manager.EquipmentSlot, (int, int, bool)> equippedItems = equipmentManager.currentEquipment;
+        Debug.Log("Update equipment UI called");
+        Dictionary<int, (int, int, bool)> equippedItems = equipmentManager.currentEquipment;
 
         int currentSlot = 0;
         bool hasItems = false;
@@ -18,25 +28,29 @@ public class Equipment_Window : MonoBehaviour
         {
             if (item.Value.Item1 != -1)
             {
-                Transform slot = inventoryArea.GetChild(currentSlot);
-                Inventory_Slot slotScript = slot.GetComponent<Inventory_Slot>();
-
-                if (item.Value.Item3)
-                {
-                    currentSlot++;
-                }
-
-                if (currentSlot >= inventoryArea.childCount)
+                if (currentSlot >= equipmentArea.childCount)
                 {
                     break;
                 }
 
-                slotScript.UpdateSlotUI(item.Value.Item1, item.Value.Item2);
+                Transform equipmentSlot = equipmentArea.GetChild(currentSlot);
+                Debug.Log(equipmentSlot);
+                Equipment_Slot equipmentSlotScript = equipmentSlot.GetComponentInChildren<Equipment_Slot>();
+
+                if (equipmentSlotScript != null)
+                {
+                    equipmentSlotScript.UpdateSlotUI(item.Value.Item1, item.Value.Item2);
+                }
+                else
+                {
+                    Debug.Log("No equipment slot script found");
+                }
                 hasItems = true;
+                currentSlot++;
             }
             else
             {
-                continue;
+                currentSlot++;
             }
         }
         if (!hasItems)

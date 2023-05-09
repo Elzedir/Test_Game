@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Axe : Equipment_Weapon
+public class Axe : Equipment_Slot
 {
     protected override void Start()
     {
-        AttackAnimation = AxeAttackAnimation;
+        // AttackAnimation = AxeAttackAnimation;
     }
 
     private void AxeAttackAnimation(Animator animator)

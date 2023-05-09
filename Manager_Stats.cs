@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 [System.Serializable]
 public class Manager_Stats : MonoBehaviour
@@ -35,30 +36,66 @@ public class Manager_Stats : MonoBehaviour
 
     public void UpdateStats()
     {
-        maxHealth = 0;
-        physicalDefence = 0;
-        magicalDefence = 0;
+        maxHealth = 0; // Change this by level
+        physicalDefence = 0; // Change this by level
+        magicalDefence = 0; // Change this by level
 
-        for (int i = 0; i < equipmentManager.currentEquipment.Length; i++)
+        int currentSlot = 0;
+
+        foreach (KeyValuePair<int, (int, int, bool)> equipment in equipmentManager.currentEquipment)
         {
-            if (equipmentManager.currentEquipment[i] is List_Weapon weapon)
+            if (equipment.Value.Item1 != -1)
             {
-                damageAmount += weapon.weaponDamage;
-                pushForce += weapon.weaponForce;
+                if (currentSlot >= equipmentManager.currentEquipment.Count)
+                {
+                    break;
+                }
+
+                List_Item item;
+
+                switch (equipment.Value.Item1)
+                {
+                    case 1:
+                        item = List_Item.GetItemData(equipment.Value.Item1, List_Weapon.allWeaponData);
+
+                        break;
+                    case 2:
+                        item = List_Item.GetItemData(equipment.Value.Item1, List_Armour.allArmourData);
+
+                        break;
+                    case 3:
+                        item = List_Item.GetItemData(equipment.Value.Item1, List_Consumable.allConsumableData);
+
+                        break;
+                    default:
+                        item = null;
+                        break;
+                }
+
+                if (item is List_Weapon weapon)
+                {
+                    damageAmount += weapon.weaponDamage;
+                    pushForce += weapon.weaponForce;
+                }
+                else if (item is List_Armour armour)
+                {
+                    maxHealth += armour.healthBonus;
+                    physicalDefence += armour.physicalDefence;
+                    magicalDefence += armour.magicalDefence;
+                }
+
+                maxHealth += actor.baseHitpoints;
+                if (currentHealth > maxHealth)
+                {
+                    currentHealth = maxHealth;
+                }
+
+                currentSlot++;
             }
-            else if (equipmentManager.currentEquipment[i] is List_Armour armour)
+            else
             {
-                maxHealth += armour.healthBonus;
-                physicalDefence += armour.physicalDefence;
-                magicalDefence += armour.magicalDefence;
+                currentSlot++;
             }
-        }
-
-        maxHealth += actor.baseHitpoints;
-
-        if (currentHealth > maxHealth)
-        {
-            currentHealth = maxHealth;
         }
     }
 

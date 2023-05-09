@@ -8,7 +8,7 @@ public class Button_Equip : MonoBehaviour
 
     public void OnButtonClick()
     {
-        Debug.Log("Equip Item Called");
+        Debug.Log("Equip Item button pressed");
         inputManager.OnEquip();
     }
 }

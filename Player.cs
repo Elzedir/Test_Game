@@ -10,7 +10,6 @@ public class Player : Actor
 {
     // References
     public Equipment_Manager equipmentManager;
-    public List_Item[] currentEquipment;
     public Inventory_Manager inventory;
     public Manager_Stats statsManager;
 
@@ -49,7 +48,6 @@ public class Player : Actor
         anim = GetComponent<Animator>();
         playerCanAttack = FactionManager.instance.AttackableFactions()[1];
         equipmentManager = GetComponent<Equipment_Manager>();
-        currentEquipment = equipmentManager.currentEquipment;
         inventory = GetComponent<Inventory_Manager>();
         statsManager = GetComponent<Manager_Stats>();
     }

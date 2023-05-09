@@ -157,12 +157,14 @@ public abstract class Inventory_Manager : MonoBehaviour
                     Debug.Log("Existing item" + item.itemName + "added");
                     Debug.Log("Reached max stack size");
                     AddItem(item, remainingStackSize);
+                    TriggerChangeInventory();
                     SaveInventory(inventoryManager);
                 }
                 else
                 {
                     InventoryItemIDs[itemIndex] = (item.itemID, currentStackSize, false);
                     Debug.Log("Existing item" + item.itemName + "added");
+                    TriggerChangeInventory();
                     SaveInventory(inventoryManager);
                 }
             }
@@ -198,12 +200,14 @@ public abstract class Inventory_Manager : MonoBehaviour
                         Debug.Log("Item" + item.itemName + "added");
                         Debug.Log("Reached max stack size");
                         AddItem(item, remainingStackSize);
+                        TriggerChangeInventory();
                         SaveInventory(inventoryManager);
                     }
                     else if (currentStackSize < maxStackSize)
                     {
                         InventoryItemIDs[emptyItemIndex] = (itemId, currentStackSize, false);
                         Debug.Log("Item" + item.itemName + "added");
+                        TriggerChangeInventory();
                         SaveInventory(inventoryManager);
                     }
                 }

@@ -1,27 +1,38 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using TMPro;
 using Unity.VisualScripting;
-using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle;
+using static UnityEditor.Progress;
 
-public class Inventory_Slot : MonoBehaviour, IDropHandler
+[System.Serializable]
+public class Equipment_Slot : MonoBehaviour, IDropHandler
 {
     public int slotIndex;
     public TextMeshProUGUI stackSizeText;
     public Image itemIcon;
 
+    protected virtual void Start()
+    {
+        
+    }
+
     public void OnDrop(PointerEventData eventData)
     {
-        Inventory_Slot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().itemSlotIndex;
+        Equipment_Slot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().equipmentSlotIndex;
         int targetSlotIndex = slotIndex;
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
 
     public virtual void UpdateSlotUI(int itemID, int stackSize)
-    {   
+    {
+        Debug.Log("Update Slot UI called");
         if (itemID == -1 || stackSize == 0)
         {
             itemIcon = null;
@@ -29,6 +40,8 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         }
         else
         {
+            Debug.Log("ItemID " + itemID + " found");
+
             List_Item item;
 
             switch (itemID)
