@@ -28,9 +28,8 @@ public abstract class Inventory_Manager : MonoBehaviour
     // Inventory items
     public int inventorySize = 10;
     public Dictionary<int, (int, int, bool)> InventoryItemIDs = new();
-    public static List<GameObject> openInventories = new List<GameObject>();
     [SerializeField] public abstract RectTransform inventoryUIBase { get; }
-    public bool IsOpen;
+    public bool IsOpen = false;
     public bool InventoryIsInitialised = false;
     public event InventoryChangeEvent OnInventoryChange;
 
@@ -251,6 +250,7 @@ public abstract class Inventory_Manager : MonoBehaviour
             if (currentStackSize <= 0)
             {
                 InventoryItemIDs[itemIndex] = (-1, 0, false);
+                TriggerChangeInventory();
             }
         }
         else
@@ -361,47 +361,6 @@ public abstract class Inventory_Manager : MonoBehaviour
 
         return inventoryType;
 
-    }
-    public static GameObject GetMostRecentInventory()
-    {
-        if (openInventories.Count > 0)
-        {
-            return openInventories[openInventories.Count - 1];
-        }
-        else
-        {
-            return null;
-        }
-    }
-    public void OpenedInventoryWindow(GameObject inventoryGameObject)
-    {
-        openInventories.Add(inventoryGameObject);
-
-        if (!IsOpen)
-        {
-            IsOpen = true;
-        }
-    }
-    public void ClosedInventoryWindow()
-    {
-        if (openInventories.Count > 0)
-        {
-            GameObject mostRecentInventory = openInventories[openInventories.Count - 1];
-            openInventories.RemoveAt(openInventories.Count - 1);
-
-            if (IsOpen)
-            {
-                IsOpen = false;
-            }
-        }
-    }
-    public void InventoryMoveToFront()
-    {
-        if (openInventories.Count > 1)
-        {
-            openInventories.Remove(this.gameObject);
-            openInventories.Add(this.gameObject);
-        }
     }
     #endregion
 
