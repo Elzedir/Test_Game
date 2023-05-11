@@ -124,8 +124,6 @@ public class Equipment_Manager : MonoBehaviour
     }
     public void InitialiseEquipment()
     {
-        Debug.Log("Equipment initialised called");
-
         for (int i = 0; i < 6; i++)
         {
             if (!currentEquipment.ContainsKey(i))
@@ -142,7 +140,6 @@ public class Equipment_Manager : MonoBehaviour
     }
     protected void SaveEquipment(Equipment_Manager equipmentManager)
     {
-        Debug.Log("SaveEquipment called");
         string equipmentData = JsonUtility.ToJson(currentEquipment);
         PlayerPrefs.SetString("EquipmentIDs", equipmentData);
         //Debug.Log(equipmentData); // Equipment isn't saving and loading still
@@ -150,7 +147,6 @@ public class Equipment_Manager : MonoBehaviour
     }
     protected void LoadEquipment()
     {
-        Debug.Log("LoadEquipment called");
         string equipmentData = PlayerPrefs.GetString("EquipmentIDs", "");
         // Debug.Log("equipmentData: " + equipmentData); // Equipment still isn't saving and loading
 
@@ -165,42 +161,49 @@ public class Equipment_Manager : MonoBehaviour
         }
 
     }
-    public void EquipCheck(List_Item item, int stackSize)
+    public bool EquipCheck(List_Item item, int stackSize)
     {
         if (item != null)
         {
             if (item is List_Item equipment)
             {
-                Debug.Log($"Equipping {item.itemName}");
-                Equip(equipment, stackSize);
+                bool equipped =  Equip(equipment, stackSize);
+
+                if (equipped)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else
             {
                 Debug.LogWarning($"Tried to equip {item.itemName} which is not a List_Item item");
+                return false;
             }
         }
         else
         {
             Debug.LogWarning("Tried to equip null item.");
-            return;
+            return false;
         }
     }
-    public void Equip(List_Item item, int stackSize)
+    public bool Equip(List_Item item, int stackSize)
     {
         Debug.Log("Equip function called");
 
         Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
 
         LoadEquipment();
+        bool equipped = false;
 
         if (item != null)
         {
             foreach (KeyValuePair<int, (int, int, bool)> equipmentSlot in currentEquipment)
             {
                 bool allowedType = false;
-                bool itemAdded = false;
-
-                Debug.Log(item);
 
                 switch (equipmentSlot.Key)
                 {
@@ -209,12 +212,10 @@ public class Equipment_Manager : MonoBehaviour
                     case 4:
                     case 5:
                         allowedType = item is List_Armour;
-                        Debug.Log("Allowed type is armour");
                         break;
                     case 2:
                     case 3:
                         allowedType = item is List_Weapon;
-                        Debug.Log("Allowed type is weapon");
                         break;
                     default:
                         Debug.LogWarning($"Unknown equipment slot: {equipmentSlot.Value.Item1}");
@@ -240,21 +241,21 @@ public class Equipment_Manager : MonoBehaviour
                         {
                             int remainingStackSize = currentStackSize - maxStackSize;
                             currentEquipment[equipmentSlot.Key] = (item.itemID, maxStackSize, true);
-                            Debug.Log("Existing item" + item.itemName + "added");
                             Debug.Log("Reached max stack size");
                             // Call the removeitem function to decrease the amount that was in the inventory by the remaining stack size
                             TriggerChangeEquipment();
-                            itemAdded = true;
                             SaveEquipment(equipmentManager);
+                            equipped = true;
+                            break;
                         }
                         else
                         {
                             currentEquipment[equipmentSlot.Key] = (item.itemID, currentStackSize, false);
-                            Debug.Log("Existing item" + item.itemName + "added");
                             // Call the removeitem function to decrease the amount that was in the inventory by the stacksize.
                             TriggerChangeEquipment();
-                            itemAdded = true;
                             SaveEquipment(equipmentManager);
+                            equipped = true;
+                            break;
                         }
                     }
                     else
@@ -273,34 +274,35 @@ public class Equipment_Manager : MonoBehaviour
                         if (emptyEquipmentIndex < 0)
                         {
                             Debug.Log("No empty equipment slot found");
-                            return;
+                            equipped = false;
                         }
+
                         else
                         {
                             int itemId = item.itemID;
                             int currentStackSize = stackSize;
                             int maxStackSize = item.GetMaxStackSize();
-                            Debug.Log(item.itemName + " added to equipment");
 
                             if (currentStackSize > maxStackSize)
                             {
                                 int remainingStackSize = currentStackSize - maxStackSize;
                                 currentEquipment[equipmentSlot.Key] = (item.itemID, maxStackSize, true);
-                                Debug.Log("Item" + item.itemName + "added");
                                 Debug.Log("Reached max stack size");
                                 // Call the removeitem function to decrease the amount that was in the inventory by the remaining stack size
                                 TriggerChangeEquipment();
-                                itemAdded = true;
                                 SaveEquipment(equipmentManager);
+                                equipped = true;
+                                break;
                             }
-                            else if (currentStackSize < maxStackSize)
+                            else
                             {
                                 currentEquipment[emptyEquipmentIndex] = (itemId, currentStackSize, false);
                                 Debug.Log("Item" + item.itemName + "added");
                                 // Call the removeitem function to decrease the amount that was in the inventory by the stacksize.
                                 TriggerChangeEquipment();
-                                itemAdded = true;
                                 SaveEquipment(equipmentManager);
+                                equipped = true;
+                                break;
                             }
                         }
                     }
@@ -308,22 +310,25 @@ public class Equipment_Manager : MonoBehaviour
                 else
                 {
                     Debug.Log(allowedType + " is not an allowed type");
-                    
+                    equipped = false;
                 }
-                if (itemAdded)
-                {
-                    break;
-                }
+            }
+            if (equipped)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
         else
         {
             Debug.LogError("Invalid item ID: " + item.itemID);
+            return false;
         }
-
-        // Manager_Stats.UpdateStats();
-        // update ui
     }
+
     public void Unequip(int equipSlot)
     {
         if (currentEquipment.ContainsKey(equipSlot))
@@ -385,8 +390,6 @@ public class Equipment_Manager : MonoBehaviour
 
     public void PopulateEquipment()
     {
-        Debug.Log("Populate equipment called");
-
         foreach (var item in currentEquipment)
         {
             int itemID = item.Value.Item1;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,11 +9,35 @@ public class Inventory_Creator : MonoBehaviour
     public GameObject inventorySlotPrefab;
     public Transform inventoryArea;
 
+    private static HashSet<int> usedIDs = new HashSet<int>();
+    private int SlotID = 0;
+
+    public int GetSlotID()
+    {
+        while (usedIDs.Contains(SlotID))
+        {
+            SlotID++;
+        }
+
+        usedIDs.Add(SlotID);
+
+        return SlotID;
+    }
+
+    public void ClearUsedIDs()
+    {
+        usedIDs.Clear();
+    }
+
     public void CreateSlots(int numSlots)
     {
         for (int i = 0; i < numSlots; i++)
         {
-            Instantiate(inventorySlotPrefab, inventoryArea);
+            GameObject slotObject = Instantiate(inventorySlotPrefab, inventoryArea);
+            Inventory_Slot slotScript = slotObject.GetComponent<Inventory_Slot>();
+
+            int slotIndex = GetSlotID();
+            slotScript.slotIndex = slotIndex;
         }
     }
 
@@ -20,34 +45,25 @@ public class Inventory_Creator : MonoBehaviour
     {
         Dictionary<int, (int, int, bool)> inventoryItems = inventoryManager.InventoryItemIDs;
 
-        int currentSlot = 0;
         bool hasItems = false;
 
-        foreach (KeyValuePair<int, (int, int, bool)> item in inventoryItems)
+        foreach (Transform child in inventoryArea)
         {
-            if (item.Value.Item1 != -1)
+            Inventory_Slot slotScript = child.GetComponent<Inventory_Slot>();
+
+            if (slotScript != null)
             {
-                Transform inventorySlot = inventoryArea.GetChild(currentSlot);
-                Inventory_Slot slotScript = inventorySlot.GetComponent<Inventory_Slot>();
+                int slotID = slotScript.slotIndex;
+                (int itemID, int stackSize, bool isFull) = inventoryItems[slotID];
 
-                if (item.Value.Item3)
+                if (itemID != -1)
                 {
-                    currentSlot++;
+                    slotScript.UpdateSlotUI(itemID, stackSize);
+                    hasItems = true;
                 }
-
-                if (currentSlot >= inventoryArea.childCount)
-                {
-                    break;
-                }
-
-                slotScript.UpdateSlotUI(item.Value.Item1, item.Value.Item2);
-                hasItems = true;
-            }
-            else
-            {
-                currentSlot++;
             }
         }
+
         if (!hasItems)
         {
             Debug.Log("No items in the inventory.");

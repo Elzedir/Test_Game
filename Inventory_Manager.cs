@@ -57,7 +57,6 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public void InitialiseInventory()
     {
-        Debug.Log("Inventory initialised called");
         for (int i = 0; i < 10; i++)
         {
             if (!InventoryItemIDs.ContainsKey(i))
@@ -76,7 +75,6 @@ public abstract class Inventory_Manager : MonoBehaviour
     #region Save and Load
     protected void SaveInventory(Inventory_Manager inventoryManager)
     {
-        Debug.Log("SaveInventory called");
         string inventoryData = JsonUtility.ToJson(InventoryItemIDs);
         PlayerPrefs.SetString("InventoryItemIDs", inventoryData);
         //Debug.Log(inventoryData); // Inventory isn't saving and loading still
@@ -153,7 +151,6 @@ public abstract class Inventory_Manager : MonoBehaviour
                 {
                     int remainingStackSize = currentStackSize - maxStackSize;
                     InventoryItemIDs[itemIndex] = (item.itemID, maxStackSize, true);
-                    Debug.Log("Existing item" + item.itemName + "added");
                     Debug.Log("Reached max stack size");
                     AddItem(item, remainingStackSize);
                     TriggerChangeInventory();
@@ -162,7 +159,6 @@ public abstract class Inventory_Manager : MonoBehaviour
                 else
                 {
                     InventoryItemIDs[itemIndex] = (item.itemID, currentStackSize, false);
-                    Debug.Log("Existing item" + item.itemName + "added");
                     TriggerChangeInventory();
                     SaveInventory(inventoryManager);
                 }
@@ -190,13 +186,11 @@ public abstract class Inventory_Manager : MonoBehaviour
                     int itemId = item.itemID;
                     int currentStackSize = stackSize;
                     int maxStackSize = item.GetMaxStackSize();
-                    Debug.Log(item.itemName + " added to inventory");
 
                     if (currentStackSize > maxStackSize)
                     {
                         int remainingStackSize = currentStackSize - maxStackSize;
                         InventoryItemIDs[itemIndex] = (item.itemID, maxStackSize, true);
-                        Debug.Log("Item" + item.itemName + "added");
                         Debug.Log("Reached max stack size");
                         AddItem(item, remainingStackSize);
                         TriggerChangeInventory();
@@ -204,8 +198,7 @@ public abstract class Inventory_Manager : MonoBehaviour
                     }
                     else if (currentStackSize < maxStackSize)
                     {
-                        InventoryItemIDs[emptyItemIndex] = (itemId, currentStackSize, false);
-                        Debug.Log("Item" + item.itemName + "added");
+                        InventoryItemIDs[emptyItemIndex] = (itemId, currentStackSize, false);               
                         TriggerChangeInventory();
                         SaveInventory(inventoryManager);
                     }
@@ -230,7 +223,7 @@ public abstract class Inventory_Manager : MonoBehaviour
         }
     }
 
-    public virtual void RemoveItem(List_Item item, int dropSize)
+    public virtual void RemoveItem(List_Item item, int removeStackSize)
     {
         int itemIndex = -1;
 
@@ -245,17 +238,22 @@ public abstract class Inventory_Manager : MonoBehaviour
 
         if (itemIndex >= 0)
         {
-            int currentStackSize = InventoryItemIDs[itemIndex].Item2 - dropSize;
+            int currentStackSize = InventoryItemIDs[itemIndex].Item2 - removeStackSize;
 
             if (currentStackSize <= 0)
             {
                 InventoryItemIDs[itemIndex] = (-1, 0, false);
                 TriggerChangeInventory();
             }
+            else
+            {
+                InventoryItemIDs[itemIndex] = (InventoryItemIDs[itemIndex].Item1, currentStackSize, false);
+                TriggerChangeInventory();
+            }
         }
         else
         {
-            Debug.Log("Trying to RemoveItem, nothing to remove");
+            Debug.Log("How can one remove an item, when said item does not exist, that is the question.");
             return;
         }
     }
@@ -378,8 +376,6 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public void PopulateInventory()
     {
-        Debug.Log("Populate inventory called");
-
         foreach (var item in InventoryItemIDs)
         {
             int itemID = item.Value.Item1;

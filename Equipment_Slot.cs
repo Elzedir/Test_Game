@@ -63,7 +63,6 @@ public class Equipment_Slot : MonoBehaviour, IDropHandler
             Sprite itemSprite = item.itemIcon;
 
             itemIcon.sprite = itemSprite;
-            int maxStackSize = item.GetMaxStackSize();
 
             if (stackSize > 1)
             {

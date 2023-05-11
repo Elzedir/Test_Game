@@ -18,7 +18,6 @@ public class Equipment_Window : MonoBehaviour
 
     public void UpdateEquipmentUI(Equipment_Manager equipmentManager)
     {
-        Debug.Log("Update equipment UI called");
         Dictionary<int, (int, int, bool)> equippedItems = equipmentManager.currentEquipment;
 
         int currentSlot = 0;
@@ -34,7 +33,6 @@ public class Equipment_Window : MonoBehaviour
                 }
 
                 Transform equipmentSlot = equipmentArea.GetChild(currentSlot);
-                Debug.Log(equipmentSlot);
                 Equipment_Slot equipmentSlotScript = equipmentSlot.GetComponentInChildren<Equipment_Slot>();
 
                 if (equipmentSlotScript != null)
@@ -45,6 +43,7 @@ public class Equipment_Window : MonoBehaviour
                 {
                     Debug.Log("No equipment slot script found");
                 }
+
                 hasItems = true;
                 currentSlot++;
             }

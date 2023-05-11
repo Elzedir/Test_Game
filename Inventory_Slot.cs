@@ -21,9 +21,10 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
     }
 
     public virtual void UpdateSlotUI(int itemID, int stackSize)
-    {   
+    {
         if (itemID == -1 || stackSize == 0)
         {
+            Debug.Log("item removed from UI");
             itemIcon = null;
             stackSizeText.enabled = false;
         }
@@ -48,9 +49,7 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
             }
 
             Sprite itemSprite = item.itemIcon;
-
             itemIcon.sprite = itemSprite;
-            int maxStackSize = item.GetMaxStackSize();
 
             if (stackSize > 1)
             {

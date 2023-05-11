@@ -77,8 +77,6 @@ public class List_Weapon : List_Item
             }
         }
 
-        Debug.Log(weaponSprite);
-
         List_Weapon shortSwordData = new List_Weapon(
             1,
             WeaponType.Shortsword,
