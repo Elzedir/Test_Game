@@ -161,97 +161,63 @@ public class Equipment_Manager : MonoBehaviour
         }
 
     }
-    public bool EquipCheck(List_Item item, int stackSize)
-    {
-        if (item != null)
-        {
-            if (item is List_Item equipment)
-            {
-                bool equipped =  Equip(equipment, stackSize);
-
-                if (equipped)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                Debug.LogWarning($"Tried to equip {item.itemName} which is not a List_Item item");
-                return false;
-            }
-        }
-        else
-        {
-            Debug.LogWarning("Tried to equip null item.");
-            return false;
-        }
-    }
-    public bool Equip(List_Item item, int stackSize)
+    public bool Equip(List_Item item, int addedStackSize, Equipment_Window equipmentWindow)
     {
         Debug.Log("Equip function called");
 
-        Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
-
         LoadEquipment();
+
+        Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
+        Inventory_Manager inventoryManager = GetComponentInParent<Inventory_Manager>();
         bool equipped = false;
+        
 
         if (item != null)
         {
-            foreach (KeyValuePair<int, (int, int, bool)> equipmentSlot in currentEquipment)
+            int[] availableEquipSlots = equipmentWindow.GetEquipSlots(item);
+
+            foreach (int equipSlot in availableEquipSlots)
             {
-                bool allowedType = false;
+                int maxStackSize = item.GetMaxStackSize();
 
-                switch (equipmentSlot.Key)
+                if (!currentEquipment.ContainsKey(equipSlot))
                 {
-                    case 0:
-                    case 1:
-                    case 4:
-                    case 5:
-                        allowedType = item is List_Armour;
-                        break;
-                    case 2:
-                    case 3:
-                        allowedType = item is List_Weapon;
-                        break;
-                    default:
-                        Debug.LogWarning($"Unknown equipment slot: {equipmentSlot.Value.Item1}");
-                        break;
+                    Debug.Log("equipSlot does not exist in current equipment... The hell did you do?");
+                    return false;
                 }
 
-                if (allowedType && equipmentSlot.Value.Item3)
+                if (currentEquipment[equipSlot].Item1 != -1 && item.itemID != currentEquipment[equipSlot].Item1)
                 {
-                    Debug.Log("Unequipped itemID " + equipmentSlot.Value.Item1);
-                    Unequip(equipmentSlot.Key);
+                    Debug.Log("Unequipped itemID " + currentEquipment[equipSlot].Item1);
+                    Unequip(equipSlot);
                 }
 
-                Debug.Log(equipmentSlot);
+                Debug.Log(equipSlot);
 
-                if (allowedType)
+                if (currentEquipment[equipSlot].Item2 < maxStackSize)
                 {
-                    if (equipmentSlot.Value.Item2 > 0)
+                    if (currentEquipment[equipSlot].Item2 > 0)
                     {
-                        int currentStackSize = equipmentSlot.Value.Item2 + stackSize;
-                        int maxStackSize = item.GetMaxStackSize();
+                        int currentStackSize = currentEquipment[equipSlot].Item2 + addedStackSize;
 
                         if (currentStackSize > maxStackSize)
                         {
                             int remainingStackSize = currentStackSize - maxStackSize;
-                            currentEquipment[equipmentSlot.Key] = (item.itemID, maxStackSize, true);
-                            Debug.Log("Reached max stack size");
-                            // Call the removeitem function to decrease the amount that was in the inventory by the remaining stack size
+                            currentEquipment[equipSlot] = (item.itemID, maxStackSize, true);
+                            Debug.Log($"Reached max stack size for existing equip slot {equipSlot}");
+
+                            if (remainingStackSize > 0)
+                            {
+                                inventoryManager.AddItem(item, remainingStackSize);
+                            }
+
                             TriggerChangeEquipment();
                             SaveEquipment(equipmentManager);
                             equipped = true;
-                            break;
                         }
                         else
                         {
-                            currentEquipment[equipmentSlot.Key] = (item.itemID, currentStackSize, false);
-                            // Call the removeitem function to decrease the amount that was in the inventory by the stacksize.
+                            currentEquipment[equipSlot] = (item.itemID, currentStackSize, false);
                             TriggerChangeEquipment();
                             SaveEquipment(equipmentManager);
                             equipped = true;
@@ -260,45 +226,32 @@ public class Equipment_Manager : MonoBehaviour
                     }
                     else
                     {
-                        int emptyEquipmentIndex = -1;
-
-                        foreach (KeyValuePair<int, (int, int, bool)> entry in currentEquipment)
-                        {
-                            if (entry.Value.Item1 == -1)
-                            {
-                                emptyEquipmentIndex = entry.Key;
-                                break;
-                            }
-                        }
-
-                        if (emptyEquipmentIndex < 0)
+                        if (equipSlot < 0)
                         {
                             Debug.Log("No empty equipment slot found");
-                            equipped = false;
                         }
-
                         else
                         {
                             int itemId = item.itemID;
-                            int currentStackSize = stackSize;
-                            int maxStackSize = item.GetMaxStackSize();
+                            int currentStackSize = addedStackSize;
 
                             if (currentStackSize > maxStackSize)
                             {
                                 int remainingStackSize = currentStackSize - maxStackSize;
-                                currentEquipment[equipmentSlot.Key] = (item.itemID, maxStackSize, true);
-                                Debug.Log("Reached max stack size");
-                                // Call the removeitem function to decrease the amount that was in the inventory by the remaining stack size
+                                currentEquipment[equipSlot] = (item.itemID, maxStackSize, true);
+                                Debug.Log($"Reached max stack size for empty equip slot {equipSlot}");
+                                if (remainingStackSize > 0)
+                                {
+                                    inventoryManager.AddItem(item, remainingStackSize);
+                                }
                                 TriggerChangeEquipment();
                                 SaveEquipment(equipmentManager);
                                 equipped = true;
-                                break;
                             }
                             else
                             {
-                                currentEquipment[emptyEquipmentIndex] = (itemId, currentStackSize, false);
+                                currentEquipment[equipSlot] = (itemId, currentStackSize, false);
                                 Debug.Log("Item" + item.itemName + "added");
-                                // Call the removeitem function to decrease the amount that was in the inventory by the stacksize.
                                 TriggerChangeEquipment();
                                 SaveEquipment(equipmentManager);
                                 equipped = true;
@@ -309,26 +262,18 @@ public class Equipment_Manager : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log(allowedType + " is not an allowed type");
-                    equipped = false;
+                    Debug.Log("All slots at max stack size");
                 }
             }
-            if (equipped)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+
+            return equipped;
         }
         else
         {
             Debug.LogError("Invalid item ID: " + item.itemID);
-            return false;
+            return equipped;
         }
     }
-
     public void Unequip(int equipSlot)
     {
         if (currentEquipment.ContainsKey(equipSlot))

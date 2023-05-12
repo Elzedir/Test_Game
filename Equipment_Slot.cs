@@ -23,6 +23,18 @@ public class Equipment_Slot : MonoBehaviour, IDropHandler
         
     }
 
+    //public bool CheckEquipSlot(int checkedSlotIndex)
+    //{
+    //    if (slotIndex == checkedSlotIndex)
+    //    {
+    //        return true;
+    //    }
+    //    else
+    //    {
+    //        return false;
+    //    }
+    //}
+
     public void OnDrop(PointerEventData eventData)
     {
         Equipment_Slot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().equipmentSlotIndex;

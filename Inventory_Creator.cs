@@ -9,24 +9,24 @@ public class Inventory_Creator : MonoBehaviour
     public GameObject inventorySlotPrefab;
     public Transform inventoryArea;
 
-    private static HashSet<int> usedIDs = new HashSet<int>();
+    private static HashSet<int> usedInventorySlotIDs = new HashSet<int>();
     private int SlotID = 0;
 
     public int GetSlotID()
     {
-        while (usedIDs.Contains(SlotID))
+        while (usedInventorySlotIDs.Contains(SlotID))
         {
             SlotID++;
         }
 
-        usedIDs.Add(SlotID);
+        usedInventorySlotIDs.Add(SlotID);
 
         return SlotID;
     }
 
     public void ClearUsedIDs()
     {
-        usedIDs.Clear();
+        usedInventorySlotIDs.Clear();
     }
 
     public void CreateSlots(int numSlots)
@@ -55,7 +55,7 @@ public class Inventory_Creator : MonoBehaviour
             {
                 int slotID = slotScript.slotIndex;
                 (int itemID, int stackSize, bool isFull) = inventoryItems[slotID];
-
+                
                 if (itemID != -1)
                 {
                     slotScript.UpdateSlotUI(itemID, stackSize);

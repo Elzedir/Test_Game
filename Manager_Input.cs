@@ -145,6 +145,7 @@ public class Manager_Input : MonoBehaviour
             {
                 slotCreator.ClearUsedIDs();
                 slotCreator.CreateSlots(inventorySize);
+                equipmentWindow.AssignSlotIndex();
                 slotCreator.UpdateInventoryUI(inventoryManager);
                 equipmentWindow.UpdateEquipmentUI(equipmentManager);
             }
@@ -270,7 +271,10 @@ public class Manager_Input : MonoBehaviour
 
                     if (playerEquipmentManager != null)
                     {
-                        bool equipped = playerEquipmentManager.EquipCheck(item, stackSize);
+                        Equipment_Window playerEquipmentWindow = playerInventoryWindow.GetComponentInChildren<Equipment_Window>();
+                        Inventory_Creator playerSlotCreator = playerInventoryWindow.GetComponentInChildren<Inventory_Creator>();
+
+                        bool equipped = playerEquipmentManager.Equip(item, stackSize, playerEquipmentWindow);
 
                         if (equipped)
                         {
@@ -278,9 +282,6 @@ public class Manager_Input : MonoBehaviour
 
                             if (playerInventoryWindow != null)
                             {
-                                Equipment_Window playerEquipmentWindow = playerInventoryWindow.GetComponentInChildren<Equipment_Window>();
-                                Inventory_Creator playerSlotCreator = playerInventoryWindow.GetComponentInChildren<Inventory_Creator>();
-
                                 playerEquipmentWindow.UpdateEquipmentUI(playerEquipmentManager);
                                 playerSlotCreator.UpdateInventoryUI(playerinventoryManager);
                                 break;

@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,9 +11,46 @@ public class Equipment_Window : MonoBehaviour
     public Transform equipmentArea;
     public Manager_Stats statsManager;
 
+    private static HashSet<int> usedEquipmentSlotIDs = new HashSet<int>();
+    private int SlotID = 0;
+
+    public int GetSlotID()
+    {
+        while (usedEquipmentSlotIDs.Contains(SlotID))
+        {
+            SlotID++;
+        }
+
+        usedEquipmentSlotIDs.Add(SlotID);
+
+        return SlotID;
+    }
+
+    public void ClearUsedIDs()
+    {
+        usedEquipmentSlotIDs.Clear();
+    }
+
+    public void AssignSlotIndex()
+    {
+        foreach (Transform child in equipmentArea)
+        {
+            Equipment_Slot slotScript = child.GetComponent<Equipment_Slot>();
+
+            if (slotScript != null)
+            {
+                int slotIndex = GetSlotID();
+                slotScript.slotIndex = slotIndex;
+            }
+            else
+            {
+                Debug.Log("No equipment slot script found");
+            }
+        }
+    }
+
     public void Start()
     {
-
         statsManager = GetComponentInParent<Manager_Stats>();
     }
 
@@ -54,7 +92,30 @@ public class Equipment_Window : MonoBehaviour
         }
         if (!hasItems)
         {
-            Debug.Log("No items in the inventory.");
+            Debug.Log("No items in the equipment.");
         }
+    }
+
+    public int[] GetEquipSlots(List_Item item)
+    {
+        int[] equipSlots;
+
+        switch (item)
+        {
+            case List_Weapon:
+                equipSlots = new int[] { 2, 3 };
+                break;
+            case List_Armour:
+                equipSlots = new int[] { 0, 1, 4, 5 };
+                break;
+            case List_Consumable:
+                equipSlots = new int[] { 6 };
+                break;
+            default:
+                equipSlots = new int[] { -1 };
+                break;
+        }
+
+        return equipSlots;
     }
 }
