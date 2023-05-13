@@ -1,18 +1,29 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Animations;
 using UnityEngine;
-using UnityEngine.UIElements;
 
+public enum ItemType
+{
+    Weapon,
+    Armour,
+    Consumable
+}
 public abstract class List_Item
 {
     private static HashSet<int> usedIDs = new HashSet<int>();
 
     public int itemID;
+    public ItemType itemType;
     public string itemName;
     public Sprite itemIcon;
     public int maxStackSize;
     public int itemValue;
+    public Vector3 itemScale;
+    public Vector3 itemPosition;
+    public Vector3 itemRotation;
+    public AnimatorController itemAnimatorController;
+
     public virtual void Start()
     {
        

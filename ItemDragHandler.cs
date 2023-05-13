@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 public class ItemDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler
 {
     public Inventory_Slot itemSlotIndex;
-    public Equipment_Slot equipmentSlotIndex;
+    public Inventory_EquipmentSlot equipmentSlotIndex;
 
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;

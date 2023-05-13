@@ -35,7 +35,7 @@ public class Equipment_Window : MonoBehaviour
     {
         foreach (Transform child in equipmentArea)
         {
-            Equipment_Slot slotScript = child.GetComponent<Equipment_Slot>();
+            Inventory_EquipmentSlot slotScript = child.GetComponent<Inventory_EquipmentSlot>();
 
             if (slotScript != null)
             {
@@ -71,7 +71,7 @@ public class Equipment_Window : MonoBehaviour
                 }
 
                 Transform equipmentSlot = equipmentArea.GetChild(currentSlot);
-                Equipment_Slot equipmentSlotScript = equipmentSlot.GetComponentInChildren<Equipment_Slot>();
+                Inventory_EquipmentSlot equipmentSlotScript = equipmentSlot.GetComponentInChildren<Inventory_EquipmentSlot>();
 
                 if (equipmentSlotScript != null)
                 {

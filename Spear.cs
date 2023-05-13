@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Spear : Equipment_Slot
+public class Spear : Inventory_EquipmentSlot
 {
     protected override void Start()
     {

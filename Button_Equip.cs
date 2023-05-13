@@ -1,14 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Button_Equip : MonoBehaviour
 {
-    public Manager_Input inputManager;
+    public bool buttonPressed = false;
 
-    public void OnButtonClick()
+    public void OnEquipButtonPress()
     {
-        Debug.Log("Equip Item button pressed");
-        inputManager.OnEquipFromInventory();
+        Debug.Log($"Equip Item button pressed");
+        buttonPressed = true;
     }
 }

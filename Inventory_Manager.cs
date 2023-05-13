@@ -106,8 +106,10 @@ public abstract class Inventory_Manager : MonoBehaviour
     }
     #endregion
     #region Adding and Removing items
-    public virtual void AddItem(List_Item item, int stackSize)
+    public virtual bool AddItem(int itemIndex, List_Item item, int stackSize)
     {
+        bool result = false;
+
         if (item != null)
         {
             Inventory_Manager inventoryManager = GetComponent<Inventory_Manager>();
@@ -128,20 +130,21 @@ public abstract class Inventory_Manager : MonoBehaviour
             if (inventoryCount >= inventorySize)
             {
                 Debug.Log("Inventory is full");
-                return;
+                return result;
             }
 
-            int itemIndex = -1;
-
-            foreach (KeyValuePair<int, (int, int, bool)> entry in InventoryItemIDs)
+            if (itemIndex == -1)
             {
-                if (entry.Value.Item1 == item.itemID && !entry.Value.Item3)
+                foreach (KeyValuePair<int, (int, int, bool)> entry in InventoryItemIDs)
                 {
-                    itemIndex = entry.Key;
-                    break;
+                    if (entry.Value.Item1 == item.itemID && !entry.Value.Item3)
+                    {
+                        itemIndex = entry.Key;
+                        break;
+                    }
                 }
             }
-
+            
             if (itemIndex >= 0)
             {
                 int currentStackSize = InventoryItemIDs[itemIndex].Item2 + stackSize;
@@ -152,15 +155,20 @@ public abstract class Inventory_Manager : MonoBehaviour
                     int remainingStackSize = currentStackSize - maxStackSize;
                     InventoryItemIDs[itemIndex] = (item.itemID, maxStackSize, true);
                     Debug.Log("Reached max stack size");
-                    AddItem(item, remainingStackSize);
+                    if (remainingStackSize > 0)
+                    {
+                        AddItem(-1, item, remainingStackSize);
+                    }
                     TriggerChangeInventory();
                     SaveInventory(inventoryManager);
+                    result = true;
                 }
                 else
                 {
                     InventoryItemIDs[itemIndex] = (item.itemID, currentStackSize, false);
                     TriggerChangeInventory();
                     SaveInventory(inventoryManager);
+                    result = true;
                 }
             }
             else
@@ -179,7 +187,7 @@ public abstract class Inventory_Manager : MonoBehaviour
                 if (emptyItemIndex < 0)
                 {
                     Debug.Log("No empty slot found");
-                    return;
+                    return result;
                 }
                 else
                 {
@@ -192,22 +200,30 @@ public abstract class Inventory_Manager : MonoBehaviour
                         int remainingStackSize = currentStackSize - maxStackSize;
                         InventoryItemIDs[itemIndex] = (item.itemID, maxStackSize, true);
                         Debug.Log("Reached max stack size");
-                        AddItem(item, remainingStackSize);
+                        if (remainingStackSize > 0)
+                        {
+                            AddItem(-1, item, remainingStackSize);
+                        }
                         TriggerChangeInventory();
                         SaveInventory(inventoryManager);
+                        result = true;                        
                     }
                     else if (currentStackSize < maxStackSize)
                     {
                         InventoryItemIDs[emptyItemIndex] = (itemId, currentStackSize, false);               
                         TriggerChangeInventory();
                         SaveInventory(inventoryManager);
+                        result = true;                        
                     }
                 }
             }
+
+            return result;
         }
         else
         {
             Debug.LogError("Invalid item ID: " + item.itemID);
+            return result;
         }
     }
     public void PrintInventory()
@@ -223,38 +239,19 @@ public abstract class Inventory_Manager : MonoBehaviour
         }
     }
 
-    public virtual void RemoveItem(List_Item item, int removeStackSize)
+    public virtual void RemoveItem(int itemIndex, List_Item item, int removeStackSize)
     {
-        int itemIndex = -1;
+        int currentStackSize = InventoryItemIDs[itemIndex].Item2 - removeStackSize;
 
-        foreach (KeyValuePair<int, (int, int, bool)> entry in InventoryItemIDs)
+        if (currentStackSize <= 0)
         {
-            if (entry.Value.Item1 == item.itemID)
-            {
-                itemIndex = entry.Key;
-                break;
-            }
-        }
-
-        if (itemIndex >= 0)
-        {
-            int currentStackSize = InventoryItemIDs[itemIndex].Item2 - removeStackSize;
-
-            if (currentStackSize <= 0)
-            {
-                InventoryItemIDs[itemIndex] = (-1, 0, false);
-                TriggerChangeInventory();
-            }
-            else
-            {
-                InventoryItemIDs[itemIndex] = (InventoryItemIDs[itemIndex].Item1, currentStackSize, false);
-                TriggerChangeInventory();
-            }
+            InventoryItemIDs[itemIndex] = (-1, 0, false);
+            TriggerChangeInventory();
         }
         else
         {
-            Debug.Log("How can one remove an item, when said item does not exist, that is the question.");
-            return;
+            InventoryItemIDs[itemIndex] = (InventoryItemIDs[itemIndex].Item1, currentStackSize, false);
+            TriggerChangeInventory();
         }
     }
 

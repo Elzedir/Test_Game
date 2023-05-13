@@ -8,22 +8,18 @@ public class Menu_RightClick : MonoBehaviour
 {
     public Manager_Input inputManager;
     public Button pickupButton;
+    public bool isOpen = false;
 
     private void Start()
     {
-        gameObject.SetActive(false);
+        transform.localScale = Vector3.zero;
     }
 
-    private void Update()
+    public void RightClickMenuOpen()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            HideMenu();
-        }
-    }
-    public void OnRightClick()
-    {
-        gameObject.SetActive(true);
+        isOpen = true;
+
+        transform.localScale = Vector3.one;
         Vector3 mousePosition = Input.mousePosition;
         //Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
         //transform.position = worldPosition;
@@ -37,9 +33,12 @@ public class Menu_RightClick : MonoBehaviour
         float yPosition = mousePosition.y + menuHeight > windowHeight ? mousePosition.y - menuHeight : mousePosition.y;
 
         transform.position = new Vector3(xPosition, yPosition, transform.position.z);
+        
     }
-    public void HideMenu()
+    public void RightClickMenuClose()
     {
-        gameObject.SetActive(false);
+        isOpen = false;
+        transform.localScale = Vector3.zero;
+        transform.position = new Vector3(0, 0, 0);
     }
 }

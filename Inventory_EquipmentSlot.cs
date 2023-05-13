@@ -1,36 +1,46 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using TMPro;
 using Unity.VisualScripting;
-using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle;
+using static UnityEditor.Progress;
 
-public class Inventory_Slot : MonoBehaviour, IDropHandler
+[System.Serializable]
+public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
 {
     public int slotIndex;
     public TextMeshProUGUI stackSizeText;
     public Image itemIcon;
-    public Button inventoryEquipButton;
+
+    protected virtual void Start()
+    {
+        
+    }
 
     public void OnDrop(PointerEventData eventData)
     {
-        Inventory_Slot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().itemSlotIndex;
+        Inventory_EquipmentSlot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().equipmentSlotIndex;
         int targetSlotIndex = slotIndex;
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
-
     public virtual void UpdateSlotUI(int itemID, int stackSize)
     {
+        Debug.Log("Update Slot UI called");
         if (itemID == -1 || stackSize == 0)
         {
-            Debug.Log("item removed from UI");
             itemIcon = null;
             stackSizeText.enabled = false;
         }
         else
         {
+            Debug.Log("ItemID " + itemID + " found");
+
             List_Item item;
 
             switch (itemID)
@@ -50,6 +60,7 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
             }
 
             Sprite itemSprite = item.itemIcon;
+
             itemIcon.sprite = itemSprite;
 
             if (stackSize > 1)
@@ -61,29 +72,6 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
             {
                 stackSizeText.enabled = false;
             }
-        }
-    }
-
-    public void RightClickMenuOpen(Menu_RightClick menuRightClickScript)
-    {
-        Debug.Log("Inventory menu opened");
-
-        if (menuRightClickScript != null)
-        {
-            menuRightClickScript.RightClickMenuOpen();
-
-            GameObject menuRightClick = menuRightClickScript.gameObject;
-            RectTransform menuRightClickTransform = menuRightClick.GetComponent<RectTransform>();
-            menuRightClickTransform.position = Input.mousePosition;
-            Button_Equip equipButton = menuRightClick.GetComponentInChildren<Button_Equip>();
-            Button inventoryEquipButton = equipButton.GetComponentInChildren<Button>();
-        }
-    }
-    public void RightClickMenuClose(Menu_RightClick menuRightClickScript)
-    {
-        if (menuRightClickScript != null)
-        {
-            menuRightClickScript.RightClickMenuClose();
         }
     }
 }
