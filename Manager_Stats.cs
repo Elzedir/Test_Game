@@ -74,8 +74,8 @@ public class Manager_Stats : MonoBehaviour
 
                 if (item is List_Weapon weapon)
                 {
-                    damageAmount += weapon.weaponDamage;
-                    pushForce += weapon.weaponForce;
+                    damageAmount += weapon.itemDamage;
+                    pushForce += weapon.itemForce;
                 }
                 else if (item is List_Armour armour)
                 {

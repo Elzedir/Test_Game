@@ -231,7 +231,22 @@ public abstract class Actor : Hitbox
 
     public virtual void Attack()
     {
-        Debug.Log("Default attack function not overriddden");
+        Actor actor = GetComponent<Actor>();
+
+        if (actor != null)
+        {
+            Animator animator = actor.GetComponentInChildren<Animator>();
+
+            if (animator != null)
+            {
+                Equipment_Slot weapon = animator.GetComponentInParent<Equipment_Slot>();
+
+                if (weapon != null)
+                {
+                    weapon.Attack();
+                }
+            }
+        }
     }
     public void AbilityUse(Rigidbody2D self)
     {

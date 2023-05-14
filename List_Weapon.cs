@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using TMPro;
 using Unity.IO.LowLevel.Unsafe;
 using Unity.VisualScripting;
@@ -9,22 +10,11 @@ using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public enum WeaponType
-{
-    Shortsword,
-    Axe,
-    Spear
-}
+
 
 public class List_Weapon : List_Item
 {
     public static List<List_Item> allWeaponData = new List<List_Item>();
-
-    public WeaponType weaponType;
-    public float weaponDamage;
-    public float weaponSpeed;
-    public float weaponForce;
-    public float weaponRange;
 
     public List_Weapon
         (int itemID,
@@ -37,11 +27,11 @@ public class List_Weapon : List_Item
         Vector3 itemRotation,
         AnimatorController itemAnimatorController,
         int maxStackSize,
-        int weaponValue,
-        float weaponDamage,
-        float weaponSpeed,
-        float weaponForce,
-        float weaponRange)
+        int itemValue,
+        float itemDamage,
+        float itemSpeed,
+        float itemForce,
+        float itemRange)
     {
         this.itemID = itemID;
         this.itemType = itemType;
@@ -53,11 +43,11 @@ public class List_Weapon : List_Item
         this.itemRotation = itemRotation;
         this.itemAnimatorController = itemAnimatorController;
         this.maxStackSize = maxStackSize;
-        this.itemValue = weaponValue;
-        this.weaponDamage = weaponDamage;
-        this.weaponSpeed = weaponSpeed;
-        this.weaponForce = weaponForce;
-        this.weaponRange = weaponRange;
+        this.itemValue = itemValue;
+        this.itemDamage = itemDamage;
+        this.itemSpeed = itemSpeed;
+        this.itemForce = itemForce;
+        this.itemRange = itemRange;
     }
 
     public static void InitializeWeaponData()
@@ -76,47 +66,24 @@ public class List_Weapon : List_Item
     }
 
     static void Shortswords()
-    {
-        Sprite[] at_dungeon_01 = Resources.LoadAll<Sprite>("at_dungeon_01");
-        Sprite weaponSprite = null;
-
-        foreach (Sprite sprite in at_dungeon_01)
-        {
-            if (sprite.name == "obj_wep_m_ss_01")
-            {
-                weaponSprite = sprite;
-                break;
-            }
-        }
-
-        AnimatorController[] animatorControllers = Resources.LoadAll<AnimatorController>("Animations");
-        AnimatorController itemAnimatorController = null;
-
-        foreach (AnimatorController animatorController in animatorControllers)
-        {
-            if (animatorController.name == "wep_m_ss_base")
-            {
-                itemAnimatorController = animatorController;
-                break;
-            }
-        }
-
+    {        
         List_Weapon shortSwordData = new List_Weapon(
             1,
             ItemType.Weapon,
             WeaponType.Shortsword,
             "Wood shortsword",
-            weaponSprite,
+            Game_Settings.Instance.sprites[0].sprite,
             new Vector3(0.4f, 0.4f, 0.4f),
             new Vector3(-0.04f, -0.07f, 0f),
             new Vector3(180, 0, 0),
-            itemAnimatorController,
+            Game_Settings.Instance.animatorControllers[0].animatorController,
             3,
             10,
-            GameManager.Randomise(1, 2),
-            GameManager.Randomise(1, 1.3),
-            GameManager.Randomise(1, 1.3),
-            GameManager.Randomise(1, 1.3));
+            //GameManager.Randomise(1, 2),
+            1,
+            1,
+            1,
+            1);
 
         AddToList(allWeaponData, shortSwordData);
     }
@@ -133,10 +100,10 @@ public class List_Weapon : List_Item
                     ", Icon: " + (itemIcon != null ? itemIcon.name : "null") +
                     ", MaxStackSize: " + maxStackSize +
                     ", Value: " + itemValue +
-                    ", Damage: " + weaponDamage + 
-                    ", Speed: " + weaponSpeed + 
-                    ", Force: " + weaponForce + 
-                    ", Range: " + weaponRange;
+                    ", Damage: " + itemDamage + 
+                    ", Speed: " + itemSpeed + 
+                    ", Force: " + itemForce + 
+                    ", Range: " + itemRange;
             }
         }
 

@@ -9,12 +9,30 @@ public enum ItemType
     Armour,
     Consumable
 }
+
+public enum WeaponType
+{
+    Shortsword,
+    Axe,
+    Spear
+}
+
+public enum ArmourType
+{
+    Chest,
+    Head,
+    Legs,
+    Feet
+}
 public abstract class List_Item
 {
     private static HashSet<int> usedIDs = new HashSet<int>();
 
+    // General
     public int itemID;
     public ItemType itemType;
+    public WeaponType weaponType;
+    public ArmourType armourType;
     public string itemName;
     public Sprite itemIcon;
     public int maxStackSize;
@@ -23,6 +41,17 @@ public abstract class List_Item
     public Vector3 itemPosition;
     public Vector3 itemRotation;
     public AnimatorController itemAnimatorController;
+
+    // Attack
+    public float itemDamage;
+    public float itemSpeed;
+    public float itemForce;
+    public float itemRange;
+
+    // Defence
+    public float healthBonus;
+    public float physicalDefence;
+    public float magicalDefence;
 
     public virtual void Start()
     {
