@@ -10,8 +10,6 @@ using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-
-
 public class List_Weapon : List_Item
 {
     public static List<List_Item> allWeaponData = new List<List_Item>();
@@ -64,7 +62,7 @@ public class List_Weapon : List_Item
         //    Debug.Log("item itemID: " + item.itemID + ", itemName: " + item.itemName);
         //}
     }
-
+    
     static void Shortswords()
     {        
         List_Weapon shortSwordData = new List_Weapon(
@@ -76,14 +74,14 @@ public class List_Weapon : List_Item
             new Vector3(0.4f, 0.4f, 0.4f),
             new Vector3(-0.04f, -0.07f, 0f),
             new Vector3(180, 0, 0),
-            Game_Settings.Instance.animatorControllers[0].animatorController,
+            Game_Settings.Instance.animatorControllers[1].animatorController,
             3,
             10,
             //GameManager.Randomise(1, 2),
-            1,
-            1,
-            1,
-            1);
+            2,
+            2,
+            2,
+            2);
 
         AddToList(allWeaponData, shortSwordData);
     }

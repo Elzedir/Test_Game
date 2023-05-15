@@ -23,9 +23,6 @@ public class Manager_Input : MonoBehaviour
     public GameObject inventoryCanvas;
     public GameObject inventoryWindow;
 
-    private float holdTime;
-    private float heldDuration;
-    private bool isHoldingDown = false;
     public static GameObject openWindow;
     public bool openUIWindow = false;
 

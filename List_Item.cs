@@ -12,8 +12,9 @@ public enum ItemType
 
 public enum WeaponType
 {
-    Shortsword,
     Axe,
+    Martial,
+    Shortsword,
     Spear
 }
 

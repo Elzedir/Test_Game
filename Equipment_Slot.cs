@@ -20,12 +20,20 @@ public class Equipment_Slot : MonoBehaviour
     public int slotIndex;
     public bool isAttacking = false;
     public SpriteRenderer spriteRenderer;
+    public Animator animator;
     public AnimatorController animatorController;
 
     public void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         equipmentManager = GetComponentInParent<Equipment_Manager>();
+        animatorController = animator.GetComponent<AnimatorController>();
+
+        if (animatorController == null)
+        {
+            animatorController = Game_Settings.Instance.animatorControllers[0].animatorController;
+        }
+
         equipmentManager.OnEquipmentChange += PopulateEquipmentSlots;
     }
 
@@ -45,7 +53,14 @@ public class Equipment_Slot : MonoBehaviour
             spriteRenderer.sortingOrder = 1;
         }
 
-        animatorController = item.itemAnimatorController;
+        if (item.itemAnimatorController == null)
+        {
+            animatorController = item.itemAnimatorController;
+        }
+        else
+        {
+            animatorController = Game_Settings.Instance.animatorControllers[0].animatorController;
+        }
     }
 
     public void Attack()
@@ -102,7 +117,6 @@ public class Equipment_Slot : MonoBehaviour
         int stackSize = equipmentManager.currentEquipment[slotIndex].Item2;
 
         List_Item item = null;
-        List_Weapon weapon = null;
 
         switch (itemID)
         {
