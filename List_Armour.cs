@@ -28,6 +28,6 @@ public class List_Armour : List_Item
 
     static void Heavy()
     {
-
+        // Add new armour
     }
 }
