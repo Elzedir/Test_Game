@@ -74,7 +74,7 @@ public class List_Weapon : List_Item
             new Vector3(0.4f, 0.4f, 0.4f),
             new Vector3(-0.04f, -0.07f, 0f),
             new Vector3(180, 0, 0),
-            Game_Settings.Instance.animatorControllers[1].animatorController,
+            Game_Settings.Instance.animatorControllers[0].animatorController,
             3,
             10,
             //GameManager.Randomise(1, 2),

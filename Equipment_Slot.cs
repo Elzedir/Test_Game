@@ -18,20 +18,18 @@ public class Equipment_Slot : MonoBehaviour
 {
     public Equipment_Manager equipmentManager;
     public int slotIndex;
-    public bool isAttacking = false;
-    public SpriteRenderer spriteRenderer;
-    public Animator animator;
-    public AnimatorController animatorController;
+    private SpriteRenderer spriteRenderer;
+    private AnimatorController animatorController;
 
     public void Start()
-    {
+    {        
         spriteRenderer = GetComponent<SpriteRenderer>();
         equipmentManager = GetComponentInParent<Equipment_Manager>();
-        animatorController = animator.GetComponent<AnimatorController>();
+        Animator animator = GetComponent<Animator>();
 
-        if (animatorController == null)
+        if (animator != null && gameObject.name == "Weapon")
         {
-            animatorController = Game_Settings.Instance.animatorControllers[0].animatorController;
+            animator.runtimeAnimatorController = Game_Settings.Instance.animatorControllers[0].animatorController;
         }
 
         equipmentManager.OnEquipmentChange += PopulateEquipmentSlots;
@@ -53,14 +51,7 @@ public class Equipment_Slot : MonoBehaviour
             spriteRenderer.sortingOrder = 1;
         }
 
-        if (item.itemAnimatorController == null)
-        {
-            animatorController = item.itemAnimatorController;
-        }
-        else
-        {
-            animatorController = Game_Settings.Instance.animatorControllers[0].animatorController;
-        }
+        animatorController = item.itemAnimatorController;
     }
 
     public void Attack()

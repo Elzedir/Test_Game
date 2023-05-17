@@ -19,7 +19,6 @@ public abstract class Actor : Hitbox
 
     //States
     protected bool alerted = false;
-    protected bool withinAttackRange = false;
     protected bool attacking = false;
     protected bool dead = false;
     protected bool jumping = false;
@@ -34,6 +33,7 @@ public abstract class Actor : Hitbox
     protected abstract Rigidbody2D Rigidbody2D { get; }
 
     // Combat
+
     protected Vector3 startingPosition;
     public float triggerLength;
     public float chaseLength;
@@ -56,6 +56,9 @@ public abstract class Actor : Hitbox
     protected float lastAttack;
 
     protected bool berserk = false;
+
+    public List<GameObject> attackableTargets = new List<GameObject>();
+    // Need to put in a way to remove from attackable targets.
 
     protected override void Start()
     {
@@ -137,9 +140,9 @@ public abstract class Actor : Hitbox
 
     public virtual void TargetCheck()
     {
+        
         float maxTargetDistance = float.MaxValue;
-        List<GameObject> attackableTargets = new List<GameObject>();
-
+        
         Collider2D[] triggerHits = Physics2D.OverlapCircleAll(transform.position, triggerRadius, CanAttack);
 
         foreach (Collider2D hits in triggerHits)
@@ -170,7 +173,7 @@ public abstract class Actor : Hitbox
     }
 
     public virtual void Chase()
-    {        
+    {
         if (GetComponent<Player>() == null || berserk)
         {
             float distanceFromStart = Vector2.Distance(transform.position, startingPosition);
@@ -180,7 +183,7 @@ public abstract class Actor : Hitbox
                 Move(startingPosition - transform.position);
                 alerted = false;
             }
-            
+
             if (closestEnemy != null)
             {
                 float distanceToTarget = Vector2.Distance(closestEnemy.transform.position, transform.position);
@@ -195,9 +198,15 @@ public abstract class Actor : Hitbox
 
                 if (alerted)
                 {
+                    bool withinAttackRange = CheckWithinAttackRange();
+
                     if (!withinAttackRange)
                     {
                         Move((closestEnemy.transform.position - transform.position).normalized);
+                    }
+                    else
+                    {
+                        Attack();
                     }
                 }
                 else
@@ -210,23 +219,40 @@ public abstract class Actor : Hitbox
                 Move(startingPosition - transform.position);
                 alerted = false;
             }
+        }
+    }
 
-            for (int i = 0; i < hits.Length; i++)
+    public bool CheckWithinAttackRange()
+    {
+        bool result = false;
+        float attackRange = GetAttackRange();
+        Collider2D[] targetsWithinRange = Physics2D.OverlapCircleAll(transform.position, attackRange, CanAttack);
+
+        foreach (Collider2D targetColl in targetsWithinRange)
+        {
+            GameObject target = targetColl.gameObject;
+
+            if (target != null && !attackableTargets.Contains(target))
             {
-                if (hits[i] == null)
+                BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
 
-                    continue;
-
-                if (hits[i] == closestEnemy)
+                if (targetCollider != null && targetCollider.enabled)
                 {
-                    withinAttackRange = true;
-
-                    Attack();
+                    result = true;
                 }
-
-                hits[i] = null;
             }
         }
+
+        return result;
+    }
+
+    public float GetAttackRange()
+    {
+        float attackRange;
+
+        attackRange = baseAtkRange; // Include weapon attack range
+
+        return attackRange;
     }
 
     public virtual void Attack()
@@ -235,16 +261,12 @@ public abstract class Actor : Hitbox
 
         if (actor != null)
         {
-            Animator animator = actor.GetComponentInChildren<Animator>();
+            Transform slot = transform.Find("Weapon");
+            Equipment_Slot weapon = slot.GetComponent<Equipment_Slot>();
 
-            if (animator != null)
+            if (weapon != null)
             {
-                Equipment_Slot weapon = animator.GetComponentInParent<Equipment_Slot>();
-
-                if (weapon != null)
-                {
-                    weapon.Attack();
-                }
+                weapon.Attack();
             }
         }
     }

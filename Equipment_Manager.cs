@@ -382,7 +382,7 @@ public class Equipment_Manager : MonoBehaviour
             }
             else
             {
-                Debug.Log("Item does not exist");
+                Debug.Log("EquipmentSlot does not have an item");
             }
         }
     }
