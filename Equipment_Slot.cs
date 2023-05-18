@@ -27,7 +27,7 @@ public class Equipment_Slot : MonoBehaviour
         equipmentManager = GetComponentInParent<Equipment_Manager>();
         Animator animator = GetComponent<Animator>();
 
-        if (animator != null && gameObject.name == "Weapon")
+        if (animator != null && gameObject.name == "Weapon" && animator.runtimeAnimatorController == null)
         {
             animator.runtimeAnimatorController = Game_Settings.Instance.animatorControllers[0].animatorController;
         }
@@ -56,8 +56,6 @@ public class Equipment_Slot : MonoBehaviour
 
     public void Attack()
     {
-        Debug.Log("Attack called");
-
         if (animatorController != null)
         {
             Animator animator = GetComponent<Animator>();

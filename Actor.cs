@@ -199,6 +199,7 @@ public abstract class Actor : Hitbox
                 if (alerted)
                 {
                     bool withinAttackRange = CheckWithinAttackRange();
+                    Debug.Log(withinAttackRange);
 
                     if (!withinAttackRange)
                     {
@@ -226,20 +227,16 @@ public abstract class Actor : Hitbox
     {
         bool result = false;
         float attackRange = GetAttackRange();
+
         Collider2D[] targetsWithinRange = Physics2D.OverlapCircleAll(transform.position, attackRange, CanAttack);
 
         foreach (Collider2D targetColl in targetsWithinRange)
         {
             GameObject target = targetColl.gameObject;
 
-            if (target != null && !attackableTargets.Contains(target))
+            if (target != null && attackableTargets.Contains(target))
             {
-                BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
-
-                if (targetCollider != null && targetCollider.enabled)
-                {
-                    result = true;
-                }
+                result = true;
             }
         }
 
@@ -314,6 +311,8 @@ public abstract class Actor : Hitbox
             Gizmos.DrawWireSphere(transform.position, chaseLength);
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, triggerLength);
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.position, GetAttackRange());
         }
     }
 }
