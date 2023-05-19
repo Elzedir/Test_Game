@@ -247,7 +247,7 @@ public abstract class Actor : Hitbox
     {
         float attackRange;
 
-        attackRange = baseAtkRange; // Include weapon attack range
+        attackRange = baseAtkRange; // Include weapon attack range, do the calculation in Stat manager?
 
         return attackRange;
     }
