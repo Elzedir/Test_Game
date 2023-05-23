@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.Experimental;
+using static UnityEngine.GraphicsBuffer;
 
 public abstract class Actor : Hitbox
 {
     // General
+    private Actor actor;
     private AbilityManager abilityManager;
 
     // Layers
@@ -22,6 +24,8 @@ public abstract class Actor : Hitbox
     protected bool attacking = false;
     protected bool dead = false;
     protected bool jumping = false;
+    protected bool berserk = false;
+    private bool coroutineRunning = false;
 
     // Movement
     protected Vector3 move;
@@ -55,7 +59,7 @@ public abstract class Actor : Hitbox
     protected float cooldown;
     protected float lastAttack;
 
-    protected bool berserk = false;
+    
 
     public List<GameObject> attackableTargets = new List<GameObject>();
     // Need to put in a way to remove from attackable targets.
@@ -64,6 +68,7 @@ public abstract class Actor : Hitbox
     {
         base.Start();
 
+        actor = GetComponent<Actor>();
         startingPosition = transform.position;
         abilityManager = GetComponent<AbilityManager>();
         LayerCount();
@@ -90,7 +95,8 @@ public abstract class Actor : Hitbox
 
     public virtual void Move(Vector3 input)
     {
-        if (!dead && !jumping)
+        Debug.Log(attacking);
+        if (!dead && !jumping && !attacking)
         {
             move = new Vector3(input.x * xSpeed, input.y * ySpeed, 0);
             transform.localScale = new Vector3(originalSize.z * Mathf.Sign(move.x), originalSize.y, originalSize.z);
@@ -109,7 +115,6 @@ public abstract class Actor : Hitbox
             {
                 transform.Translate(move.x * Time.deltaTime, 0, 0);
             }
-
         }
     }
 
@@ -171,7 +176,6 @@ public abstract class Actor : Hitbox
             }
         }
     }
-
     public virtual void Chase()
     {
         if (GetComponent<Player>() == null || berserk)
@@ -180,7 +184,7 @@ public abstract class Actor : Hitbox
 
             if (distanceFromStart > chaseLength)
             {
-                Move(startingPosition - transform.position);
+                ReturnToStartPosition();
                 alerted = false;
             }
 
@@ -199,30 +203,64 @@ public abstract class Actor : Hitbox
                 if (alerted)
                 {
                     bool withinAttackRange = CheckWithinAttackRange();
-                    Debug.Log(withinAttackRange);
 
                     if (!withinAttackRange)
                     {
+                        IsMoving(true);
                         Move((closestEnemy.transform.position - transform.position).normalized);
                     }
                     else
                     {
-                        Attack();
+                        if (!attacking)
+                        {
+                            IsMoving(false);
+                            NPCAttack(closestEnemy);
+                        }
                     }
                 }
                 else
                 {
-                    Move(startingPosition - transform.position);
+                    ReturnToStartPosition();
                 }
             }
             else
             {
-                Move(startingPosition - transform.position);
+                ReturnToStartPosition();
                 alerted = false;
             }
         }
     }
+    public void IsMoving(bool isMoving)
+    {
+        Animator animator = actor.GetComponent<Animator>();
 
+        if (animator != null)
+        {
+            animator.SetBool("IsMoving", isMoving);
+        }
+    }
+    public void ReturnToStartPosition()
+    {
+        float distanceToStart = Vector2.Distance(transform.position, startingPosition);
+        
+        if(distanceToStart > 0.01f)
+        {
+            Move((startingPosition - transform.position).normalized);
+        }
+        else
+        {
+            transform.position = startingPosition;
+            IsMoving(false);
+        }
+    }
+    public float GetAttackRange()
+    {
+        float attackRange;
+
+        attackRange = baseAtkRange; // Include weapon attack range, do the calculation in Stat manager?
+
+        return attackRange;
+    }
     public bool CheckWithinAttackRange()
     {
         bool result = false;
@@ -242,30 +280,75 @@ public abstract class Actor : Hitbox
 
         return result;
     }
-
-    public float GetAttackRange()
-    {
-        float attackRange;
-
-        attackRange = baseAtkRange; // Include weapon attack range, do the calculation in Stat manager?
-
-        return attackRange;
-    }
-
-    public virtual void Attack()
+    public Equipment_Slot CheckWeaponEquipped()
     {
         Actor actor = GetComponent<Actor>();
 
         if (actor != null)
         {
             Transform slot = transform.Find("Weapon");
-            Equipment_Slot weapon = slot.GetComponent<Equipment_Slot>();
+            Animator weaponAnimator = slot.GetComponent<Animator>();
 
-            if (weapon != null)
+            if (slot != null && weaponAnimator.enabled)
             {
-                weapon.Attack();
+                return slot.GetComponent<Equipment_Slot>();
+            }
+            else
+            {
+                return null;
             }
         }
+        else
+        {
+            return null;
+        }
+    }
+    public void PlayerAttack()
+    {
+        Equipment_Slot weapon = CheckWeaponEquipped();
+        if (weapon != null)
+        {
+            weapon.Attack();
+        }
+    }
+    public void NPCAttack(GameObject target)
+    {
+        Equipment_Slot weapon = CheckWeaponEquipped();
+        
+        if (weapon != null)
+        {
+            weapon.Attack();
+        }
+        else
+        {
+            UnarmedAttack(target);
+        }
+    }
+    public void UnarmedAttack(GameObject target)
+    {
+        if (!coroutineRunning)
+        {
+            Animator animator = GetComponent<Animator>();
+            GameObject actor = GetComponent<GameObject>();
+
+            if (animator != null)
+            {
+                StartCoroutine(UnarmedAttackCoroutine(animator, actor, target));
+            }
+        }
+    }
+
+    private IEnumerator UnarmedAttackCoroutine(Animator animator, GameObject actor, GameObject target)
+    {
+        coroutineRunning = true;
+        animator.SetTrigger("Attack");
+
+        float delayDuration = animator.GetCurrentAnimatorStateInfo(0).length;
+        yield return new WaitForSeconds(delayDuration);
+        animator.ResetTrigger("Attack");
+
+        attacking = false;
+        coroutineRunning = false;
     }
     public void AbilityUse(Rigidbody2D self)
     {

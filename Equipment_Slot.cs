@@ -20,16 +20,17 @@ public class Equipment_Slot : MonoBehaviour
     public int slotIndex;
     private SpriteRenderer spriteRenderer;
     private AnimatorController animatorController;
+    private Animator animator;
 
     public void Start()
     {        
         spriteRenderer = GetComponent<SpriteRenderer>();
         equipmentManager = GetComponentInParent<Equipment_Manager>();
-        Animator animator = GetComponent<Animator>();
+        animator = GetComponent<Animator>();
 
         if (animator != null && gameObject.name == "Weapon" && animator.runtimeAnimatorController == null)
         {
-            animator.runtimeAnimatorController = Game_Settings.Instance.animatorControllers[0].animatorController;
+            animator.enabled = false;
         }
 
         equipmentManager.OnEquipmentChange += PopulateEquipmentSlots;
@@ -51,7 +52,14 @@ public class Equipment_Slot : MonoBehaviour
             spriteRenderer.sortingOrder = 1;
         }
 
+        animator.enabled = true;
+
         animatorController = item.itemAnimatorController;
+
+        if (animatorController == null)
+        {
+            animator.enabled = false;
+        }
     }
 
     public void Attack()

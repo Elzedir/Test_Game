@@ -45,7 +45,7 @@ public class Manager_Input : MonoBehaviour
                 Actor actor = player.GetComponent<Actor>();
                 if (actor != null)
                 {
-                    actor.Attack();
+                    actor.PlayerAttack();
                 }
             }
             if (Input.GetKeyDown(KeyCode.Escape))
