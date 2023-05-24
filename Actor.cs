@@ -214,7 +214,7 @@ public abstract class Actor : Hitbox
                         if (!attacking)
                         {
                             IsMoving(false);
-                            NPCAttack(closestEnemy);
+                            NPCAttack(closestEnemy); // change this to be a different target when we have more
                         }
                     }
                 }
@@ -329,7 +329,7 @@ public abstract class Actor : Hitbox
         if (!coroutineRunning)
         {
             Animator animator = GetComponent<Animator>();
-            GameObject actor = GetComponent<GameObject>();
+            GameObject actor = gameObject;
 
             if (animator != null)
             {
@@ -346,6 +346,54 @@ public abstract class Actor : Hitbox
         float delayDuration = animator.GetCurrentAnimatorStateInfo(0).length;
         yield return new WaitForSeconds(delayDuration);
         animator.ResetTrigger("Attack");
+
+        int frameRate = 60;
+        float frameDuration = 1f / frameRate;
+
+        int frameToStartHop = 30;
+        int frameHopTime = 10;
+        float hopHeight = 0.03f;
+
+        while (animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1f && animator.GetCurrentAnimatorStateInfo(0).IsName("orc_orcling_attack_anim"))
+        {
+            float currentTime = animator.GetCurrentAnimatorStateInfo(0).normalizedTime * animator.GetCurrentAnimatorStateInfo(0).length;
+            int currentFrame = Mathf.FloorToInt(currentTime / frameDuration);
+
+            if (currentFrame >= frameToStartHop)
+            {
+                Vector3 originalPosition = actor.transform.position;
+                Vector3 hopOffset = new Vector3(0f, hopHeight, 0f);
+                Vector3 hopPosition = originalPosition + hopOffset;
+
+                float totalHopTime = frameHopTime * frameDuration;
+                float elapsedTime = 0f;
+
+                while (elapsedTime < totalHopTime)
+                {
+                    float hopUpTime = elapsedTime / totalHopTime;
+                    actor.transform.position = Vector3.Lerp(originalPosition, hopPosition, hopUpTime);
+                    elapsedTime += Time.deltaTime;
+                    yield return null;
+                }
+
+                actor.transform.position = hopPosition;
+
+                elapsedTime = 0f;
+
+                while (elapsedTime < totalHopTime)
+                {
+                    float hopReturnTime = elapsedTime / totalHopTime;
+                    actor.transform.position = Vector3.Lerp(originalPosition, hopPosition, hopReturnTime);
+                    elapsedTime += Time.deltaTime;
+                    yield return null;
+                }
+
+                actor.transform.position = originalPosition;
+
+            }
+
+            yield return null;
+        }
 
         attacking = false;
         coroutineRunning = false;
