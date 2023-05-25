@@ -30,7 +30,6 @@ public class Enemy_Monster : Actor
         enemyMonsterSprite = GetComponent<SpriteRenderer>();
         enemyMonsterBody = GetComponent<Rigidbody2D>();
         enemyMonsterCanAttack = FactionManager.instance.AttackableFactions()[4];
-        Debug.Log(enemyMonsterCanAttack);
     }
     
     protected override void Death()

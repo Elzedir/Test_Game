@@ -12,25 +12,28 @@ using static UnityEditor.Progress;
 public class Manager_Input : MonoBehaviour
 {
     public static Manager_Input instance;
+    public static GameObject openWindow;
+    private Menu_RightClick menuRightClickScript;
+
     public Player player;
-
+    
     private Dictionary<string, System.Action> keyListeners = new Dictionary<string, System.Action>();
-
-    public static Manager_Input Instance { get { return instance; } }
 
     public GameObject inventoryEquippable;
     public GameObject inventoryNotEquippable;
     public GameObject inventoryCanvas;
     public GameObject inventoryWindow;
 
-    public static GameObject openWindow;
     public bool openUIWindow = false;
-
-
 
     private void Awake()
     {
         instance = this;
+        
+        if (menuRightClickScript == null)
+        {
+            menuRightClickScript = FindObjectOfType<Menu_RightClick>();
+        }
     }
 
     void Update()
@@ -48,6 +51,16 @@ public class Manager_Input : MonoBehaviour
                     actor.PlayerAttack();
                 }
             }
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                menuRightClickScript.RightClickMenuCheck();
+            }
+            else if (Input.GetMouseButtonUp(1))
+            {
+                menuRightClickScript.RightClickLetGo();
+            }
+
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 Debug.Log("Escape key pressed");
@@ -79,7 +92,7 @@ public class Manager_Input : MonoBehaviour
     {
         Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
 
-        if (!inventoryManager.IsOpen)
+        if (!inventoryManager.isOpen)
         {
             if (!inventoryManager.InventoryIsInitialised)
             {
@@ -88,17 +101,11 @@ public class Manager_Input : MonoBehaviour
 
             if (inventoryManager is Inventory_Equippable)
             {
-                inventoryWindow = Instantiate(inventoryEquippable);
-                openWindow = inventoryWindow.gameObject;
-                openUIWindow = true;
-                inventoryManager.IsOpen = true;
+                inventoryWindow = FindObjectOfType<Inventory_Window>().gameObject;
             }
             else if (inventoryManager is Inventory_NotEquippable)
             {
-                inventoryWindow = Instantiate(inventoryNotEquippable);
-                openWindow = inventoryWindow.gameObject;
-                openUIWindow = true;
-                inventoryManager.IsOpen = true;
+                inventoryWindow = FindObjectOfType<Inventory_Window>().gameObject;
             }
             else
             {
@@ -106,11 +113,14 @@ public class Manager_Input : MonoBehaviour
                 return;
             }
 
-            inventoryWindow.transform.SetParent(inventoryCanvas.transform, false);
-            inventoryWindow.transform.position = new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+            inventoryWindow.transform.localScale = Vector3.one;
+            openUIWindow = true;
+            openWindow = inventoryWindow;
+            inventoryManager.isOpen = true;
 
-            Inventory_Window inventoryWindowController = inventoryWindow.GetComponent<Inventory_Window>();
-            inventoryWindowController.SetInventoryWindowName(interactedObject.name);
+            Inventory_Window inventoryWindowScript = inventoryWindow.GetComponent<Inventory_Window>();
+            inventoryWindowScript.isOpen = true;
+            inventoryWindowScript.SetInventoryWindowName(interactedObject.name);
 
             Inventory_Creator slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Creator>();
             int inventorySize = inventoryManager.GetComponent<Inventory_Manager>().GetInventorySize();
@@ -130,7 +140,6 @@ public class Manager_Input : MonoBehaviour
             {
                 Debug.Log("Slot creator doesn't exist");
             }
-
         }
 
         else
@@ -147,11 +156,10 @@ public class Manager_Input : MonoBehaviour
 
         if (inventoryWindow != null)
         {
-            inventoryWindow.DestroyInventoryWindow();
+            inventoryWindow.transform.localScale = Vector3.zero;
             openWindow = null;
-            openUIWindow = false; // Need to instead do a check of menus when we implement more of them.
-            inventoryManager.IsOpen = false;
-            
+            openUIWindow = false;
+            inventoryManager.isOpen = false;
         }
         else
         {

@@ -95,7 +95,6 @@ public abstract class Actor : Hitbox
 
     public virtual void Move(Vector3 input)
     {
-        Debug.Log(attacking);
         if (!dead && !jumping && !attacking)
         {
             move = new Vector3(input.x * xSpeed, input.y * ySpeed, 0);

@@ -29,7 +29,7 @@ public abstract class Inventory_Manager : MonoBehaviour
     public int inventorySize = 10;
     public Dictionary<int, (int, int, bool)> InventoryItemIDs = new();
     [SerializeField] public abstract RectTransform inventoryUIBase { get; }
-    public bool IsOpen = false;
+    public bool isOpen = false;
     public bool InventoryIsInitialised = false;
     public event InventoryChangeEvent OnInventoryChange;
 
