@@ -63,27 +63,4 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
             }
         }
     }
-
-    //public void RightClickMenuOpen(Menu_RightClick menuRightClickScript)
-    //{
-    //    Debug.Log("Inventory menu opened");
-
-    //    if (menuRightClickScript != null)
-    //    {
-    //        menuRightClickScript.RightClickMenuOpen();
-
-    //        GameObject menuRightClick = menuRightClickScript.gameObject;
-    //        RectTransform menuRightClickTransform = menuRightClick.GetComponent<RectTransform>();
-    //        menuRightClickTransform.position = Input.mousePosition;
-    //        Button_Equip equipButton = menuRightClick.GetComponentInChildren<Button_Equip>();
-    //        Button inventoryEquipButton = equipButton.GetComponentInChildren<Button>();
-    //    }
-    //}
-    public void RightClickMenuClose(Menu_RightClick menuRightClickScript)
-    {
-        if (menuRightClickScript != null)
-        {
-            menuRightClickScript.RightClickMenuClose();
-        }
-    }
 }

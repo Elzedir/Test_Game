@@ -51,7 +51,6 @@ public class Player : Actor
         inventory = GetComponent<Inventory_Manager>();
         statsManager = GetComponent<Manager_Stats>();
     }
-    
     public void SwapSprite(int skinID)
     {
         spriteRenderer.sprite = GameManager.instance.playerSprites[skinID];
@@ -101,7 +100,6 @@ public class Player : Actor
         base.ReceiveDamage(dmg);
         GameManager.instance.HUDBarChange();
     }
-
     protected override void Death()
     {
         dead = true;
@@ -116,9 +114,12 @@ public class Player : Actor
 
         GameManager.instance.deathMenuAnimator.SetTrigger("Show");
     }
-
     protected virtual void SetDead()
     {
         dead = true;
+    }
+    public GameObject GetClosestNPC()
+    {
+        return closestNPC;
     }
 }

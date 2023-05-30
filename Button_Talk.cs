@@ -8,7 +8,7 @@ public class Button_Talk : MonoBehaviour
 
     public void OnTalkButtonPress()
     {
-        Debug.Log($"Equip Item button pressed");
+        Debug.Log($"Talk Item button pressed");
         buttonPressed = true;
     }
 }

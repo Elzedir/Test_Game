@@ -9,35 +9,17 @@ public class Inventory_Creator : MonoBehaviour
     public GameObject inventorySlotPrefab;
     public Transform inventoryArea;
 
-    private static HashSet<int> usedInventorySlotIDs = new HashSet<int>();
-    private int SlotID = 0;
-
-    public int GetSlotID()
-    {
-        while (usedInventorySlotIDs.Contains(SlotID))
-        {
-            SlotID++;
-        }
-
-        usedInventorySlotIDs.Add(SlotID);
-
-        return SlotID;
-    }
-
-    public void ClearUsedIDs()
-    {
-        usedInventorySlotIDs.Clear();
-    }
-
     public void CreateSlots(int numSlots)
     {
+        int slotID = 0;
+
         for (int i = 0; i < numSlots; i++)
         {
             GameObject slotObject = Instantiate(inventorySlotPrefab, inventoryArea);
-            Inventory_Slot slotScript = slotObject.GetComponent<Inventory_Slot>();
+            Inventory_Slot slot = slotObject.GetComponent<Inventory_Slot>();
 
-            int slotIndex = GetSlotID();
-            slotScript.slotIndex = slotIndex;
+            slot.slotIndex = slotID;
+            slotID++;
         }
     }
 
@@ -49,16 +31,15 @@ public class Inventory_Creator : MonoBehaviour
 
         foreach (Transform child in inventoryArea)
         {
-            Inventory_Slot slotScript = child.GetComponent<Inventory_Slot>();
+            Inventory_Slot slot = child.GetComponent<Inventory_Slot>();
 
-            if (slotScript != null)
+            if (slot != null)
             {
-                int slotID = slotScript.slotIndex;
-                (int itemID, int stackSize, bool isFull) = inventoryItems[slotID];
+                (int itemID, int stackSize, bool isFull) = inventoryItems[slot.slotIndex];
                 
                 if (itemID != -1)
                 {
-                    slotScript.UpdateSlotUI(itemID, stackSize);
+                    slot.UpdateSlotUI(itemID, stackSize);
                     hasItems = true;
                 }
             }

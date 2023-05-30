@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.XPath;
+using TreeEditor;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -16,15 +17,24 @@ public class Manager_Input : MonoBehaviour
     private Menu_RightClick menuRightClickScript;
 
     public Player player;
-    
+    public GameObject interactedCharacter;
+    public Dialogue_Data_SO dialogue;
+
     private Dictionary<string, System.Action> keyListeners = new Dictionary<string, System.Action>();
 
-    public GameObject inventoryEquippable;
-    public GameObject inventoryNotEquippable;
-    public GameObject inventoryCanvas;
-    public GameObject inventoryWindow;
+    public Inventory_Window inventoryWindow;
+    public Inventory_Creator inventorySlotCreator;
+    public Equipment_Window equipmentWindow;
+
+    private bool keyHeld = false;
+    private float keyHoldStart = 0f;
+
+    private bool escCodeExecuted = false;
+    private const float escapeHoldTime = 1.5f;
 
     public bool openUIWindow = false;
+
+    public List<GameObject> openUIWindows = new List<GameObject>();
 
     private void Awake()
     {
@@ -56,27 +66,71 @@ public class Manager_Input : MonoBehaviour
             {
                 menuRightClickScript.RightClickMenuCheck();
             }
-            else if (Input.GetMouseButtonUp(1))
-            {
-                menuRightClickScript.RightClickLetGo();
-            }
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                Debug.Log("Escape key pressed");
+                bool canExecute = KeyHeld(KeyCode.Escape, escapeHoldTime);
 
-                if(openUIWindow)
-                {
-                    CloseUIWindow(openWindow);
+                if (canExecute)
+                { 
+                    if (openUIWindow)
+                    {
+                        foreach (GameObject openUIWindow in openUIWindows)
+                        {
+                            CloseUIWindow(openUIWindow);
+                        }
+                    }
+
+                    else
+                    {
+                        Debug.Log("No open UI window");
+                    }
                 }
                 else
                 {
-                    Debug.Log("No open UI window");
+                    if (!escCodeExecuted)
+                    {
+                        escCodeExecuted = true;
+
+                        GameObject lastOpenUIWindow = openUIWindows.LastOrDefault();
+
+                        if (lastOpenUIWindow != null)
+                        {
+                            CloseUIWindow(lastOpenUIWindow);
+                        }
+                    }
                 }
             }
+            else
+            {
+                if (escCodeExecuted)
+                {
+                    escCodeExecuted = false;
+                }
+            }
+
             if (Input.GetKeyDown(KeyCode.E))
             {
                 // Interact, can use a delegate for the interact button which would see what it is you're interacting with.
+                interactedCharacter = player.GetClosestNPC();
+                
+                if (interactedCharacter != null)
+                {
+                    Dialogue_Data_SO dialogueData = interactedCharacter.GetComponent<Dialogue_Data_SO>();
+
+                    if (dialogueData != null)
+                    {
+                        Dialogue_Manager.instance.StartDialogue(interactedCharacter, dialogueData);
+                    }
+                    else
+                    {
+                        Debug.Log("Dialogue Data does not exist");
+                    }
+                }
+                else
+                {
+                    Debug.Log("Interacted character does not exist");
+                }
             }
             if (Input.GetKeyDown(KeyCode.I))
             {
@@ -88,8 +142,8 @@ public class Manager_Input : MonoBehaviour
             }
         }
     }
-    void OpenInventory(GameObject interactedObject)
-    {
+    public void OpenInventory(GameObject interactedObject)
+    { 
         Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
 
         if (!inventoryManager.isOpen)
@@ -99,41 +153,23 @@ public class Manager_Input : MonoBehaviour
                 inventoryManager.InitialiseInventory();
             }
 
-            if (inventoryManager is Inventory_Equippable)
-            {
-                inventoryWindow = FindObjectOfType<Inventory_Window>().gameObject;
-            }
-            else if (inventoryManager is Inventory_NotEquippable)
-            {
-                inventoryWindow = FindObjectOfType<Inventory_Window>().gameObject;
-            }
-            else
-            {
-                Debug.Log("Inventory invalid");
-                return;
-            }
-
             inventoryWindow.transform.localScale = Vector3.one;
+            openUIWindows.Add(inventoryWindow.gameObject);
             openUIWindow = true;
-            openWindow = inventoryWindow;
+            openWindow = inventoryWindow.gameObject;
             inventoryManager.isOpen = true;
 
-            Inventory_Window inventoryWindowScript = inventoryWindow.GetComponent<Inventory_Window>();
-            inventoryWindowScript.isOpen = true;
-            inventoryWindowScript.SetInventoryWindowName(interactedObject.name);
+            inventoryWindow.isOpen = true;
+            inventoryWindow.SetInventoryWindowName(interactedObject.name);
 
-            Inventory_Creator slotCreator = inventoryWindow.GetComponentInChildren<Inventory_Creator>();
             int inventorySize = inventoryManager.GetComponent<Inventory_Manager>().GetInventorySize();
+            Equipment_Manager equipmentManager = player.GetComponent<Equipment_Manager>(); // Change to be for whoever is interacted with
 
-            Equipment_Window equipmentWindow = inventoryWindow.GetComponentInChildren<Equipment_Window>();
-            Equipment_Manager equipmentManager = interactedObject.GetComponent<Equipment_Manager>();
-
-            if (slotCreator != null)
+            if (inventorySlotCreator != null)
             {
-                slotCreator.ClearUsedIDs();
-                slotCreator.CreateSlots(inventorySize);
+                inventorySlotCreator.CreateSlots(inventorySize);
                 equipmentWindow.AssignSlotIndex();
-                slotCreator.UpdateInventoryUI(inventoryManager);
+                inventorySlotCreator.UpdateInventoryUI(inventoryManager);
                 equipmentWindow.UpdateEquipmentUI(equipmentManager);
             }
             else
@@ -147,19 +183,24 @@ public class Manager_Input : MonoBehaviour
             Debug.Log(inventoryManager.name + "'s inventory is already open");
         }
     }
-    
-    public void CloseUIWindow(GameObject openWindow)
+    public void CloseUIWindow(GameObject lastOpenedUIWindow)
     {
         GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
-        Inventory_Window inventoryWindow = openWindow.GetComponent<Inventory_Window>();
-        Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
 
-        if (inventoryWindow != null)
+        if (lastOpenedUIWindow == inventoryWindow.gameObject)
         {
+            Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
+            Inventory_Slot[] inventorySlots = inventorySlotCreator.GetComponentsInChildren<Inventory_Slot>();
+
+            foreach (Inventory_Slot slot in inventorySlots)
+            {
+                Destroy(slot.gameObject);
+            }
+
             inventoryWindow.transform.localScale = Vector3.zero;
-            openWindow = null;
             openUIWindow = false;
             inventoryManager.isOpen = false;
+            openUIWindows.Remove(inventoryWindow.gameObject);
         }
         else
         {
@@ -168,7 +209,6 @@ public class Manager_Input : MonoBehaviour
 
         // else if character window is open, destroy it
     }
-    
     public bool OnItemPickup(int slotIndex)
     {
         bool result = false;
@@ -222,13 +262,11 @@ public class Manager_Input : MonoBehaviour
 
         return result;
     }
-
     public bool OnEquipFromInventory(int inventorySlotIndex)
     {
         bool result = false;
 
         GameObject playerObject = player.gameObject;
-        Inventory_Window playerInventoryWindow = openWindow.GetComponent<Inventory_Window>();
         Inventory_Manager playerInventoryManager = Inventory_Manager.InventoryType(playerObject);
         Dictionary<int, (int, int, bool)> inventoryItems = playerInventoryManager.InventoryItemIDs;
 
@@ -259,7 +297,7 @@ public class Manager_Input : MonoBehaviour
 
             if (playerEquipmentManager != null)
             {
-                Equipment_Window playerEquipmentWindow = playerInventoryWindow.GetComponentInChildren<Equipment_Window>();
+                Equipment_Window playerEquipmentWindow = inventoryWindow.GetComponentInChildren<Equipment_Window>();
 
                 (bool equipped, int remainingStackSize) = playerEquipmentManager.Equip(item, inventoryItems[inventorySlotIndex].Item2, playerEquipmentWindow);
 
@@ -272,9 +310,9 @@ public class Manager_Input : MonoBehaviour
                         playerInventoryManager.AddItem(inventorySlotIndex, item, remainingStackSize);
                     }
                     
-                    if (openUIWindow)
+                    if (inventoryWindow != null)
                     {
-                        CloseUIWindow(openWindow);
+                        CloseUIWindow(inventoryWindow.gameObject);
                         OpenInventory(playerObject);
                         playerEquipmentManager.UpdateSprite();
                     }
@@ -305,5 +343,35 @@ public class Manager_Input : MonoBehaviour
             Debug.Log($"Inventory does not have itemID");
             return result;
         }
+    }
+    public bool KeyHeld(KeyCode key, float keyHoldTime)
+    {
+        bool canExecute = false;
+
+        if (Input.GetKeyDown(key))
+        {
+            Debug.Log($"{key} pressed");
+
+            keyHeld = true;
+            keyHoldStart = 0f;
+        }
+
+        if (Input.GetKeyUp(key))
+        {
+            keyHeld = false;
+            keyHoldStart = 0f;
+        }
+
+        if (keyHeld)
+        {
+            keyHoldStart += Time.deltaTime;
+
+            if (keyHoldStart >= keyHoldTime)
+            {
+                canExecute = true;
+            }
+        }
+
+        return canExecute;
     }
 }

@@ -33,7 +33,6 @@ public class Dialogue_Window : MonoBehaviour
 
         UpdateInteractedObject(interactedObject);
         UpdatePlayerObject();
-        
     }
 
     public void UpdateInteractedObject(GameObject interactedObject)
@@ -47,17 +46,18 @@ public class Dialogue_Window : MonoBehaviour
 
     public void UpdateInteractedObjectImage(GameObject interactedObject)
     {
-        Image interactedImage = null;
-
         if (interactedIcon != null)
         {
-            interactedImage.sprite = interactedObject.GetComponent<SpriteRenderer>().sprite;
+            Sprite sprite = interactedObject.GetComponent<SpriteRenderer>().sprite;
+            Image interactedImage = interactedIcon.gameObject.GetComponent<Image>();
 
-            if (interactedImage != null)
+            if (sprite != null)
             {
+                interactedImage.sprite = sprite;
                 interactedIcon.UpdateDialogueImage(interactedImage);
             }
         }
+
         else
         {
             Debug.Log("Interacted icon is null");
@@ -93,14 +93,14 @@ public class Dialogue_Window : MonoBehaviour
 
     public void UpdatePlayerImage(Player player)
     {
-        Image playerImage = null;
-
         if (playerIcon != null)
         {
-            playerImage.sprite = player.GetComponent<SpriteRenderer>().sprite;
+            Sprite playerSprite = player.GetComponent<SpriteRenderer>().sprite;
+            Image playerImage = playerIcon.gameObject.GetComponent<Image>();
 
             if (playerImage != null)
             {
+                playerImage.sprite = playerSprite;
                 playerIcon.UpdateDialogueImage(playerImage);
             }
         }

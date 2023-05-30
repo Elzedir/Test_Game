@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class Game_Settings : MonoBehaviour
+public class SO_List : MonoBehaviour
 {
-    private static Game_Settings instance;
+    private static SO_List instance;
 
     //public GameObject characterPrefab;
 
@@ -12,18 +12,18 @@ public class Game_Settings : MonoBehaviour
 
     public List_AnimatorControllers[] animatorControllers;
 
-    public static Game_Settings Instance
+    public static SO_List Instance
     {
         get
         {
             if (instance == null)
             {
-                instance = FindObjectOfType<Game_Settings>();
+                instance = FindObjectOfType<SO_List>();
 
                 if (instance == null)
                 {
-                    GameObject singletonObject = new GameObject(typeof(Game_Settings).Name);
-                    instance = singletonObject.AddComponent<Game_Settings>();
+                    GameObject singletonObject = new GameObject(typeof(SO_List).Name);
+                    instance = singletonObject.AddComponent<SO_List>();
                 }
 
                 DontDestroyOnLoad(instance.gameObject);

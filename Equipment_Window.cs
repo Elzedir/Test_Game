@@ -11,40 +11,18 @@ public class Equipment_Window : MonoBehaviour
     public Transform equipmentArea;
     public Manager_Stats statsManager;
 
-    private static HashSet<int> usedEquipmentSlotIDs = new HashSet<int>();
-    private int SlotID = 0;
-
-    public int GetSlotID()
-    {
-        while (usedEquipmentSlotIDs.Contains(SlotID))
-        {
-            SlotID++;
-        }
-
-        usedEquipmentSlotIDs.Add(SlotID);
-
-        return SlotID;
-    }
-
-    public void ClearUsedIDs()
-    {
-        usedEquipmentSlotIDs.Clear();
-    }
-
     public void AssignSlotIndex()
     {
+        int slotID = 0;
+
         foreach (Transform child in equipmentArea)
         {
-            Inventory_EquipmentSlot slotScript = child.GetComponent<Inventory_EquipmentSlot>();
+            Inventory_EquipmentSlot slot = child.GetComponent<Inventory_EquipmentSlot>();
 
-            if (slotScript != null)
+            if (slot != null)
             {
-                int slotIndex = GetSlotID();
-                slotScript.slotIndex = slotIndex;
-            }
-            else
-            {
-                Debug.Log("No equipment slot script found");
+                slot.slotIndex = slotID;
+                slotID++;
             }
         }
     }

@@ -6,16 +6,11 @@ using UnityEngine;
 public class Dialogue_Text_Interacted : MonoBehaviour
 {
     public TextMeshProUGUI interactedTextBox;
-    public string dialogueText;
-
-    public void Start()
-    {
-        interactedTextBox.text = dialogueText;
-    }
 
     public void UpdateDialogue()
     {
-        dialogueText = UpdateDialogueText();
+        string dialogueText = UpdateDialogueText();
+        interactedTextBox.text = dialogueText;
     }
 
     public string UpdateDialogueText()

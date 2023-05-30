@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Burst.CompilerServices;
 using Unity.VisualScripting;
 using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
@@ -14,11 +16,14 @@ public class Menu_RightClick : MonoBehaviour
 
     public Button pickupButton;
     public bool isOpen = false;
+    private bool openingInventory = false;
+    private bool openingActor = false;
 
     private Inventory_Slot pressedInventorySlot;
     private Equipment_Slot pressedEquipmentSlot;
-    private Dialogue_Actor pressedActor;
+    private Actor pressedActor;
 
+    private bool talkButtonPressedCalled = false;
 
     private bool rightMouseButtonHeld = false;
     private float rightMouseClickStart = 0f;
@@ -27,30 +32,79 @@ public class Menu_RightClick : MonoBehaviour
 
     private void Start()
     {
-        instance = this;
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            Destroy(gameObject);
+        }
+
         transform.localScale = Vector3.zero;
     }
     public void Update()
     {
+        if (Input.GetMouseButtonUp(1))
+        {
+            RightClickLetGo();
+        }
+
         if (rightMouseButtonHeld)
         {
             menuCanOpen = MenuCanOpen();
         }
-    }
 
+        if (menuCanOpen)
+        {
+            if (!isOpen)
+            {
+                RightClickMenuOpen();
+            }
+        }
+
+        if (isOpen)
+        {
+            if (!RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), Input.mousePosition))
+            {
+                RightClickMenuClose();
+                return;
+            }
+
+            if (openingActor)
+            {
+                RightClickActorMenuIsOpen();
+            }
+            else if (openingInventory)
+            {
+                RightClickInventoryMenuIsOpen();
+            }
+
+        }
+    }
+    
     public void RightClickMenuCheck()
     {
-        Transform inventoryWindow = FindObjectOfType<Inventory_Window>().transform;
-        Transform actor = FindObjectOfType<Dialogue_Actor>().transform;
+        RaycastHit2D hit = Physics2D.GetRayIntersection(Camera.main.ScreenPointToRay(Input.mousePosition));
 
-        switch (true)
+        if (hit.collider != null)
         {
-            case bool _ when RectTransformUtility.RectangleContainsScreenPoint(inventoryWindow.GetComponent<RectTransform>(), Input.mousePosition):
+            Transform hitTransform = hit.transform;
+            RectTransform hitRectTransform = FindObjectOfType<Inventory_Window>().transform as RectTransform;
+
+            if (RectTransformUtility.RectangleContainsScreenPoint(hitRectTransform.GetComponent<RectTransform>(), Input.mousePosition))
+            {
                 RightClickMenuInventory();
-                break;
-            case bool _ when RectTransformUtility.RectangleContainsScreenPoint(actor.GetComponent<RectTransform>(), Input.mousePosition):
-                RightClickMenuActor(actor);
-                break;
+            }
+            else if (RectTransformUtility.RectangleContainsScreenPoint(hitRectTransform.GetComponentInChildren<RectTransform>(), Input.mousePosition))
+            {
+                RightClickMenuInventory();
+            }
+            else if (hit.collider.gameObject.GetComponent<Actor>() != null)
+            {
+                pressedActor = hitTransform.GetComponent<Actor>();
+                RightClickMenuActor();
+            }
         }
     }
     public void RightClickLetGo()
@@ -71,47 +125,19 @@ public class Menu_RightClick : MonoBehaviour
                 if (RectTransformUtility.RectangleContainsScreenPoint(inventorySlot.GetComponent<RectTransform>(), Input.mousePosition))
                 {
                     rightMouseButtonHeld = true;
+                    openingInventory = true;
                     rightMouseClickStart = 0f;
                     pressedInventorySlot = inventorySlot;
                     break;
                 }
             }
         }
-
-        if (menuCanOpen)
-        {
-            RightClickMenuOpen();
-
-            //pressedInventorySlot.RightClickMenuOpen(menuRightClickScript);   
-        }
-
-        Debug.Log(menuRightClickScript.isOpen);
-
-        if (menuRightClickScript.isOpen)
-        {
-            RightClickInventoryMenuIsOpen();
-        }
     }
-    public void RightClickMenuActor(Transform actor)
+    public void RightClickMenuActor()
     {
-        Dialogue_Actor dialogueActor = actor.GetComponent<Dialogue_Actor>();
-
-        if (RectTransformUtility.RectangleContainsScreenPoint(actor.GetComponent<RectTransform>(), Input.mousePosition))
-        {
-            rightMouseButtonHeld = true;
-            rightMouseClickStart = 0f;
-            pressedActor = dialogueActor;
-        }
-
-        if (MenuCanOpen())
-        {
-            RightClickMenuOpen();
-        }
-
-        if (menuRightClickScript.isOpen)
-        {
-            RightClickActorMenuIsOpen();
-        }
+        rightMouseButtonHeld = true;
+        openingActor = true;
+        rightMouseClickStart = 0f;
     }
     public bool MenuCanOpen()
     {
@@ -119,20 +145,14 @@ public class Menu_RightClick : MonoBehaviour
 
         if (rightMouseClickStart >= RightClickMenuHoldTime)
         {
-            if (!menuRightClickScript.isOpen)
+            if (!isOpen)
             {
                 menuCanOpen = true;
             }
         }
 
-        if (!rightMouseButtonHeld)
-        {
-            rightMouseClickStart = 0f;
-        }
-
         return menuCanOpen;
     }
-
     public void RightClickMenuOpen()
     {
         isOpen = true;
@@ -155,47 +175,60 @@ public class Menu_RightClick : MonoBehaviour
     public void RightClickMenuClose()
     {
         isOpen = false;
+        menuCanOpen = false;
+        openingActor = false;
+        openingInventory = false;
+        pressedInventorySlot = null;
         transform.localScale = Vector3.zero;
         transform.position = new Vector3(0, 0, 0);
     }
-    
     public void RightClickInventoryMenuIsOpen()
     {
-        Debug.Log("Right click menu is open");
-
         Button_Equip equipButton = gameObject.GetComponentInChildren<Button_Equip>();
         Button_PickupItem pickupItemButton = gameObject.GetComponentInChildren<Button_PickupItem>();
 
-        if (!RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), Input.mousePosition))
+        if (equipButton && pickupItemButton != null)
         {
-            RightClickMenuClose();
-        }
+            Debug.Log("1");
 
-        if (pickupItemButton.buttonPressed)
-        {
-            PickupButtonPressed(pickupItemButton);
-        }
+            if (pickupItemButton.buttonPressed)
+            {
+                Debug.Log("2");
+                PickupButtonPressed(pickupItemButton);
+            }
 
-        if (equipButton.buttonPressed)
+            if (equipButton.buttonPressed)
+            {
+                EquipButtonPressed(equipButton);
+            }
+        }
+        else
         {
-            EquipButtonPressed(equipButton);
+            Debug.Log("How in the fuck is the equipButton null? What the hell did you do?");
         }
     }
     public void RightClickActorMenuIsOpen()
     {
         Button_Talk talkButton = menuRightClickScript.gameObject.GetComponentInChildren<Button_Talk>();
 
-        if (!RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), Input.mousePosition))
+        if (talkButton != null)
         {
-            RightClickMenuClose();
-        }
-
-        if (talkButton.buttonPressed)
-        {
-            TalkButtonPressed(talkButton);
+            if (talkButton.buttonPressed)
+            {
+                if (!talkButtonPressedCalled)
+                {
+                    TalkButtonPressed(talkButton);
+                }
+            }
+            else
+            {
+                if (talkButtonPressedCalled)
+                {
+                    talkButtonPressedCalled = false;
+                }
+            }
         }
     }
-
     public void EquipButtonPressed(Button_Equip equipButton)
     {
         int pressedSlot = pressedInventorySlot.slotIndex;
@@ -218,14 +251,17 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void PickupButtonPressed(Button_PickupItem pickupItemButton)
     {
+        Debug.Log("3");
         int pressedSlot = pressedInventorySlot.slotIndex;
 
         if (pressedSlot != -1)
         {
+            Debug.Log("4");
             bool pickedUp = inputManager.OnItemPickup(pressedSlot);
 
             if (pickedUp)
             {
+                Debug.Log("5");
                 pickupItemButton.buttonPressed = false;
                 //RightClickMenuClose();
             }
@@ -238,17 +274,28 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void TalkButtonPressed(Button_Talk talkButton)
     {
-        bool talkable = pressedActor.TalkCheck(pressedActor);
+        talkButtonPressedCalled = true;
 
-        if (talkable)
+        if (pressedActor.gameObject != null)
         {
-            talkButton.buttonPressed = false;
-            RightClickMenuClose();
+            Dialogue_Data_SO dialogueData = pressedActor.gameObject.GetComponent<Dialogue_Data_SO>();
+
+            if (dialogueData != null)
+            {
+                Dialogue_Manager.instance.StartDialogue(pressedActor.gameObject, dialogueData);
+                talkButton.buttonPressed = false;
+                RightClickMenuClose();
+            }
+            else
+            {
+                talkButton.buttonPressed = false;
+                Debug.Log("Dialogue Data does not exist");
+            }
         }
         else
         {
             talkButton.buttonPressed = false;
-            Debug.Log("Could not pickup item.");
+            Debug.Log("Interacted character does not exist");
         }
     }
 }

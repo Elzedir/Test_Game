@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.Experimental;
@@ -8,12 +9,14 @@ using static UnityEngine.GraphicsBuffer;
 public abstract class Actor : Hitbox
 {
     // General
+    private GameObject self;
     private Actor actor;
     private AbilityManager abilityManager;
 
     // Layers
-    protected abstract LayerMask CanAttack { get; }
+    protected abstract LayerMask CanAttack { get; }    
     protected GameObject closestEnemy = null;
+    protected GameObject closestNPC = null;
     protected int layerCount = 0;
 
     // Trigger Zone
@@ -59,10 +62,9 @@ public abstract class Actor : Hitbox
     protected float cooldown;
     protected float lastAttack;
 
-    
-
     public List<GameObject> attackableTargets = new List<GameObject>();
     // Need to put in a way to remove from attackable targets.
+    public List<GameObject> NPCs = new List<GameObject>();
 
     protected override void Start()
     {
@@ -92,7 +94,6 @@ public abstract class Actor : Hitbox
             }
         }
     }
-
     public virtual void Move(Vector3 input)
     {
         if (!dead && !jumping && !attacking)
@@ -144,9 +145,8 @@ public abstract class Actor : Hitbox
 
     public virtual void TargetCheck()
     {
-        
         float maxTargetDistance = float.MaxValue;
-        
+        Player player = GetComponent<Player>();
         Collider2D[] triggerHits = Physics2D.OverlapCircleAll(transform.position, triggerRadius, CanAttack);
 
         foreach (Collider2D hits in triggerHits)
@@ -162,6 +162,19 @@ public abstract class Actor : Hitbox
                     attackableTargets.Add(target);
                 }
             }
+            
+            if (player != null)
+            {
+                if (target != null && !NPCs.Contains(target))
+                {
+                    BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
+
+                    if (targetCollider != null && targetCollider.enabled)
+                    {
+                        NPCs.Add(target);
+                    }
+                }
+            }
         }
 
         foreach (GameObject target in attackableTargets)
@@ -172,6 +185,17 @@ public abstract class Actor : Hitbox
             {
                 maxTargetDistance = targetDistance;
                 closestEnemy = target;
+            }
+        }
+
+        foreach (GameObject target in NPCs)
+        {
+            float targetDistance = Vector3.Distance(transform.position, target.transform.position);
+
+            if (targetDistance < maxTargetDistance)
+            {
+                maxTargetDistance = targetDistance;
+                closestNPC = target;
             }
         }
     }
