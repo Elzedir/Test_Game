@@ -276,21 +276,11 @@ public class Menu_RightClick : MonoBehaviour
     {
         talkButtonPressedCalled = true;
 
-        if (pressedActor.gameObject != null)
+        if (pressedActor != null)
         {
-            Dialogue_Data_SO dialogueData = pressedActor.gameObject.GetComponent<Dialogue_Data_SO>();
-
-            if (dialogueData != null)
-            {
-                Dialogue_Manager.instance.StartDialogue(pressedActor.gameObject, dialogueData);
-                talkButton.buttonPressed = false;
-                RightClickMenuClose();
-            }
-            else
-            {
-                talkButton.buttonPressed = false;
-                Debug.Log("Dialogue Data does not exist");
-            }
+            Dialogue_Manager.instance.StartDialogue(pressedActor.gameObject, pressedActor.dialogue);
+            talkButton.buttonPressed = false;
+            RightClickMenuClose();
         }
         else
         {

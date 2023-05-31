@@ -18,7 +18,6 @@ public class Manager_Input : MonoBehaviour
 
     public Player player;
     public GameObject interactedCharacter;
-    public Dialogue_Data_SO dialogue;
 
     private Dictionary<string, System.Action> keyListeners = new Dictionary<string, System.Action>();
 
@@ -113,19 +112,11 @@ public class Manager_Input : MonoBehaviour
             {
                 // Interact, can use a delegate for the interact button which would see what it is you're interacting with.
                 interactedCharacter = player.GetClosestNPC();
-                
-                if (interactedCharacter != null)
-                {
-                    Dialogue_Data_SO dialogueData = interactedCharacter.GetComponent<Dialogue_Data_SO>();
+                Actor interactedActor = interactedCharacter.GetComponent<Actor>();
 
-                    if (dialogueData != null)
-                    {
-                        Dialogue_Manager.instance.StartDialogue(interactedCharacter, dialogueData);
-                    }
-                    else
-                    {
-                        Debug.Log("Dialogue Data does not exist");
-                    }
+                if (interactedActor != null)
+                {
+                    Dialogue_Manager.instance.StartDialogue(interactedActor.gameObject, interactedActor.dialogue);
                 }
                 else
                 {

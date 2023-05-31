@@ -8,13 +8,15 @@ public class Dialogue_Window : MonoBehaviour
 {
     public static Dialogue_Window instance;
 
+    public GameObject interactedCharacter;
     public Dialogue_Icon_Interacted interactedIcon;
     public TextMeshProUGUI interactedName;
     public TextMeshProUGUI interactedText;
 
     public Dialogue_Icon_Player playerIcon;
     public TextMeshProUGUI playerName;
-    public Button playerDialogOptions;
+    public GameObject choiceButtonPrefab;
+    public Transform choiceArea;
 
     public bool isOpen = false;
 
@@ -25,30 +27,30 @@ public class Dialogue_Window : MonoBehaviour
         transform.localScale = Vector3.zero;
     }
 
-    public void OpenDialogueWindow(GameObject interactedObject)
+    public void OpenDialogueWindow(GameObject interactedObject, string text)
     {
         isOpen = true;
-
+        interactedCharacter = interactedObject;
         transform.localScale = Vector3.one;
 
-        UpdateInteractedObject(interactedObject);
+        UpdateInteractedObject(text);
         UpdatePlayerObject();
     }
 
-    public void UpdateInteractedObject(GameObject interactedObject)
+    public void UpdateInteractedObject(string text)
     {
-        UpdateInteractedObjectImage(interactedObject);
-        UpdateInteractedObjectName(interactedObject);
+        UpdateInteractedObjectImage();
+        UpdateInteractedObjectName();
 
         Dialogue_Text_Interacted interactedTextScript = interactedText.GetComponent<Dialogue_Text_Interacted>();
-        interactedTextScript.UpdateDialogue();
+        interactedTextScript.UpdateDialogue(text);
     }
 
-    public void UpdateInteractedObjectImage(GameObject interactedObject)
+    public void UpdateInteractedObjectImage()
     {
         if (interactedIcon != null)
         {
-            Sprite sprite = interactedObject.GetComponent<SpriteRenderer>().sprite;
+            Sprite sprite = interactedCharacter.GetComponent<SpriteRenderer>().sprite;
             Image interactedImage = interactedIcon.gameObject.GetComponent<Image>();
 
             if (sprite != null)
@@ -64,11 +66,11 @@ public class Dialogue_Window : MonoBehaviour
         }
     }
 
-    public void UpdateInteractedObjectName(GameObject interactedObject)
+    public void UpdateInteractedObjectName()
     {
         if (interactedName != null)
         {
-            interactedName.text = interactedObject.name;
+            interactedName.text = interactedCharacter.name;
         }
         else
         {
@@ -121,7 +123,68 @@ public class Dialogue_Window : MonoBehaviour
             Debug.Log("Player name is null");
         }
     }
-    
+
+    public void CreateChoiceButtons(int numChoices)
+    {
+        for (int i = 0; i < numChoices; i++)
+        {
+            GameObject buttonObject = Instantiate(choiceButtonPrefab, choiceArea);
+            Button choiceButton = buttonObject.GetComponent<Button>();
+        }
+    }
+
+    public void UpdateChoicesUI(DialogueLine currentLine)
+    {
+        if (currentLine == null)
+        {
+            Debug.Log("No choices available");
+            return;
+        }
+
+        foreach (Transform child in choiceArea)
+        {
+            Destroy(child.gameObject);
+        }
+
+        if (currentLine.choices != null && currentLine.choices.Length > 0)
+        {
+            CreateChoiceButtons(currentLine.choices.Length);
+
+            int i = 0;
+
+            foreach (Transform child in choiceArea)
+            {
+                if (i < currentLine.choices.Length)
+                {
+                    Button choiceButton = child.GetComponent<Button>();
+                    TextMeshProUGUI buttonText = choiceButton.GetComponentInChildren<TextMeshProUGUI>();
+
+                    if (choiceButton != null && buttonText != null)
+                    {
+                        DialogueChoice choice = currentLine.choices[i];
+
+                        buttonText.text = choice.choiceText;
+                        choiceButton.onClick.AddListener(() =>
+                        {
+                            Dialogue_Manager.instance.StartDialogue(interactedCharacter, choice.nextDialogue);
+                        });
+                        i++;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    public void EndConversation()
+    {
+        Dialogue_Manager.instance.currentState.EndDialogue();
+        CloseDialogueWindow();
+    }
+
     public void CloseDialogueWindow()
     {
         isOpen = false;

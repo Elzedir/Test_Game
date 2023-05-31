@@ -1,13 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Dialogue_Manager : MonoBehaviour
 {
     public static Dialogue_Manager instance;
-    public Dialogue_Data_SO currentDialogue;
-    private int currentLineIndex = 0;
-    public Text dialogueText;
-    public Button[] choiceButtons;
+    public Dialogue_Window dialogueWindow;
+    public DialogueState currentState;
 
     public void Start()
     {
@@ -16,69 +15,60 @@ public class Dialogue_Manager : MonoBehaviour
 
     public void StartDialogue(GameObject interactedCharacter, Dialogue_Data_SO dialogue)
     {
-        currentDialogue = dialogue;
-        currentLineIndex = 0;
-
-        Dialogue_Window dialogueWindow = FindObjectOfType<Dialogue_Window>();
-
-        if (dialogueWindow != null)
+        if (dialogue != null)
         {
-            dialogueWindow.OpenDialogueWindow(interactedCharacter);
-        }
+            if (currentState == null || currentState.CurrentDialogue != dialogue)
+            {
+                currentState = new DialogueState(dialogue);
+            }
 
-        UpdateDialogueUI(interactedCharacter);
+            UpdateDialogueUI(interactedCharacter);
+        }
     }
 
     public void UpdateDialogueUI(GameObject interactedCharacter)
     {
-        var nextLine = AdvanceDialogue();
+        var nextLine = currentState.AdvanceDialogue();
 
         if (nextLine != null)
         {
-            dialogueText.text = nextLine.line;
-
-            for (int i = 0; i < choiceButtons.Length; i++)
-            {
-                if (i < nextLine.choices.Length)
-                {
-                    choiceButtons[i].gameObject.SetActive(true);
-                    choiceButtons[i].GetComponentInChildren<Text>().text = nextLine.choices[i].choiceText;
-
-                    Dialogue_Data_SO nextDialogue = nextLine.choices[i].nextDialogue;
-                    choiceButtons[i].onClick.RemoveAllListeners();
-                    choiceButtons[i].onClick.AddListener(() => StartDialogue(interactedCharacter, nextDialogue));
-                }
-                else
-                {
-                    choiceButtons[i].gameObject.SetActive(false);
-                }
-            }
+            dialogueWindow.OpenDialogueWindow(interactedCharacter, nextLine.line);
+            Dialogue_Window.instance.UpdateChoicesUI(nextLine);
         }
         else
         {
-            EndDialogue();
-            dialogueText.text = "";
+            currentState.EndDialogue();
+            dialogueWindow.CloseDialogueWindow();
+        }
+    }
+}
 
-            foreach (var button in choiceButtons)
-            {
-                button.gameObject.SetActive(false);
-            }
+public class DialogueState
+{
+    public Dialogue_Data_SO CurrentDialogue { get; private set; }
+    private Dictionary<Dialogue_Data_SO, int> currentLineIndices = new Dictionary<Dialogue_Data_SO, int>();
+
+    public DialogueState(Dialogue_Data_SO dialogue)
+    {
+        CurrentDialogue = dialogue;
+        if (!currentLineIndices.ContainsKey(dialogue))
+        {
+            currentLineIndices[dialogue] = 0;
         }
     }
 
     public DialogueLine AdvanceDialogue()
     {
-        if (currentDialogue == null || currentLineIndex >= currentDialogue.dialogueLines.Length)
+        if (CurrentDialogue == null || currentLineIndices[CurrentDialogue] >= CurrentDialogue.dialogueLines.Length)
         {
             return null;
         }
 
-        return currentDialogue.dialogueLines[currentLineIndex++];
+        return CurrentDialogue.dialogueLines[currentLineIndices[CurrentDialogue]++];
     }
 
     public void EndDialogue()
     {
-        currentDialogue = null;
-        currentLineIndex = 0;
+        CurrentDialogue = null;
     }
 }

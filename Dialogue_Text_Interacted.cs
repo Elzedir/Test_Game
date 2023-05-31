@@ -7,18 +7,8 @@ public class Dialogue_Text_Interacted : MonoBehaviour
 {
     public TextMeshProUGUI interactedTextBox;
 
-    public void UpdateDialogue()
+    public void UpdateDialogue(string text)
     {
-        string dialogueText = UpdateDialogueText();
-        interactedTextBox.text = dialogueText;
-    }
-
-    public string UpdateDialogueText()
-    {
-        string text = "Oops, wait, didn't find the right text. One sec.";
-
-        // Update the text here
-        
-        return text;
+        interactedTextBox.text = text;
     }
 }

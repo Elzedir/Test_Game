@@ -3,7 +3,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Dialogue", menuName = "ScriptableObjects/DialogueData", order = 1)]
 public class Dialogue_Data_SO : ScriptableObject
 {
-    public string characterName;
     public DialogueLine[] dialogueLines;
 }
 

@@ -12,6 +12,7 @@ public abstract class Actor : Hitbox
     private GameObject self;
     private Actor actor;
     private AbilityManager abilityManager;
+    public Dialogue_Data_SO dialogue;
 
     // Layers
     protected abstract LayerMask CanAttack { get; }    
