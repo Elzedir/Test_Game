@@ -9,9 +9,7 @@ using static UnityEngine.EventSystems.EventTrigger;
 public class Player : Actor
 {
     // References
-    public Equipment_Manager equipmentManager;
-    public Inventory_Manager inventory;
-    public Manager_Stats statsManager;
+    
 
     protected BoxCollider2D playerColl;
     protected Animator anim;
@@ -47,9 +45,15 @@ public class Player : Actor
         playerBody = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         playerCanAttack = FactionManager.instance.AttackableFactions()[1];
-        equipmentManager = GetComponent<Equipment_Manager>();
-        inventory = GetComponent<Inventory_Manager>();
-        statsManager = GetComponent<Manager_Stats>();
+    }
+    protected override void FixedUpdate()
+    {
+        base.FixedUpdate();
+
+        if (dead)
+        {
+            PlayerDeath();
+        }
     }
     public void SwapSprite(int skinID)
     {
@@ -61,62 +65,41 @@ public class Player : Actor
     }
     public void LevelUp()
     {
-        maxHitpoint++;
-        baseHitpoints = maxHitpoint;
-        maxMana++;
-        mana = maxMana;
-        maxStamina++;
-        stamina = maxStamina;
+        baseHealth++;
+        baseMana++;
+        baseStamina++;
         playerBaseDamage++;
         playerBaseForce++;
         playerBaseSpeed++;
+        statManager.UpdateStatsOnLevelUp();
     }
     public void SetLevel(int level)
     {
         for (int i = 0; i < level; i++)
         LevelUp();
     }
-    public void Heal(float healthRestore)
-    {
-        if (baseHitpoints == maxHitpoint)
-            return;
-
-        baseHitpoints += healthRestore;
-        
-        if (baseHitpoints > maxHitpoint)
-            baseHitpoints = maxHitpoint;
-
-        GameManager.instance.ShowFloatingText("+" + healthRestore.ToString() + "hp" , 25, Color.green, transform.position, Vector3.up * 30, 1.0f);
-        GameManager.instance.HUDBarChange();
-    }
+    
     public void Respawn()
     {
-        Heal(maxHitpoint);
+        statManager.RestoreHealth(statManager.maxHealth);
         dead = false;
         pushDirection = Vector3.zero;
     }
-    protected override void ReceiveDamage(Damage dmg)
-    {
-        base.ReceiveDamage(dmg);
-        GameManager.instance.HUDBarChange();
-    }
-    protected override void Death()
+    public void PlayerDeath()
     {
         dead = true;
+
         foreach (Transform child in transform)
         {
             Player playerChild = child.GetComponent<Player>();
+
             if (playerChild != null)
             {
-                playerChild.SetDead();
+                playerChild.dead = true;
             }
         }
 
         GameManager.instance.deathMenuAnimator.SetTrigger("Show");
-    }
-    protected virtual void SetDead()
-    {
-        dead = true;
     }
     public GameObject GetClosestNPC()
     {

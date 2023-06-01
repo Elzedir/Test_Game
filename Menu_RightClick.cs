@@ -189,11 +189,9 @@ public class Menu_RightClick : MonoBehaviour
 
         if (equipButton && pickupItemButton != null)
         {
-            Debug.Log("1");
 
             if (pickupItemButton.buttonPressed)
             {
-                Debug.Log("2");
                 PickupButtonPressed(pickupItemButton);
             }
 
@@ -251,17 +249,14 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void PickupButtonPressed(Button_PickupItem pickupItemButton)
     {
-        Debug.Log("3");
         int pressedSlot = pressedInventorySlot.slotIndex;
 
         if (pressedSlot != -1)
         {
-            Debug.Log("4");
             bool pickedUp = inputManager.OnItemPickup(pressedSlot);
 
             if (pickedUp)
             {
-                Debug.Log("5");
                 pickupItemButton.buttonPressed = false;
                 //RightClickMenuClose();
             }

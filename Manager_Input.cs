@@ -303,6 +303,9 @@ public class Manager_Input : MonoBehaviour
                     
                     if (inventoryWindow != null)
                     {
+                        Manager_Stats statManager = player.GetComponent<Manager_Stats>();
+                        statManager.UpdateStats();
+
                         CloseUIWindow(inventoryWindow.gameObject);
                         OpenInventory(playerObject);
                         playerEquipmentManager.UpdateSprite();

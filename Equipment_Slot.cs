@@ -14,18 +14,27 @@ using static UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle;
 using static UnityEditor.Progress;
 
 [System.Serializable]
+[RequireComponent(typeof(SpriteRenderer))]
 public class Equipment_Slot : MonoBehaviour
 {
-    public Equipment_Manager equipmentManager;
+    private Equipment_Manager equipmentManager;
+    private Manager_Stats statManager;
     public int slotIndex;
     private SpriteRenderer spriteRenderer;
     private AnimatorController animatorController;
     private Animator animator;
+    private BoxCollider2D boxCollider;
+    public LayerMask wepCanAttack;
 
     public void Start()
     {        
         spriteRenderer = GetComponent<SpriteRenderer>();
         equipmentManager = GetComponentInParent<Equipment_Manager>();
+        boxCollider = GetComponent<BoxCollider2D>();
+        statManager = GetComponentInParent<Manager_Stats>();
+        Actor actor = GetComponentInParent<Actor>();
+        wepCanAttack = actor.GetLayer();
+
         animator = GetComponent<Animator>();
 
         if (animator != null && gameObject.name == "Weapon" && animator.runtimeAnimatorController == null)
@@ -34,6 +43,14 @@ public class Equipment_Slot : MonoBehaviour
         }
 
         equipmentManager.OnEquipmentChange += PopulateEquipmentSlots;
+    }
+
+    public void FixedUpdate()
+    {
+        if (boxCollider != null && boxCollider.enabled && gameObject.name == "Weapon")
+        {
+            CollideCheck();
+        }
     }
 
     public void UpdateSprite(List_Item item)
@@ -64,14 +81,9 @@ public class Equipment_Slot : MonoBehaviour
 
     public void Attack()
     {
-        if (animatorController != null)
+        if (animator != null)
         {
-            Animator animator = GetComponent<Animator>();
-
-            if (animator != null)
-            {
-                StartCoroutine(AttackCoroutine(animator));
-            }
+            StartCoroutine(AttackCoroutine(animator));
         }
     }
 
@@ -84,6 +96,40 @@ public class Equipment_Slot : MonoBehaviour
         yield return new WaitForSeconds(delayDuration);
 
         animator.ResetTrigger("Attack");
+    }
+    private void CollideCheck()
+    {
+        Vector2 boxSize = boxCollider.size;
+        Vector2 boxPosition = boxCollider.transform.position;
+        float boxAngle = boxCollider.transform.eulerAngles.z;
+        Collider2D[] hits = Physics2D.OverlapBoxAll(boxPosition, boxSize, boxAngle, wepCanAttack);
+
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.gameObject.layer == gameObject.layer || !hit.enabled || hit.gameObject.name == "Weapon")
+                continue;
+
+            OnCollide(hit);
+        }
+    }
+    private void OnCollide(Collider2D coll)
+    {
+        Actor parent = GetComponentInParent<Actor>();
+
+        if (parent == null)
+        {
+            Debug.LogWarning("No parent found for " + this.name);
+            return;
+        }
+
+        int targetLayerMask = 1 << coll.gameObject.layer;
+
+        if ((wepCanAttack & targetLayerMask) != 0)
+        {
+            Damage damage = statManager.DealDamage();
+
+            coll.SendMessage("ReceiveDamage", damage);
+        }
     }
 
     [Serializable]

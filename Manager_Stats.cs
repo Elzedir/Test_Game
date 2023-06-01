@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.ConstrainedExecution;
 using UnityEngine;
+using UnityEngine.Rendering;
 using static UnityEditor.Progress;
 
 [System.Serializable]
@@ -11,34 +13,37 @@ public class Manager_Stats : MonoBehaviour
     private Actor actor;
 
     // Damager
-    public float damageAmount;
-    public float pureDamage;
-    public float pushForce;
+    public float currentDamageAmount;
+    public float currentPushForce;
+    public Vector3 currentPushDirection;
 
     //Defence
     public float currentHealth;
     public float maxHealth;
-    public float physicalDefence;
-    public float magicalDefence;
-    public float pureDefence;
+    public float currentMana;
+    public float maxMana;
+    public float currentStamina;
+    public float maxStamina;
+    public float currentPhysicalDefence;
+    public float currentMagicalDefence;
+
 
     private void Start()
     {
         equipmentManager = GetComponent<Equipment_Manager>();
-        //UpdateStats();
-    }
-
-    void UpdateStatsOnEquipmentChanged(List_Item newEquipment, List_Item previousEquipment)
-    {
-        // Need to change
+        actor = GetComponent<Actor>();
         UpdateStats();
     }
 
     public void UpdateStats()
     {
-        maxHealth = 0; // Change this by level
-        physicalDefence = 0; // Change this by level
-        magicalDefence = 0; // Change this by level
+        currentDamageAmount = actor.baseDamage;
+        currentPushForce = actor.baseForce;
+        maxHealth = actor.baseHealth;
+        maxMana = actor.baseMana;
+        maxStamina = actor.baseStamina;
+        currentPhysicalDefence = actor.basePhysicalDefence;
+        currentMagicalDefence = actor.baseMagicalDefence;
 
         int currentSlot = 0;
 
@@ -74,17 +79,17 @@ public class Manager_Stats : MonoBehaviour
 
                 if (item is List_Weapon weapon)
                 {
-                    damageAmount += weapon.itemDamage;
-                    pushForce += weapon.itemForce;
+                    currentDamageAmount += weapon.itemDamage;
+                    currentPushForce += weapon.itemForce;
                 }
                 else if (item is List_Armour armour)
                 {
                     maxHealth += armour.healthBonus;
-                    physicalDefence += armour.physicalDefence;
-                    magicalDefence += armour.magicalDefence;
+                    currentPhysicalDefence += armour.physicalDefence;
+                    currentMagicalDefence += armour.magicalDefence;
                 }
 
-                maxHealth += actor.baseHitpoints;
+                maxHealth += actor.baseHealth;
                 if (currentHealth > maxHealth)
                 {
                     currentHealth = maxHealth;
@@ -98,29 +103,57 @@ public class Manager_Stats : MonoBehaviour
             }
         }
     }
-
-    public void ReciveDamage(int damage)
+    public Damage DealDamage()
     {
-        // Apply damage and calculate damage reduction
-        float totalDefence = physicalDefence + magicalDefence;
+        Damage damage = new Damage
+        {
+            origin = actor.transform.position,
+            damageAmount = currentDamageAmount,
+            pushForce = currentPushForce
+        };
+
+        return damage;
+    }
+    public void ReceiveDamage(Damage damage)
+    {
+        Debug.Log("Receive damage called in Stat manager");
+        float totalDefence = currentPhysicalDefence + currentMagicalDefence;
         float damageReduction = totalDefence / (totalDefence + 100);
-        float finalDamage = damage * (1 - damageReduction);
+        float finalDamage = damage.damageAmount * (1 - damageReduction);
+
+        GameManager.instance.ShowFloatingText(damage.damageAmount.ToString(), 25, Color.red, transform.position, Vector3.up * 30, 0.5f);
+        GameManager.instance.HUDBarChange();
 
         currentHealth -= finalDamage;
 
         if (currentHealth <= 0)
         {
-            // Death();
+            actor.Death();
+            return;
         }
+
+        currentPushDirection = (transform.position - damage.origin).normalized * damage.pushForce;
     }
 
-    public void RestoreHealth(int amount)
+    public void RestoreHealth(float amount)
     {
         currentHealth += amount;
 
         if (currentHealth > maxHealth)
         {
             currentHealth = maxHealth;
+            return;
         }
+
+        GameManager.instance.ShowFloatingText("+" + amount.ToString() + "hp", 25, Color.green, transform.position, Vector3.up * 30, 1.0f);
+        GameManager.instance.HUDBarChange();
+    }
+
+    public void UpdateStatsOnLevelUp()
+    {
+        UpdateStats();
+        currentHealth = maxHealth;
+        currentMana = maxMana;
+        currentStamina = maxStamina;
     }
 }

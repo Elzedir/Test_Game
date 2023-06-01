@@ -6,6 +6,8 @@ using UnityEngine.UIElements;
 using UnityEngine.UIElements.Experimental;
 using static UnityEngine.GraphicsBuffer;
 
+[RequireComponent(typeof(Manager_Stats))]
+[RequireComponent(typeof(Equipment_Manager))]
 public abstract class Actor : Hitbox
 {
     // General
@@ -13,6 +15,9 @@ public abstract class Actor : Hitbox
     private Actor actor;
     private AbilityManager abilityManager;
     public Dialogue_Data_SO dialogue;
+    protected Manager_Stats statManager;
+    public Equipment_Manager equipmentManager;
+    public Inventory_Manager inventory;
 
     // Layers
     protected abstract LayerMask CanAttack { get; }    
@@ -45,12 +50,9 @@ public abstract class Actor : Hitbox
     protected Vector3 startingPosition;
     public float triggerLength;
     public float chaseLength;
-    public float baseHitpoints;
-    public float maxHitpoint;
-    public float mana;
-    public float maxMana;
-    public float stamina;
-    public float maxStamina;
+    public float baseHealth;
+    public float baseMana;
+    public float baseStamina;
     
     protected Vector3 pushDirection;
     public float pushRecoverySpeed = 0.2f;
@@ -63,9 +65,13 @@ public abstract class Actor : Hitbox
     protected float cooldown;
     protected float lastAttack;
 
+    public float basePhysicalDefence;
+    public float baseMagicalDefence;
+
     public List<GameObject> attackableTargets = new List<GameObject>();
     // Need to put in a way to remove from attackable targets.
     public List<GameObject> NPCs = new List<GameObject>();
+    private Collider2D[] overlapResults = new Collider2D[50];
 
     protected override void Start()
     {
@@ -74,6 +80,9 @@ public abstract class Actor : Hitbox
         actor = GetComponent<Actor>();
         startingPosition = transform.position;
         abilityManager = GetComponent<AbilityManager>();
+        statManager = GetComponent<Manager_Stats>();
+        equipmentManager = GetComponent<Equipment_Manager>();
+        inventory = GetComponent<Inventory_Manager>();
         LayerCount();
     }
     protected override void FixedUpdate()
@@ -86,15 +95,20 @@ public abstract class Actor : Hitbox
         {
             if (GetComponent<Player>() == null)
             {
-                Chase();
-
-                if (alerted)
-                {
-                    // AbilityUse();
-                }
+                HandleNPCBehavior();
             }
         }
     }
+
+    private void HandleNPCBehavior()
+    {
+        Chase();
+        if (alerted)
+        {
+            // AbilityUse();
+        }
+    }
+
     public virtual void Move(Vector3 input)
     {
         if (!dead && !jumping && !attacking)
@@ -130,16 +144,7 @@ public abstract class Actor : Hitbox
             if (!dead)
             {
                 Move(new Vector3(x, y, 0));
-
-                if (dir.x > 0)
-                {
-                    transform.localScale = new Vector3(1, 1, 1);
-                }
-
-                else if (dir.x < 0)
-                {
-                    transform.localScale = new Vector3(-1, 1, 1);
-                }
+                transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
             }
         }
     }
@@ -154,7 +159,7 @@ public abstract class Actor : Hitbox
         {
             GameObject target = hits.gameObject;
 
-            if (target != null && !attackableTargets.Contains(target))
+            if (target != null && !attackableTargets.Contains(target) && target.gameObject.name != "Weapon")
             {
                 BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
 
@@ -289,13 +294,11 @@ public abstract class Actor : Hitbox
     {
         bool result = false;
         float attackRange = GetAttackRange();
+        int numResults = Physics2D.OverlapCircleNonAlloc(transform.position, attackRange, overlapResults, CanAttack);
 
-        Collider2D[] targetsWithinRange = Physics2D.OverlapCircleAll(transform.position, attackRange, CanAttack);
-
-        foreach (Collider2D targetColl in targetsWithinRange)
+        for (int i = 0; i < numResults; i++)
         {
-            GameObject target = targetColl.gameObject;
-
+            GameObject target = overlapResults[i].gameObject;
             if (target != null && attackableTargets.Contains(target))
             {
                 result = true;
@@ -371,56 +374,61 @@ public abstract class Actor : Hitbox
         yield return new WaitForSeconds(delayDuration);
         animator.ResetTrigger("Attack");
 
-        int frameRate = 60;
-        float frameDuration = 1f / frameRate;
+        //int frameRate = 60;
+        //float frameDuration = 1f / frameRate;
 
-        int frameToStartHop = 30;
-        int frameHopTime = 10;
-        float hopHeight = 0.03f;
+        //int frameToStartHop = 30;
+        //int frameHopTime = 10;
+        //float hopHeight = 0.03f;
 
-        while (animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1f && animator.GetCurrentAnimatorStateInfo(0).IsName("orc_orcling_attack_anim"))
-        {
-            float currentTime = animator.GetCurrentAnimatorStateInfo(0).normalizedTime * animator.GetCurrentAnimatorStateInfo(0).length;
-            int currentFrame = Mathf.FloorToInt(currentTime / frameDuration);
+        //while (animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1f && animator.GetCurrentAnimatorStateInfo(0).IsName("orc_orcling_attack_anim"))
+        //{
+        //    float currentTime = animator.GetCurrentAnimatorStateInfo(0).normalizedTime * animator.GetCurrentAnimatorStateInfo(0).length;
+        //    int currentFrame = Mathf.FloorToInt(currentTime / frameDuration);
 
-            if (currentFrame >= frameToStartHop)
-            {
-                Vector3 originalPosition = actor.transform.position;
-                Vector3 hopOffset = new Vector3(0f, hopHeight, 0f);
-                Vector3 hopPosition = originalPosition + hopOffset;
+        //    if (currentFrame >= frameToStartHop)
+        //    {
+        //        Vector3 originalPosition = actor.transform.position;
+        //        Vector3 hopOffset = new Vector3(0f, hopHeight, 0f);
+        //        Vector3 hopPosition = originalPosition + hopOffset;
 
-                float totalHopTime = frameHopTime * frameDuration;
-                float elapsedTime = 0f;
+        //        float totalHopTime = frameHopTime * frameDuration;
+        //        float elapsedTime = 0f;
 
-                while (elapsedTime < totalHopTime)
-                {
-                    float hopUpTime = elapsedTime / totalHopTime;
-                    actor.transform.position = Vector3.Lerp(originalPosition, hopPosition, hopUpTime);
-                    elapsedTime += Time.deltaTime;
-                    yield return null;
-                }
+        //        while (elapsedTime < totalHopTime)
+        //        {
+        //            float hopUpTime = elapsedTime / totalHopTime;
+        //            actor.transform.position = Vector3.Lerp(originalPosition, hopPosition, hopUpTime);
+        //            elapsedTime += Time.deltaTime;
+        //            yield return null;
+        //        }
 
-                actor.transform.position = hopPosition;
+        //        actor.transform.position = hopPosition;
 
-                elapsedTime = 0f;
+        //        elapsedTime = 0f;
 
-                while (elapsedTime < totalHopTime)
-                {
-                    float hopReturnTime = elapsedTime / totalHopTime;
-                    actor.transform.position = Vector3.Lerp(originalPosition, hopPosition, hopReturnTime);
-                    elapsedTime += Time.deltaTime;
-                    yield return null;
-                }
+        //        while (elapsedTime < totalHopTime)
+        //        {
+        //            float hopReturnTime = elapsedTime / totalHopTime;
+        //            actor.transform.position = Vector3.Lerp(originalPosition, hopPosition, hopReturnTime);
+        //            elapsedTime += Time.deltaTime;
+        //            yield return null;
+        //        }
 
-                actor.transform.position = originalPosition;
+        //        actor.transform.position = originalPosition;
 
-            }
+        //    }
 
-            yield return null;
-        }
+        //    yield return null;
+        //}
 
         attacking = false;
         coroutineRunning = false;
+    }
+    public void ReceiveDamage(Damage damage)
+    {
+        Debug.Log("Actor receive damage called");
+        statManager.ReceiveDamage(damage);
     }
     public void AbilityUse(Rigidbody2D self)
     {
@@ -429,22 +437,7 @@ public abstract class Actor : Hitbox
             AbilityManager.instance.Charge(closestEnemy, self);
         }
     }
-    protected virtual void ReceiveDamage(Damage dmg)
-    {
-        if (!dead)
-        {
-            baseHitpoints -= dmg.damageAmount;
-            pushDirection = (transform.position - dmg.origin).normalized * dmg.pushForce;
-            GameManager.instance.ShowFloatingText(dmg.damageAmount.ToString(), 25, Color.red, transform.position, Vector3.up * 30, 0.5f);
-
-            if (baseHitpoints <= 0)
-            {
-                baseHitpoints = 0;
-                Death();
-            }
-        }
-    }
-    protected virtual void Death()
+    public virtual void Death()
     {
         dead = true;
     }
@@ -469,5 +462,9 @@ public abstract class Actor : Hitbox
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(transform.position, GetAttackRange());
         }
+    }
+    public LayerMask GetLayer()
+    {
+        return CanAttack;
     }
 }

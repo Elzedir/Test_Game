@@ -24,16 +24,35 @@ public class FactionManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        passive = 0;
-        playerCanAttack = LayerMask.GetMask("Enemy Human", "Enemy Monster", "Destructable");
-        humanCanAttack = LayerMask.GetMask("Enemy Human", "Enemy Monster", "Destructable");
-        enemyHumanCanAttack = LayerMask.GetMask("Player", "Human", "Enemy Monster", "Destructable");
-        enemyMonsterCanAttack = LayerMask.GetMask("Player","Human", "Enemy Human", "Destructable");
-        destructable = 0;
+        SetFactions();
+        AttackableFactionList();
     }
 
     public LayerMask[] AttackableFactions()
     {
         return new LayerMask[] {passive, playerCanAttack, humanCanAttack, enemyHumanCanAttack, enemyMonsterCanAttack, destructable};
+    }
+
+    public void SetFactions()
+    {
+        passive = 0;
+        playerCanAttack = LayerMask.GetMask("Enemy Human", "Enemy Monster");
+        humanCanAttack = LayerMask.GetMask("Enemy Human", "Enemy Monster");
+        enemyHumanCanAttack = LayerMask.GetMask("Player", "Human", "Enemy Monster");
+        enemyMonsterCanAttack = LayerMask.GetMask("Player", "Human", "Enemy Human");
+        destructable = 0;
+    }
+
+    public void AttackableFactionList()
+    {
+        LayerMask[] attackableFactions = AttackableFactions();
+        {
+            LayerMask passiveCanAttack = attackableFactions[0];
+            LayerMask playerCanAttack = attackableFactions[1];
+            LayerMask humanCanAttack = attackableFactions[2];
+            LayerMask enemyHumanCanAttack = attackableFactions[3];
+            LayerMask enemyMonsterCanAttack = attackableFactions[4];
+            LayerMask destructable = attackableFactions[5];
+        }
     }
 }

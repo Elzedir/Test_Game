@@ -39,7 +39,7 @@ public class Equipment_Manager : MonoBehaviour
     protected string weaponName;
 
     public BoxCollider2D WepCollider;
-    public LayerMask wepCanAttack;
+    
 
     void Start()
     {
@@ -47,7 +47,7 @@ public class Equipment_Manager : MonoBehaviour
         Manager_Stats statsManager = GetComponent<Manager_Stats>();
         weaponAnimator = GetComponent<Animator>();
         WepCollider = GetComponent<BoxCollider2D>();
-        wepCanAttack = 1 << gameObject.layer;
+        
 
         equipmentManager.OnEquipmentChange += DeleteList;
         equipmentManager.OnEquipmentChange += PopulateEquipment;
@@ -87,61 +87,6 @@ public class Equipment_Manager : MonoBehaviour
         Debug.Log(this.name + " attacked");
 
         AttackAnimation?.Invoke(weaponAnimator);
-    }
-    protected virtual void OnCollide(int equipSlot, Collider2D coll)
-    {
-        if (coll.gameObject.layer == gameObject.layer)
-            return;
-
-        Actor parent = GetComponentInParent<Actor>();
-
-        if (parent == null)
-        {
-            Debug.LogWarning("No parent found for " + this.name);
-            return;
-        }
-
-        int targetLayerMask = 1 << coll.gameObject.layer;
-
-        if ((wepCanAttack & targetLayerMask) != 0)
-        {
-            List_Item weapon;
-
-            switch (currentEquipment[equipSlot].Item1)
-            {
-                case 1:
-                    weapon = List_Item.GetItemData(currentEquipment[equipSlot].Item1, List_Weapon.allWeaponData);
-                    break;
-                case 2:
-                    weapon = List_Item.GetItemData(currentEquipment[equipSlot].Item1, List_Armour.allArmourData);
-                    break;
-                case 3:
-                    weapon = List_Item.GetItemData(currentEquipment[equipSlot].Item1, List_Consumable.allConsumableData);
-                    break;
-                default:
-                    weapon = null;
-                    break;
-            }
-
-            if (weapon == null)
-            {
-                Debug.Log("No weapon equipped");
-                // the attack is sent through to the stat manager with no modifiers
-                return;
-            }
-
-            float damageAmount = statsManager.damageAmount;
-            float pushForce = statsManager.pushForce;
-
-            Damage dmg = new()
-            {
-                damageAmount = damageAmount,
-                origin = transform.position,
-                pushForce = pushForce
-            };
-
-            coll.SendMessage("ReceiveDamage", dmg);
-        }
     }
     public void TriggerChangeEquipment()
     {

@@ -32,9 +32,17 @@ public class Actor_Human : Actor
         humanCanAttack = FactionManager.instance.AttackableFactions()[2];
     }
 
-    protected override void Death()
+    protected override void FixedUpdate()
     {
-        dead = true;
+        base.FixedUpdate();
+        if (dead)
+        {
+            HumanDeath();
+        }
+    }
+
+    public void HumanDeath()
+    {
         GameManager.instance.GrantXp(xpValue);
         GameManager.instance.ShowFloatingText("+" + xpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
         Debug.Log("Dead body not implemented");

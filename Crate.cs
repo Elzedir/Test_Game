@@ -21,8 +21,19 @@ public class Crate : Actor
         boxBody = GetComponent<Rigidbody2D>();
         boxColl = GetComponent<BoxCollider2D>();
     }
-    protected override void Death()
+
+    protected override void FixedUpdate()
+    {
+        base.FixedUpdate();
+        if (dead)
+        {
+            CrateDeath();
+        }
+    }
+
+    public void CrateDeath()
     {
         Destroy(gameObject);
+        // Play death animation for crate.
     }
 }

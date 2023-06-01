@@ -31,10 +31,17 @@ public class Enemy_Monster : Actor
         enemyMonsterBody = GetComponent<Rigidbody2D>();
         enemyMonsterCanAttack = FactionManager.instance.AttackableFactions()[4];
     }
-    
-    protected override void Death()
+    protected override void FixedUpdate()
     {
-        dead = true;
+        base.FixedUpdate();
+        if (dead)
+        {
+            EnemyMonsterDeath();
+        }
+    }
+
+    public void EnemyMonsterDeath()
+    {
         GameManager.instance.GrantXp(xpValue);
         GameManager.instance.ShowFloatingText("+" + xpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
         Debug.Log("Dead body not implemented");

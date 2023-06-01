@@ -75,8 +75,6 @@ public class GameManager : MonoBehaviour
 
     protected virtual void Start()
     {
-        SetFactions();
-
         InitializeGameData();
     }
 
@@ -101,12 +99,14 @@ public class GameManager : MonoBehaviour
     //HUD Bar
     public void HUDBarChange()
     {
-        float healthRatio = (float)player.baseHitpoints / (float)player.maxHitpoint;
+        Manager_Stats playerStatManager = player.GetComponent<Manager_Stats>();
+
+        float healthRatio = (float)player.baseHealth / (float)playerStatManager.maxHealth;
         healthBar.localScale = new Vector3(1, healthRatio, 1);
-        // float manaRatio = (float)player.mana / (float)player.maxMana
-        // manahBar.localScale = new Vector3(1, manaRatio, 1)
-        // float staminaRatio = (float)player.stamina / (float)player.maxStamina
-        // staminaBar.localScale = new Vector3(1, staminaRatio, 1)
+        float manaRatio = (float)player.baseMana / (float)playerStatManager.maxMana;
+        manaBar.localScale = new Vector3(1, manaRatio, 1);
+        float staminaRatio = (float)player.baseStamina / (float)playerStatManager.maxStamina;
+        staminaBar.localScale = new Vector3(1, staminaRatio, 1);
     }
 
     // Inventory
@@ -195,20 +195,6 @@ public class GameManager : MonoBehaviour
         deathMenuAnimator.SetTrigger("Hide");
         UnityEngine.SceneManagement.SceneManager.LoadScene("Main");
         player.Respawn();
-    }
-
-    // Factions
-    public void SetFactions()
-    {
-        LayerMask[] attackableFactions = FactionManager.instance.AttackableFactions();
-        {
-            LayerMask passiveCanAttack = attackableFactions[0];
-            LayerMask playerCanAttack = attackableFactions[1];
-            LayerMask humanCanAttack = attackableFactions[2];
-            LayerMask enemyHumanCanAttack = attackableFactions[3];
-            LayerMask enemyMonsterCanAttack = attackableFactions[4];
-            LayerMask destructable = attackableFactions[5];
-        }
     }
 
     // Utility
