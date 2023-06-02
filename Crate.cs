@@ -27,13 +27,14 @@ public class Crate : Actor
         base.FixedUpdate();
         if (dead)
         {
-            CrateDeath();
+            Death();
         }
     }
 
-    public void CrateDeath()
+    protected override void Death()
     {
         Destroy(gameObject);
+        OnActorDeath(gameObject);
         // Play death animation for crate.
     }
 }

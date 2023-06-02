@@ -29,9 +29,9 @@ public abstract class Actor : Hitbox
     public float triggerRadius = 3.0f;
 
     //States
+    public bool dead = false;
     protected bool alerted = false;
     protected bool attacking = false;
-    protected bool dead = false;
     protected bool jumping = false;
     protected bool berserk = false;
     private bool coroutineRunning = false;
@@ -68,9 +68,8 @@ public abstract class Actor : Hitbox
     public float basePhysicalDefence;
     public float baseMagicalDefence;
 
-    public List<GameObject> attackableTargets = new List<GameObject>();
-    // Need to put in a way to remove from attackable targets.
     public List<GameObject> NPCs = new List<GameObject>();
+    public List<GameObject> attackableTargets = new List<GameObject>();
     private Collider2D[] overlapResults = new Collider2D[50];
 
     protected override void Start()
@@ -185,24 +184,47 @@ public abstract class Actor : Hitbox
 
         foreach (GameObject target in attackableTargets)
         {
-            float targetDistance = Vector3.Distance(transform.position, target.transform.position);
-
-            if (targetDistance < maxTargetDistance)
+            
+            if (target != null)
             {
-                maxTargetDistance = targetDistance;
-                closestEnemy = target;
+                Debug.Log(target);
+                float targetDistance = Vector3.Distance(transform.position, target.transform.position);
+
+                if (targetDistance < maxTargetDistance)
+                {
+                    maxTargetDistance = targetDistance;
+                    closestEnemy = target;
+                }
             }
         }
 
         foreach (GameObject target in NPCs)
         {
-            float targetDistance = Vector3.Distance(transform.position, target.transform.position);
-
-            if (targetDistance < maxTargetDistance)
+            if (target != null)
             {
-                maxTargetDistance = targetDistance;
-                closestNPC = target;
-            }
+                float targetDistance = Vector3.Distance(transform.position, target.transform.position);
+
+                if (targetDistance < maxTargetDistance)
+                {
+                    maxTargetDistance = targetDistance;
+                    closestNPC = target;
+                }
+            }                
+        }
+    }
+    public void OnActorDeath(GameObject actor)
+    {
+        Debug.Log("OnActorDeath called");
+        
+        if (attackableTargets.Contains(actor))
+        {
+            Debug.Log(actor + " died");
+            attackableTargets.Remove(actor);
+        }
+
+        if (NPCs.Contains(actor))
+        {
+            NPCs.Remove(actor);
         }
     }
     public virtual void Chase()
@@ -437,9 +459,13 @@ public abstract class Actor : Hitbox
             AbilityManager.instance.Charge(closestEnemy, self);
         }
     }
-    public virtual void Death()
+    protected virtual void Death()
     {
-        dead = true;
+        OnActorDeath(gameObject);
+        Destroy(gameObject);
+        GameManager.instance.GrantXp(xpValue);
+        GameManager.instance.ShowFloatingText("+" + xpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
+        Debug.Log("Dead body not implemented");
     }
     public void LayerCount()
     {

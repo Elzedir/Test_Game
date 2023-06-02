@@ -52,7 +52,7 @@ public class Player : Actor
 
         if (dead)
         {
-            PlayerDeath();
+            Death();
         }
     }
     public void SwapSprite(int skinID)
@@ -85,10 +85,8 @@ public class Player : Actor
         dead = false;
         pushDirection = Vector3.zero;
     }
-    public void PlayerDeath()
+    protected override void Death()
     {
-        dead = true;
-
         foreach (Transform child in transform)
         {
             Player playerChild = child.GetComponent<Player>();

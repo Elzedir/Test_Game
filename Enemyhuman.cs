@@ -37,15 +37,14 @@ public class Enemyhuman : Actor
         base.FixedUpdate();
         if (dead)
         {
-            EnemyHumanDeath();
+            Death();
         }
     }
 
-    public void EnemyHumanDeath()
+    protected override void Death()
     {
-        GameManager.instance.GrantXp(xpValue);
-        GameManager.instance.ShowFloatingText("+" + xpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
-        Debug.Log("Dead body not implemented");
+        base.Death();
+        // Replace dead body here
     }
 
     protected override void OnCollide(Collider2D coll)
