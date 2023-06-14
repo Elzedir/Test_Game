@@ -90,6 +90,11 @@ public abstract class Actor : Hitbox
         TargetCheck();
         PlayerMove();
 
+        if (move.magnitude <= 0.01f)
+        {
+            SetMovementSpeed(0f);
+        }
+
         if (closestEnemy != null)
         {
             if (GetComponent<Player>() == null)
@@ -123,11 +128,13 @@ public abstract class Actor : Hitbox
             if (hit.collider == null)
             {
                 transform.Translate(0, move.y * Time.deltaTime, 0);
+                SetMovementSpeed(move.magnitude);
             }
             hit = Physics2D.BoxCast(transform.position, ActorColl.bounds.size, 0, new Vector2(move.x, 0), Mathf.Abs(move.x * Time.deltaTime), LayerMask.GetMask("Blocking"));
             if (hit.collider == null)
             {
                 transform.Translate(move.x * Time.deltaTime, 0, 0);
+                SetMovementSpeed(move.magnitude);
             }
         }
     }
@@ -147,7 +154,6 @@ public abstract class Actor : Hitbox
             }
         }
     }
-
     public virtual void TargetCheck()
     {
         float maxTargetDistance = float.MaxValue;
@@ -187,7 +193,6 @@ public abstract class Actor : Hitbox
             
             if (target != null)
             {
-                Debug.Log(target);
                 float targetDistance = Vector3.Distance(transform.position, target.transform.position);
 
                 if (targetDistance < maxTargetDistance)
@@ -257,14 +262,14 @@ public abstract class Actor : Hitbox
 
                     if (!withinAttackRange)
                     {
-                        IsMoving(true);
                         Move((closestEnemy.transform.position - transform.position).normalized);
                     }
                     else
                     {
+                        SetMovementSpeed(0f);
+
                         if (!attacking)
                         {
-                            IsMoving(false);
                             NPCAttack(closestEnemy); // change this to be a different target when we have more
                         }
                     }
@@ -281,13 +286,13 @@ public abstract class Actor : Hitbox
             }
         }
     }
-    public void IsMoving(bool isMoving)
+    public void SetMovementSpeed(float speed)
     {
-        Animator animator = actor.GetComponent<Animator>();
+        Animator animator = GetComponent<Animator>();
 
         if (animator != null)
         {
-            animator.SetBool("IsMoving", isMoving);
+            animator.SetFloat("Speed", speed);
         }
     }
     public void ReturnToStartPosition()
@@ -301,7 +306,7 @@ public abstract class Actor : Hitbox
         else
         {
             transform.position = startingPosition;
-            IsMoving(false);
+            SetMovementSpeed((startingPosition - transform.position).magnitude);
         }
     }
     public float GetAttackRange()

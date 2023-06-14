@@ -135,38 +135,33 @@ public class Dialogue_Window : MonoBehaviour
 
     public void UpdateChoicesUI(DialogueLine currentLine)
     {
-        if (currentLine == null)
-        {
-            Debug.Log("No choices available");
-            return;
-        }
-
         foreach (Transform child in choiceArea)
         {
             Destroy(child.gameObject);
         }
 
-        if (currentLine.choices != null && currentLine.choices.Length > 0)
+        if (currentLine.dialogueChoices != null && currentLine.dialogueChoices.Length > 0)
         {
-            CreateChoiceButtons(currentLine.choices.Length);
+            CreateChoiceButtons(currentLine.dialogueChoices.Length);
 
             int i = 0;
 
             foreach (Transform child in choiceArea)
             {
-                if (i < currentLine.choices.Length)
+                if (i < currentLine.dialogueChoices.Length)
                 {
                     Button choiceButton = child.GetComponent<Button>();
                     TextMeshProUGUI buttonText = choiceButton.GetComponentInChildren<TextMeshProUGUI>();
 
                     if (choiceButton != null && buttonText != null)
                     {
-                        DialogueChoice choice = currentLine.choices[i];
+                        DialogueChoice choice = currentLine.dialogueChoices[i];
 
                         buttonText.text = choice.choiceText;
+                        choiceButton.onClick.RemoveAllListeners();
                         choiceButton.onClick.AddListener(() =>
                         {
-                            Dialogue_Manager.instance.StartDialogue(interactedCharacter, choice.nextDialogue);
+                            Dialogue_Manager.instance.OpenDialogue(interactedCharacter, choice.nextDialogue);
                         });
                         i++;
                     }

@@ -116,7 +116,7 @@ public class Manager_Input : MonoBehaviour
 
                 if (interactedActor != null)
                 {
-                    Dialogue_Manager.instance.StartDialogue(interactedActor.gameObject, interactedActor.dialogue);
+                    Dialogue_Manager.instance.OpenDialogue(interactedActor.gameObject, interactedActor.dialogue);
                 }
                 else
                 {
