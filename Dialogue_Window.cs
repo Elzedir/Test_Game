@@ -27,23 +27,23 @@ public class Dialogue_Window : MonoBehaviour
         transform.localScale = Vector3.zero;
     }
 
-    public void OpenDialogueWindow(GameObject interactedObject, string text)
+    public IEnumerator OpenDialogueWindow(GameObject interactedObject, string text)
     {
         isOpen = true;
         interactedCharacter = interactedObject;
         transform.localScale = Vector3.one;
 
-        UpdateInteractedObject(text);
+        yield return StartCoroutine(UpdateInteractedObject(text));
         UpdatePlayerObject();
     }
 
-    public void UpdateInteractedObject(string text)
+    public IEnumerator UpdateInteractedObject(string text)
     {
         UpdateInteractedObjectImage();
         UpdateInteractedObjectName();
 
         Dialogue_Text_Interacted interactedTextScript = interactedText.GetComponent<Dialogue_Text_Interacted>();
-        interactedTextScript.UpdateDialogue(text);
+        yield return StartCoroutine(interactedTextScript.UpdateDialogue(text));
     }
 
     public void UpdateInteractedObjectImage()
@@ -156,13 +156,9 @@ public class Dialogue_Window : MonoBehaviour
                     if (choiceButton != null && buttonText != null)
                     {
                         DialogueChoice choice = currentLine.dialogueChoices[i];
-
                         buttonText.text = choice.choiceText;
-                        choiceButton.onClick.RemoveAllListeners();
-                        choiceButton.onClick.AddListener(() =>
-                        {
-                            Dialogue_Manager.instance.OpenDialogue(interactedCharacter, choice.nextDialogue);
-                        });
+                        choiceButton.onClick.AddListener(() => Dialogue_Manager.instance.OpenDialogue(interactedCharacter, choice.nextDialogue));
+
                         i++;
                     }
                 }
@@ -176,7 +172,6 @@ public class Dialogue_Window : MonoBehaviour
 
     public void EndConversation()
     {
-        Dialogue_Manager.instance.currentState.EndDialogue();
         CloseDialogueWindow();
     }
 
@@ -184,5 +179,6 @@ public class Dialogue_Window : MonoBehaviour
     {
         isOpen = false;
         transform.localScale = Vector3.zero;
+        Dialogue_Manager.instance.StopDialogue();
     }
 }

@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,6 +11,9 @@ public class Dialogue_Manager : MonoBehaviour
     public Dialogue_Window dialogueWindow;
     public GameObject interactedChar;
     public bool optionSelected = false;
+    private Coroutine dialogueCoroutine;
+    private Dialogue_Data_SO currentDialogueData;
+    private int currentDialogueLine;
 
     public void Start()
     {
@@ -17,8 +22,14 @@ public class Dialogue_Manager : MonoBehaviour
 
     public void OpenDialogue(GameObject interactedCharacter, Dialogue_Data_SO dialogueData)
     {
+        if (interactedCharacter == null || dialogueData == null)
+        {
+            Debug.LogWarning("InteractedCharacter or DialogueData is null");
+            return;
+        }
+
         interactedChar = interactedCharacter;
-        StartCoroutine(DisplayDialogue(dialogueData));
+        dialogueCoroutine = StartCoroutine(DisplayDialogue(dialogueData));
     }
 
     public void OptionSelected(Dialogue_Data_SO dialogueChoice)
@@ -31,23 +42,32 @@ public class Dialogue_Manager : MonoBehaviour
     {
         yield return null;
 
-        foreach (DialogueLine dialogue in dialogueData.dialogueLines)
+        currentDialogueData = dialogueData;
+        currentDialogueLine = 0;
+
+        for (currentDialogueLine = 0; currentDialogueLine < dialogueData.dialogueLines.Length; currentDialogueLine++)
         {
-            UpdateDialogueUI(dialogue);
+            DialogueLine dialogue = dialogueData.dialogueLines[currentDialogueLine];
+            yield return StartCoroutine(UpdateDialogueUI(dialogue));
+
+            while (!Dialogue_Window.instance.interactedText.GetComponent<Dialogue_Text_Interacted>().IsFinishedTyping())
+            {
+                yield return null;
+            }
+
+            Dialogue_Window.instance.interactedText.GetComponent<Dialogue_Text_Interacted>().ResetFinishedTyping();
 
             if (dialogue.displayTime != 0)
             {
+                if (Input.GetKey(KeyCode.Return))
+                {
+                    NextDialogueLine();
+                }
+
                 yield return new WaitForSeconds(dialogue.displayTime);
             }
             else
             {
-                Dialogue_Data_SO nextDialogue = ChooseResponse();
-
-                if (nextDialogue != null)
-                {
-                    OpenDialogue(interactedChar, nextDialogue);
-                }
-
                 while (!optionSelected)
                 {
                     yield return null;
@@ -62,19 +82,28 @@ public class Dialogue_Manager : MonoBehaviour
         }
     }
 
-    public void UpdateDialogueUI(DialogueLine dialogueLine)
+    IEnumerator UpdateDialogueUI(DialogueLine dialogueLine)
     {
-        dialogueWindow.OpenDialogueWindow(interactedChar, dialogueLine.line);
         Dialogue_Window.instance.UpdateChoicesUI(dialogueLine);
-
-        //currentState.EndDialogue();
-        //dialogueWindow.CloseDialogueWindow();
+        yield return StartCoroutine(dialogueWindow.OpenDialogueWindow(interactedChar, dialogueLine.line));
     }
 
-    public Dialogue_Data_SO ChooseResponse()
+    public void NextDialogueLine()
     {
-        Dialogue_Data_SO choice = null; // Get the dialogue data from the choice.
+        Debug.Log("Next dialogue Line Called");
+        if (currentDialogueLine < currentDialogueData.dialogueLines.Length)
+        {
+            StopCoroutine(dialogueCoroutine);
+            dialogueCoroutine = StartCoroutine(DisplayDialogue(currentDialogueData));
+        }
+    }
 
-        return choice;
+    public void StopDialogue()
+    {
+        if (dialogueCoroutine != null)
+        {
+            StopCoroutine(dialogueCoroutine);
+            dialogueCoroutine = null;
+        }
     }
 }
