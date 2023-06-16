@@ -32,7 +32,7 @@ public class Journal_Window : MonoBehaviour
         transform.localScale = Vector3.one;
         isOpen = true;
         SetJournalWindowName(player.name);
-
+        questDescription.text = "";
         foreach (Transform quest in questListArea)
         {
             Destroy(quest.gameObject);

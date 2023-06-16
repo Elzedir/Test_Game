@@ -13,8 +13,10 @@ public class Journal_Data_SO : ScriptableObject
 
     [Header("Quest")]
     public int questID;
-    public QuestStage questStage;    
+    public QuestStage questStage;
+    [TextArea(1, 10)]
     public string questTitle;
+    [TextArea(1, 10)]
     public string questDescription;
     public QuestHints[] questHints;
     public QuestChoice[] questChoices;

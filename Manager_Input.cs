@@ -13,12 +13,12 @@ using static UnityEditor.Progress;
 public class Manager_Input : MonoBehaviour
 {
     public static Manager_Input instance;
-    public static GameObject openWindow;
     private Menu_RightClick menuRightClickScript;
 
     public Player player;
     public GameObject interactedCharacter;
 
+    public GameObject HUD;
     public Inventory_Window inventoryWindow;
     public Inventory_Creator inventorySlotCreator;
     public Equipment_Window equipmentWindow;
@@ -29,8 +29,6 @@ public class Manager_Input : MonoBehaviour
 
     private bool escCodeExecuted = false;
     private const float escapeHoldTime = 1.5f;
-
-    public List<GameObject> openUIWindows = new List<GameObject>();
 
     private void Awake()
     {
@@ -67,13 +65,25 @@ public class Manager_Input : MonoBehaviour
             {
                 bool canExecute = KeyHeld(KeyCode.Escape, escapeHoldTime);
 
+                List<GameObject> openUIWindows = new();
+                
+                foreach (Transform child in HUD.transform)
+                {
+                    if (child.gameObject.activeSelf)
+                    {
+                        openUIWindows.Add(child.gameObject);
+                    }
+                }
+
                 if (canExecute)
-                { 
+                {
                     if (openUIWindows.Count > 0)
                     {
                         for (int i = 0; i < openUIWindows.Count; i++)
                         {
-                            CloseLastUIWindow();
+                            GameObject lastOpenWindow = openUIWindows.LastOrDefault();
+                            SetWindowToBack(lastOpenWindow);
+                            CloseUIWindow(lastOpenWindow);
                         }
                     }
 
@@ -88,9 +98,11 @@ public class Manager_Input : MonoBehaviour
                     {
                         escCodeExecuted = true;
 
-                        if (openWindow != null)
+                        if (openUIWindows.Count > 0)
                         {
-                            CloseLastUIWindow();
+                            GameObject lastOpenWindow = openUIWindows.LastOrDefault();
+                            SetWindowToBack(lastOpenWindow);
+                            CloseUIWindow(lastOpenWindow);
                         }
                     }
                 }
@@ -134,15 +146,21 @@ public class Manager_Input : MonoBehaviour
 
                 if (!journalWindow.isOpen)
                 {
-                    openUIWindows.Add(journalWindow.gameObject);
-                    openWindow = journalWindow.gameObject;
                     journalWindow.OpenJournalWindow(self);
                     SetWindowToFront(journalWindow.gameObject);
                 }
                 else
                 {
-                    openWindow = journalWindow.gameObject;
-                    SetWindowToFront(journalWindow.gameObject);
+                    int childCount = journalWindow.transform.parent.childCount;
+
+                    if (journalWindow.transform.GetSiblingIndex() == childCount - 1)
+                    {
+                        CloseUIWindow(journalWindow.gameObject);
+                    }
+                    else
+                    {
+                        SetWindowToFront(journalWindow.gameObject);
+                    }
                 }
             }
         }
@@ -160,8 +178,6 @@ public class Manager_Input : MonoBehaviour
             }
 
             inventoryWindow.transform.localScale = Vector3.one;
-            openUIWindows.Add(inventoryWindow.gameObject);
-            openWindow = inventoryWindow.gameObject;
             inventoryManager.isOpen = true;
             SetWindowToFront(inventoryWindow.gameObject);
 
@@ -183,18 +199,26 @@ public class Manager_Input : MonoBehaviour
                 Debug.Log("Slot creator doesn't exist");
             }
         }
-
         else
         {
-            openWindow = inventoryWindow.gameObject;
-            SetWindowToFront(inventoryWindow.gameObject);
+            int childCount = inventoryWindow.transform.parent.childCount;
+
+            if (inventoryWindow.transform.GetSiblingIndex() == childCount - 1)
+            {
+                CloseUIWindow(inventoryWindow.gameObject);
+            }
+            else
+            {
+                SetWindowToFront(inventoryWindow.gameObject);
+            }
         }
     }
-    public void CloseLastUIWindow()
+    public void CloseUIWindow(GameObject window)
     {
-        GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
+        // Need to put in a way to see other inventories, not just the player
+        GameObject interactedObject = player.gameObject;
 
-        if (openWindow == inventoryWindow.gameObject)
+        if (window == inventoryWindow.gameObject)
         {
             Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
             Inventory_Slot[] inventorySlots = inventorySlotCreator.GetComponentsInChildren<Inventory_Slot>();
@@ -206,29 +230,15 @@ public class Manager_Input : MonoBehaviour
 
             inventoryWindow.transform.localScale = Vector3.zero;
             inventoryManager.isOpen = false;
-            openUIWindows.Remove(inventoryWindow.gameObject);
-
-            if (openUIWindows.LastOrDefault() != null)
-            {
-                openWindow = openUIWindows.LastOrDefault();
-            }
         }
-        if (openWindow == journalWindow.gameObject)
+        else if (window == journalWindow.gameObject)
         {
-            openUIWindows.Remove(journalWindow.gameObject);
             journalWindow.CloseJournalWindow();
-
-            if (openUIWindows.LastOrDefault() != null)
-            {
-                openWindow = openUIWindows.LastOrDefault();
-            }
         }
         else
         {
-            Debug.Log("No window currently open");
+            Debug.Log($"No close function for {window}");
         }
-
-        // else if character window is open, destroy it
     }
     public bool OnItemPickup(int slotIndex)
     {
@@ -336,7 +346,7 @@ public class Manager_Input : MonoBehaviour
                         Manager_Stats statManager = player.GetComponent<Manager_Stats>();
                         statManager.UpdateStats();
 
-                        CloseLastUIWindow();
+                        CloseUIWindow(inventoryWindow.gameObject);
                         OpenInventory(playerObject);
                         playerEquipmentManager.UpdateSprite();
                     }
@@ -398,9 +408,12 @@ public class Manager_Input : MonoBehaviour
 
         return canExecute;
     }
-
     public void SetWindowToFront(GameObject window)
     {
         window.transform.SetAsLastSibling();
+    }
+    public void SetWindowToBack(GameObject window)
+    {
+        window.transform.SetAsFirstSibling();
     }
 }

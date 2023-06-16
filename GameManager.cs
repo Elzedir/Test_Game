@@ -22,9 +22,6 @@ public class GameManager : MonoBehaviour
     public int gold;
     public int totalExperience;
 
-
-    public GameObject hud;
-    public GameObject menu;
     public GameObject eventSystemContainer;
     public GameObject factionManager;
     public GameObject inventoryManager;
@@ -50,7 +47,6 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             DontDestroyOnLoad(player);
             DontDestroyOnLoad(floatingTextManager);
-            DontDestroyOnLoad(menu);
             DontDestroyOnLoad(eventSystemContainer);
             DontDestroyOnLoad(factionManager);
             DontDestroyOnLoad(uiManager);
@@ -61,7 +57,6 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             Destroy(player.gameObject);
             Destroy(floatingTextManager.gameObject);
-            Destroy(menu.gameObject);
             Destroy(eventSystemContainer.gameObject);
             Destroy(factionManager.gameObject);
             Destroy (uiManager.gameObject);
