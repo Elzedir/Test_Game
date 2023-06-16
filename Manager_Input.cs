@@ -19,19 +19,16 @@ public class Manager_Input : MonoBehaviour
     public Player player;
     public GameObject interactedCharacter;
 
-    private Dictionary<string, System.Action> keyListeners = new Dictionary<string, System.Action>();
-
     public Inventory_Window inventoryWindow;
     public Inventory_Creator inventorySlotCreator;
     public Equipment_Window equipmentWindow;
+    public Journal_Window journalWindow;
 
     private bool keyHeld = false;
     private float keyHoldStart = 0f;
 
     private bool escCodeExecuted = false;
     private const float escapeHoldTime = 1.5f;
-
-    public bool openUIWindow = false;
 
     public List<GameObject> openUIWindows = new List<GameObject>();
 
@@ -72,11 +69,11 @@ public class Manager_Input : MonoBehaviour
 
                 if (canExecute)
                 { 
-                    if (openUIWindow)
+                    if (openUIWindows.Count > 0)
                     {
-                        foreach (GameObject openUIWindow in openUIWindows)
+                        for (int i = 0; i < openUIWindows.Count; i++)
                         {
-                            CloseUIWindow(openUIWindow);
+                            CloseLastUIWindow();
                         }
                     }
 
@@ -91,11 +88,9 @@ public class Manager_Input : MonoBehaviour
                     {
                         escCodeExecuted = true;
 
-                        GameObject lastOpenUIWindow = openUIWindows.LastOrDefault();
-
-                        if (lastOpenUIWindow != null)
+                        if (openWindow != null)
                         {
-                            CloseUIWindow(lastOpenUIWindow);
+                            CloseLastUIWindow();
                         }
                     }
                 }
@@ -131,8 +126,28 @@ public class Manager_Input : MonoBehaviour
 
                 OpenInventory(self);
             }
+            if (Input.GetKeyDown(KeyCode.J))
+            {
+                Debug.Log("J pressed");
+
+                GameObject self = player.gameObject;
+
+                if (!journalWindow.isOpen)
+                {
+                    openUIWindows.Add(journalWindow.gameObject);
+                    openWindow = journalWindow.gameObject;
+                    journalWindow.OpenJournalWindow(self);
+                    SetWindowToFront(journalWindow.gameObject);
+                }
+                else
+                {
+                    openWindow = journalWindow.gameObject;
+                    SetWindowToFront(journalWindow.gameObject);
+                }
+            }
         }
     }
+
     public void OpenInventory(GameObject interactedObject)
     { 
         Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
@@ -146,9 +161,9 @@ public class Manager_Input : MonoBehaviour
 
             inventoryWindow.transform.localScale = Vector3.one;
             openUIWindows.Add(inventoryWindow.gameObject);
-            openUIWindow = true;
             openWindow = inventoryWindow.gameObject;
             inventoryManager.isOpen = true;
+            SetWindowToFront(inventoryWindow.gameObject);
 
             inventoryWindow.isOpen = true;
             inventoryWindow.SetInventoryWindowName(interactedObject.name);
@@ -171,14 +186,15 @@ public class Manager_Input : MonoBehaviour
 
         else
         {
-            Debug.Log(inventoryManager.name + "'s inventory is already open");
+            openWindow = inventoryWindow.gameObject;
+            SetWindowToFront(inventoryWindow.gameObject);
         }
     }
-    public void CloseUIWindow(GameObject lastOpenedUIWindow)
+    public void CloseLastUIWindow()
     {
         GameObject interactedObject = player.gameObject; // Need to put in a way to see other inventories, not just the player
 
-        if (lastOpenedUIWindow == inventoryWindow.gameObject)
+        if (openWindow == inventoryWindow.gameObject)
         {
             Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
             Inventory_Slot[] inventorySlots = inventorySlotCreator.GetComponentsInChildren<Inventory_Slot>();
@@ -189,9 +205,23 @@ public class Manager_Input : MonoBehaviour
             }
 
             inventoryWindow.transform.localScale = Vector3.zero;
-            openUIWindow = false;
             inventoryManager.isOpen = false;
             openUIWindows.Remove(inventoryWindow.gameObject);
+
+            if (openUIWindows.LastOrDefault() != null)
+            {
+                openWindow = openUIWindows.LastOrDefault();
+            }
+        }
+        if (openWindow == journalWindow.gameObject)
+        {
+            openUIWindows.Remove(journalWindow.gameObject);
+            journalWindow.CloseJournalWindow();
+
+            if (openUIWindows.LastOrDefault() != null)
+            {
+                openWindow = openUIWindows.LastOrDefault();
+            }
         }
         else
         {
@@ -306,7 +336,7 @@ public class Manager_Input : MonoBehaviour
                         Manager_Stats statManager = player.GetComponent<Manager_Stats>();
                         statManager.UpdateStats();
 
-                        CloseUIWindow(inventoryWindow.gameObject);
+                        CloseLastUIWindow();
                         OpenInventory(playerObject);
                         playerEquipmentManager.UpdateSprite();
                     }
@@ -367,5 +397,10 @@ public class Manager_Input : MonoBehaviour
         }
 
         return canExecute;
+    }
+
+    public void SetWindowToFront(GameObject window)
+    {
+        window.transform.SetAsLastSibling();
     }
 }

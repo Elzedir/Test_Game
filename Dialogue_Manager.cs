@@ -12,7 +12,6 @@ public class Dialogue_Manager : MonoBehaviour
     public GameObject interactedChar;
     public bool optionSelected = false;
     private Coroutine dialogueCoroutine;
-    private Dialogue_Data_SO currentDialogueData;
     private int currentDialogueLine;
 
     public void Start()
@@ -42,59 +41,56 @@ public class Dialogue_Manager : MonoBehaviour
     {
         yield return null;
 
-        currentDialogueData = dialogueData;
         currentDialogueLine = 0;
 
         for (currentDialogueLine = 0; currentDialogueLine < dialogueData.dialogueLines.Length; currentDialogueLine++)
         {
-            DialogueLine dialogue = dialogueData.dialogueLines[currentDialogueLine];
-            yield return StartCoroutine(UpdateDialogueUI(dialogue));
+            yield return StartCoroutine(HandleDialogueLine(dialogueData.dialogueLines[currentDialogueLine]));
+        }
+    }
 
-            while (!Dialogue_Window.instance.interactedText.GetComponent<Dialogue_Text_Interacted>().IsFinishedTyping())
+    IEnumerator HandleDialogueLine(DialogueLine dialogue)
+    {
+        Dialogue_Window.instance.UpdateChoicesUI(dialogue);
+        yield return StartCoroutine(dialogueWindow.OpenDialogueWindow(interactedChar, dialogue.line));
+
+        while (!Dialogue_Window.instance.interactedText.GetComponent<Dialogue_Text_Interacted>().IsFinishedTyping())
+        {
+            yield return null;
+        }
+
+        Dialogue_Window.instance.interactedText.GetComponent<Dialogue_Text_Interacted>().ResetFinishedTyping();
+
+        if (dialogue.displayTime != 0)
+        {
+            yield return StartCoroutine(WaitForDisplayTimeOrEnter(dialogue.displayTime));
+        }
+        else
+        {
+            while (!optionSelected)
             {
                 yield return null;
             }
 
-            Dialogue_Window.instance.interactedText.GetComponent<Dialogue_Text_Interacted>().ResetFinishedTyping();
-
-            if (dialogue.displayTime != 0)
+            if (optionSelected)
             {
-                if (Input.GetKey(KeyCode.Return))
-                {
-                    NextDialogueLine();
-                }
-
-                yield return new WaitForSeconds(dialogue.displayTime);
-            }
-            else
-            {
-                while (!optionSelected)
-                {
-                    yield return null;
-                }
-
-                if (optionSelected)
-                {
-                    optionSelected = false;
-                    break;
-                }
+                optionSelected = false;
             }
         }
     }
 
-    IEnumerator UpdateDialogueUI(DialogueLine dialogueLine)
+    IEnumerator WaitForDisplayTimeOrEnter(float displayTime)
     {
-        Dialogue_Window.instance.UpdateChoicesUI(dialogueLine);
-        yield return StartCoroutine(dialogueWindow.OpenDialogueWindow(interactedChar, dialogueLine.line));
-    }
+        float startTime = Time.time;
 
-    public void NextDialogueLine()
-    {
-        Debug.Log("Next dialogue Line Called");
-        if (currentDialogueLine < currentDialogueData.dialogueLines.Length)
+        while (Time.time - startTime < displayTime)
         {
-            StopCoroutine(dialogueCoroutine);
-            dialogueCoroutine = StartCoroutine(DisplayDialogue(currentDialogueData));
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                break;
+            }
+
+            yield return null;
         }
     }
 

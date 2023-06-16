@@ -189,7 +189,6 @@ public class Menu_RightClick : MonoBehaviour
 
         if (equipButton && pickupItemButton != null)
         {
-
             if (pickupItemButton.buttonPressed)
             {
                 PickupButtonPressed(pickupItemButton);

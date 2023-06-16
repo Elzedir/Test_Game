@@ -50,7 +50,6 @@ public class GameManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             DontDestroyOnLoad(player);
             DontDestroyOnLoad(floatingTextManager);
-            DontDestroyOnLoad(hud);
             DontDestroyOnLoad(menu);
             DontDestroyOnLoad(eventSystemContainer);
             DontDestroyOnLoad(factionManager);
@@ -62,7 +61,6 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             Destroy(player.gameObject);
             Destroy(floatingTextManager.gameObject);
-            Destroy(hud.gameObject);
             Destroy(menu.gameObject);
             Destroy(eventSystemContainer.gameObject);
             Destroy(factionManager.gameObject);
