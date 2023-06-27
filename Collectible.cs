@@ -6,7 +6,6 @@ using UnityEngine;
 public class Collectible : Hitbox
 {
     protected BoxCollider2D collectColl;
-    protected LayerMask passive;
     protected override BoxCollider2D Coll => collectColl;
     // Logic
     protected bool collected;
@@ -14,7 +13,6 @@ public class Collectible : Hitbox
     protected override void Start()
     {
         base.Start();
-        passive = FactionManager.instance.AttackableFactions()[0];
         collectColl = GetComponent<BoxCollider2D>();
     }
 

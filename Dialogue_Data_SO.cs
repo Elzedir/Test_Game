@@ -28,4 +28,6 @@ public class DialogueChoice
     [TextArea(1, 10)]
     public string choiceText;
     public Dialogue_Data_SO nextDialogue;
+    public Journal_Data_SO quest;
+    public QuestHints hint;
 }

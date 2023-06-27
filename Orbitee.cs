@@ -24,7 +24,6 @@ public class Orbitee : Actor
 
     protected override Rigidbody2D Rigidbody2D => Rigidbody2D;
     
-    protected override LayerMask CanAttack => orbitersCanAttack;
 
     protected override void Start()
     {
@@ -35,8 +34,6 @@ public class Orbitee : Actor
             float timeOffset = orbitOffsets[i] * (100f / orbitSpeeds[i]);
             orbiters[i].GetComponent<Orbiter>().startTime = Time.time + timeOffset;
         }
-        
-        orbitersCanAttack = 1 << gameObject.layer;
     }
     
     // put a while statement that the orbiters will only orbit when the player is within checklength range

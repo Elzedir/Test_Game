@@ -13,6 +13,7 @@ public class Dialogue_Manager : MonoBehaviour
     public bool optionSelected = false;
     private Coroutine dialogueCoroutine;
     private int currentDialogueLine;
+    private bool stopCurrentDialogue = false;
 
     public void Start()
     {
@@ -27,15 +28,28 @@ public class Dialogue_Manager : MonoBehaviour
             return;
         }
 
+        stopCurrentDialogue = false;
         interactedChar = interactedCharacter;
         dialogueCoroutine = StartCoroutine(DisplayDialogue(dialogueData));
     }
 
-    public void OptionSelected(Dialogue_Data_SO dialogueChoice)
+    public void OptionSelected(DialogueChoice dialogueChoice, Transform choiceArea)
     {
         optionSelected = true;
-        OpenDialogue(interactedChar, dialogueChoice);
+
+        foreach (Transform child in choiceArea)
+        {
+            Destroy(child.gameObject);
+        }
+
+        OpenDialogue(interactedChar, dialogueChoice.nextDialogue);
+
+        if (dialogueChoice.quest != null)
+        {
+            Journal_Manager.instance.StartQuest(dialogueChoice.quest);
+        }
     }
+
 
     IEnumerator DisplayDialogue(Dialogue_Data_SO dialogueData)
     {
@@ -46,12 +60,17 @@ public class Dialogue_Manager : MonoBehaviour
         for (currentDialogueLine = 0; currentDialogueLine < dialogueData.dialogueLines.Length; currentDialogueLine++)
         {
             yield return StartCoroutine(HandleDialogueLine(dialogueData.dialogueLines[currentDialogueLine]));
+            {
+                if (stopCurrentDialogue)
+                {
+                    break;
+                }
+            }
         }
     }
 
     IEnumerator HandleDialogueLine(DialogueLine dialogue)
     {
-        Dialogue_Window.instance.UpdateChoicesUI(dialogue);
         yield return StartCoroutine(dialogueWindow.OpenDialogueWindow(interactedChar, dialogue.line));
 
         while (!Dialogue_Window.instance.interactedText.GetComponent<Dialogue_Text_Interacted>().IsFinishedTyping())
@@ -60,6 +79,8 @@ public class Dialogue_Manager : MonoBehaviour
         }
 
         Dialogue_Window.instance.interactedText.GetComponent<Dialogue_Text_Interacted>().ResetFinishedTyping();
+
+        Dialogue_Window.instance.UpdateChoicesUI(dialogue);
 
         if (dialogue.displayTime != 0)
         {
@@ -100,6 +121,7 @@ public class Dialogue_Manager : MonoBehaviour
         {
             StopCoroutine(dialogueCoroutine);
             dialogueCoroutine = null;
+            stopCurrentDialogue = true;
         }
     }
 }

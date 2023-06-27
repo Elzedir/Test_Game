@@ -14,16 +14,26 @@ public class Journal_Data_SO : ScriptableObject
     [Header("Quest")]
     public int questID;
     public QuestStage questStage;
-    [TextArea(1, 10)]
     public string questTitle;
     [TextArea(1, 10)]
     public string questDescription;
+
+    public QuestObjectives[] questObjectives;
     public QuestHints[] questHints;
-    public QuestChoice[] questChoices;
+    public QuestOutcomes[] questOutcomes;
     public QuestReward[] questRewards;
 
     [Header("Follow-on Quest")]
     public Journal_Data_SO nextQuest;
+}
+
+[System.Serializable]
+
+public class QuestObjectives
+{
+    public string objectiveName;
+    [TextArea(1, 10)]
+    public string objectiveDescription;
 }
 
 [System.Serializable]
@@ -36,11 +46,11 @@ public class QuestReward
 }
 
 [System.Serializable]
-public class QuestChoice
+public class QuestOutcomes
 {
     [TextArea(1, 10)]
-    public string choiceText;
-    public UnityEvent choiceOutcome;
+    public string outcomeText;
+    public UnityEvent questOutcome; // This will become a worldstate modifier.
 }
 
 [System.Serializable]

@@ -4,6 +4,7 @@ using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.Experimental;
+using static FactionManager;
 using static UnityEngine.GraphicsBuffer;
 
 [RequireComponent(typeof(Manager_Stats))]
@@ -20,10 +21,27 @@ public abstract class Actor : Hitbox
     public Inventory_Manager inventory;
 
     // Layers
-    protected abstract LayerMask CanAttack { get; }    
+    public FactionManager.Faction actorFaction;
+    protected LayerMask CanAttack
+    {
+        get
+        {
+            FactionManager factionManager = FactionManager.instance;
+
+            if (factionManager != null && factionManager.factionMasks.ContainsKey(actorFaction))
+            {
+                return factionManager.factionMasks[actorFaction];
+            }
+            else
+            {
+                return 0;
+            }
+        }
+    }
     protected GameObject closestEnemy = null;
     protected GameObject closestNPC = null;
     protected int layerCount = 0;
+    
 
     // Trigger Zone
     public float triggerRadius = 3.0f;

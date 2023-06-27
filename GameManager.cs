@@ -45,7 +45,6 @@ public class GameManager : MonoBehaviour
             SceneManager.sceneLoaded += LoadState;
             SceneManager.sceneLoaded += OnSceneLoad;
             DontDestroyOnLoad(gameObject);
-            DontDestroyOnLoad(player);
             DontDestroyOnLoad(floatingTextManager);
             DontDestroyOnLoad(eventSystemContainer);
             DontDestroyOnLoad(factionManager);
@@ -55,7 +54,6 @@ public class GameManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
-            Destroy(player.gameObject);
             Destroy(floatingTextManager.gameObject);
             Destroy(eventSystemContainer.gameObject);
             Destroy(factionManager.gameObject);

@@ -23,7 +23,6 @@ public class Player : Actor
 
     public GameObject playerWeapon;
     public Transform sheathedPosition;
-    protected override LayerMask CanAttack => playerCanAttack;
     protected override BoxCollider2D Coll => playerColl;
     protected override BoxCollider2D ActorColl => playerColl;
     protected override Rigidbody2D Rigidbody2D => playerBody;
@@ -44,7 +43,6 @@ public class Player : Actor
         playerColl = GetComponent<BoxCollider2D>();
         playerBody = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        playerCanAttack = FactionManager.instance.AttackableFactions()[1];
     }
     protected override void FixedUpdate()
     {

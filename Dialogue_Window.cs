@@ -157,7 +157,7 @@ public class Dialogue_Window : MonoBehaviour
                     {
                         DialogueChoice choice = currentLine.dialogueChoices[i];
                         buttonText.text = choice.choiceText;
-                        choiceButton.onClick.AddListener(() => Dialogue_Manager.instance.OpenDialogue(interactedCharacter, choice.nextDialogue));
+                        choiceButton.onClick.AddListener(() => Dialogue_Manager.instance.OptionSelected(choice, choiceArea));
 
                         i++;
                     }

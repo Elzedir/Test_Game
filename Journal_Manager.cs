@@ -22,6 +22,8 @@ public class Journal_Manager : MonoBehaviour
 
     public void StartQuest(Journal_Data_SO questToStart)
     {
+        Debug.Log(questToStart);
+
         if (!questList.Contains(questToStart))
         {
             questList.Add(questToStart);

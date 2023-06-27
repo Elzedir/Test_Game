@@ -16,7 +16,6 @@ public class Enemy_Monster : Actor
     private Animator anim;
 
     // Overrides
-    protected override LayerMask CanAttack => enemyMonsterCanAttack;
     protected override BoxCollider2D ActorColl => enemyMonsterSize;
     protected override BoxCollider2D Coll => enemyMonsterSize;
     protected override Rigidbody2D Rigidbody2D => enemyMonsterBody;
@@ -29,7 +28,6 @@ public class Enemy_Monster : Actor
         enemyMonsterSize = GetComponent<BoxCollider2D>();
         enemyMonsterSprite = GetComponent<SpriteRenderer>();
         enemyMonsterBody = GetComponent<Rigidbody2D>();
-        enemyMonsterCanAttack = FactionManager.instance.AttackableFactions()[4];
     }
     protected override void FixedUpdate()
     {

@@ -6,6 +6,18 @@ public class FactionManager : MonoBehaviour
 {
     public static FactionManager instance;
 
+    public enum Faction
+    {
+        Passive,
+        Player,
+        Human,
+        EnemyHuman,
+        EnemyMonster,
+        Destructable
+    }
+
+    public Dictionary<Faction, LayerMask> factionMasks = new();
+
     public LayerMask passive;
     public LayerMask playerCanAttack;
     public LayerMask humanCanAttack;
@@ -25,34 +37,32 @@ public class FactionManager : MonoBehaviour
         }
 
         SetFactions();
-        AttackableFactionList();
-    }
-
-    public LayerMask[] AttackableFactions()
-    {
-        return new LayerMask[] {passive, playerCanAttack, humanCanAttack, enemyHumanCanAttack, enemyMonsterCanAttack, destructable};
     }
 
     public void SetFactions()
     {
-        passive = 0;
-        playerCanAttack = LayerMask.GetMask("Enemy Human", "Enemy Monster");
-        humanCanAttack = LayerMask.GetMask("Enemy Human", "Enemy Monster");
-        enemyHumanCanAttack = LayerMask.GetMask("Player", "Human", "Enemy Monster");
-        enemyMonsterCanAttack = LayerMask.GetMask("Player", "Human", "Enemy Human");
-        destructable = 0;
+        factionMasks[Faction.Passive] = 0;
+        factionMasks[Faction.Player] = LayerMask.GetMask("Enemy Human", "Enemy Monster");
+        factionMasks[Faction.Human] = LayerMask.GetMask("Enemy Human", "Enemy Monster");
+        factionMasks[Faction.EnemyHuman] = LayerMask.GetMask("Player", "Human", "Enemy Monster");
+        factionMasks[Faction.EnemyMonster] = LayerMask.GetMask("Player", "Human", "Enemy Human");
+        factionMasks[Faction.Destructable] = 0;
     }
 
-    public void AttackableFactionList()
+    private LayerMask GetLayerMask(string[] layers)
     {
-        LayerMask[] attackableFactions = AttackableFactions();
+        LayerMask mask = LayerMask.GetMask(layers);
+
+        if (mask.value == 0)
         {
-            LayerMask passiveCanAttack = attackableFactions[0];
-            LayerMask playerCanAttack = attackableFactions[1];
-            LayerMask humanCanAttack = attackableFactions[2];
-            LayerMask enemyHumanCanAttack = attackableFactions[3];
-            LayerMask enemyMonsterCanAttack = attackableFactions[4];
-            LayerMask destructable = attackableFactions[5];
+            Debug.LogError($"No LayerMask found for layers {string.Join(", ", layers)}");
         }
+
+        return mask;
+    }
+
+    public Dictionary<Faction, LayerMask> AttackableFactionList()
+    {
+        return new Dictionary<Faction, LayerMask>(factionMasks);
     }
 }

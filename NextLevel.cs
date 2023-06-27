@@ -3,7 +3,6 @@ using UnityEngine;
 public class NextLevel : Hitbox
 {
     public string[] sceneNames;
-    private LayerMask passive;
     protected BoxCollider2D levelColl;
     protected override BoxCollider2D Coll => levelColl;
 
@@ -11,7 +10,6 @@ public class NextLevel : Hitbox
     {
         base.Start();
         levelColl = GetComponent<BoxCollider2D>();
-        passive = FactionManager.instance.AttackableFactions()[0];
     }
     protected override void OnCollide(Collider2D coll)
     {
