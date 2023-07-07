@@ -19,7 +19,7 @@ public class Button_Quest : MonoBehaviour
         Journal_Window journalWindow = GetComponentInParent<Journal_Window>();
         if (journalWindow != null)
         {
-            journalWindow.questDescription.text = questDescription.text;
+            journalWindow.journalInfo.text = questDescription.text;
         }
     }
 }

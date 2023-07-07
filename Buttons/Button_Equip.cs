@@ -1,14 +1,15 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Button_PickupItem : MonoBehaviour
+public class Button_Equip : MonoBehaviour
 {
     public bool buttonPressed = false;
 
-    public void OnButtonClick()
+    public void OnButtonPress()
     {
-        Debug.Log("Pickup Item Called");
+        Debug.Log($"Equip Item button pressed");
         buttonPressed = true;
     }
 }

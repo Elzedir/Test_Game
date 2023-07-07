@@ -25,7 +25,7 @@ public class ItemDragHandler : MonoBehaviour, IDragHandler, IBeginDragHandler, I
 
     public void OnDrag(PointerEventData eventData)
     {
-        rectTransform.anchoredPosition += eventData.delta / Manager_UI.instance.canvasUI.scaleFactor;
+        // rectTransform.anchoredPosition += eventData.delta / Manager_UI.instance.canvasUI.scaleFactor;
     }
 
     public void OnEndDrag(PointerEventData eventData)

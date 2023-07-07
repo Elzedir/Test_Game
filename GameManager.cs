@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -26,7 +27,6 @@ public class GameManager : MonoBehaviour
     public GameObject factionManager;
     public GameObject inventoryManager;
     public GameObject uiManager;
-    private static bool exists = false;
 
     public RectTransform healthBar;
     public RectTransform manaBar;
@@ -34,34 +34,13 @@ public class GameManager : MonoBehaviour
 
     public Animator deathMenuAnimator;
 
+    public int mostRecentAutoSave = 0;
+    public int leastRecentAutoSave = 4;
 
-    // Don't destroy on load
     private void Awake()
     {
-        if (!exists)
-        {
-            exists = true;
-            instance = this;
-            SceneManager.sceneLoaded += LoadState;
-            SceneManager.sceneLoaded += OnSceneLoad;
-            DontDestroyOnLoad(gameObject);
-            DontDestroyOnLoad(floatingTextManager);
-            DontDestroyOnLoad(eventSystemContainer);
-            DontDestroyOnLoad(factionManager);
-            DontDestroyOnLoad(uiManager);
-        }
-        
-        else
-        {
-            Destroy(gameObject);
-            Destroy(floatingTextManager.gameObject);
-            Destroy(eventSystemContainer.gameObject);
-            Destroy(factionManager.gameObject);
-            Destroy (uiManager.gameObject);
-            return;
-        }
-
-        // Manager_UI.instance.UpdateInventoryUI();
+        instance = this;
+        SceneManager.sceneLoaded += OnSceneLoad;
     }
 
     protected virtual void Start()
@@ -152,39 +131,31 @@ public class GameManager : MonoBehaviour
     {
         player.transform.position = GameObject.Find("spawn_player").transform.position;
     }
-    public void SaveState()
+    public void SaveState(int saveSlot)
     {
-        
-        string s = " ";
 
-        s += "0" + "|";
-        s += gold.ToString() + "|";
-        s += totalExperience.ToString() + "|";
-
-        PlayerPrefs.SetString("SaveState", s);
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        Save_Data saveData = new Save_Data(gold, totalExperience, currentSceneName);
+        Save_Manager.SaveGame(saveData, saveSlot);
     }
-    public void LoadState(Scene s, LoadSceneMode mode)
+    public void LoadState(int saveSlot)
     {
-        SceneManager.sceneLoaded -= LoadState;
-        
-        if (!PlayerPrefs.HasKey("SaveState"))
-            return;
+        Save_Data loadedData = Save_Manager.LoadGame(saveSlot);
 
-        string[] data = PlayerPrefs.GetString("SaveState").Split('|');
-
-        gold = int.Parse(data[1]);
-
-        totalExperience = int.Parse(data[2]);
-
-        if(playerLevel() !=1)
-        player.SetLevel(playerLevel());
+        if (loadedData != null)
+        {
+            gold = loadedData.score;
+            totalExperience = loadedData.level;
+            SceneManager.LoadScene(loadedData.levelName);
+            player.SetLevel(playerLevel());
+        }
     }
 
     // Death and respawn
     public void Respawn()
     {
         deathMenuAnimator.SetTrigger("Hide");
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Main");
+        SceneManager.LoadScene("Main");
         player.Respawn();
     }
 

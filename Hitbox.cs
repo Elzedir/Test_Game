@@ -26,7 +26,7 @@ public abstract class Hitbox : MonoBehaviour
     }
     protected virtual void CollideCheck()
     {
-        int numHits = Coll.OverlapCollider(Filter, hits);
+        int numHits = Coll.Overlap(Filter, hits);
 
         if (numHits == 0)
         {

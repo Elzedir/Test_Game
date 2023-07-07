@@ -11,8 +11,8 @@ public class Journal_Window : MonoBehaviour
     public TextMeshProUGUI nameText;
     public bool isOpen = false;
     public GameObject questButtonPrefab;
-    public Transform questListArea;
-    public TextMeshProUGUI questDescription;
+    public Transform journalListArea;
+    public TextMeshProUGUI journalInfo;
     public Journal_Manager journalManager;
 
     public void Start()
@@ -32,8 +32,8 @@ public class Journal_Window : MonoBehaviour
         transform.localScale = Vector3.one;
         isOpen = true;
         SetJournalWindowName(player.name);
-        questDescription.text = "";
-        foreach (Transform quest in questListArea)
+        journalInfo.text = "";
+        foreach (Transform quest in journalListArea)
         {
             Destroy(quest.gameObject);
         }
@@ -42,7 +42,7 @@ public class Journal_Window : MonoBehaviour
 
     public void CloseJournalWindow()
     {
-        foreach (Transform quest in questListArea)
+        foreach (Transform quest in journalListArea)
         {
             Destroy(quest.gameObject);
         }
@@ -62,7 +62,7 @@ public class Journal_Window : MonoBehaviour
 
         foreach (var quest in questList)
         {
-            GameObject questObject = Instantiate(questButtonPrefab, questListArea);
+            GameObject questObject = Instantiate(questButtonPrefab, journalListArea);
             Button_Quest questButton = questObject.GetComponent<Button_Quest>();
             Button button = questButton.GetComponent<Button>();
             questButton.LinkQuestToButton(quest);

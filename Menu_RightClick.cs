@@ -86,11 +86,13 @@ public class Menu_RightClick : MonoBehaviour
     public void RightClickMenuCheck()
     {
         RaycastHit2D hit = Physics2D.GetRayIntersection(Camera.main.ScreenPointToRay(Input.mousePosition));
-
+        
         if (hit.collider != null)
         {
+            Debug.Log(hit.collider);
+
             Transform hitTransform = hit.transform;
-            RectTransform hitRectTransform = FindObjectOfType<Inventory_Window>().transform as RectTransform;
+            RectTransform hitRectTransform = FindFirstObjectByType<Inventory_Window>().transform as RectTransform;
 
             if (RectTransformUtility.RectangleContainsScreenPoint(hitRectTransform.GetComponent<RectTransform>(), Input.mousePosition))
             {
@@ -114,7 +116,7 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void RightClickMenuInventory()
     {
-        Transform inventoryCreator = FindObjectOfType<Inventory_Creator>().transform;
+        Transform inventoryCreator = FindFirstObjectByType<Inventory_Creator>().transform;
 
         if (pressedInventorySlot == null)
         {

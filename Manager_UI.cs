@@ -7,8 +7,6 @@ using UnityEngine.UI;
 public class Manager_UI : MonoBehaviour
 {
     public static Manager_UI instance;
-    public GameObject inventoryPanel;
-    public Canvas canvasUI;
 
     private void Awake()
     {
@@ -37,6 +35,6 @@ public class Manager_UI : MonoBehaviour
 
     public void ToggleInventory()
     {
-        inventoryPanel.SetActive(!inventoryPanel.activeSelf);
+        // inventoryPanel.SetActive(!inventoryPanel.activeSelf);
     }
 }

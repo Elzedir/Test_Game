@@ -6,7 +6,7 @@ public class Button_Talk : MonoBehaviour
 {
     public bool buttonPressed = false;
 
-    public void OnTalkButtonPress()
+    public void OnButtonPress()
     {
         Debug.Log($"Talk Item button pressed");
         buttonPressed = true;

@@ -88,7 +88,6 @@ public abstract class Actor : Hitbox
 
     public List<GameObject> NPCs = new List<GameObject>();
     public List<GameObject> attackableTargets = new List<GameObject>();
-    private Collider2D[] overlapResults = new Collider2D[50];
 
     protected override void Start()
     {
@@ -339,11 +338,12 @@ public abstract class Actor : Hitbox
     {
         bool result = false;
         float attackRange = GetAttackRange();
-        int numResults = Physics2D.OverlapCircleNonAlloc(transform.position, attackRange, overlapResults, CanAttack);
+        Collider2D[] overlapResults = Physics2D.OverlapCircleAll(transform.position, attackRange);
 
-        for (int i = 0; i < numResults; i++)
+        for (int i = 0; i < overlapResults.Length; i++)
         {
             GameObject target = overlapResults[i].gameObject;
+
             if (target != null && attackableTargets.Contains(target))
             {
                 result = true;

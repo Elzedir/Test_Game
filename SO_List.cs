@@ -18,7 +18,7 @@ public class SO_List : MonoBehaviour
         {
             if (instance == null)
             {
-                instance = FindObjectOfType<SO_List>();
+                instance = FindFirstObjectByType<SO_List>();
 
                 if (instance == null)
                 {

@@ -15,7 +15,7 @@ public class Dialogue_Window : MonoBehaviour
 
     public Dialogue_Icon_Player playerIcon;
     public TextMeshProUGUI playerName;
-    public GameObject choiceButtonPrefab;
+    public GameObject playerDialogueOptionPrefab;
     public Transform choiceArea;
 
     public bool isOpen = false;
@@ -80,7 +80,7 @@ public class Dialogue_Window : MonoBehaviour
 
     public void UpdatePlayerObject()
     {
-        Player player = FindObjectOfType<Player>();
+        Player player = FindFirstObjectByType<Player>();
 
         if (player != null)
         {
@@ -128,7 +128,7 @@ public class Dialogue_Window : MonoBehaviour
     {
         for (int i = 0; i < numChoices; i++)
         {
-            GameObject buttonObject = Instantiate(choiceButtonPrefab, choiceArea);
+            GameObject buttonObject = Instantiate(playerDialogueOptionPrefab, choiceArea);
             Button choiceButton = buttonObject.GetComponent<Button>();
         }
     }

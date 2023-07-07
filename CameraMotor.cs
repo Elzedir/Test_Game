@@ -11,51 +11,58 @@ public class CameraMotor : MonoBehaviour
 
     private void Start()
     {
-        player = FindObjectOfType<Player>();
-        lookAt = player.transform;
+        player = FindFirstObjectByType<Player>();
+
+        if (player != null)
+        {
+            lookAt = player.transform;
+        }
     }
 
     private void LateUpdate()
     {
         
         // Need to replace this with an event or delegate which will change the camara focus on playerscript change.
-        Player player = FindObjectOfType<Player>();
+        Player player = FindFirstObjectByType<Player>();
         if (player != null)
         {
             lookAt = player.transform;
         }
 
-        Vector3 delta = Vector3.zero;
-
-        // This is to check if we're inside the bounds on the X axis.
-        float deltaX = lookAt.position.x - transform.position.x;
-        if(deltaX > boundX || deltaX < -boundX)
+        if (lookAt != null)
         {
-            if(transform.position.x < lookAt.position.x)
+            Vector3 delta = Vector3.zero;
+
+            // This is to check if we're inside the bounds on the X axis.
+            float deltaX = lookAt.position.x - transform.position.x;
+            if (deltaX > boundX || deltaX < -boundX)
             {
-                delta.x = deltaX - boundX;
+                if (transform.position.x < lookAt.position.x)
+                {
+                    delta.x = deltaX - boundX;
+                }
+                else
+                {
+                    delta.x = deltaX + boundX;
+                }
             }
-            else
+
+            // This is to check if we're inside the bounds on the Y axis.
+            float deltaY = lookAt.position.y - transform.position.y;
+            if (deltaY > boundY || deltaY < -boundY)
             {
-                delta.x = deltaX + boundX;
+                if (transform.position.y < lookAt.position.y)
+                {
+                    delta.y = deltaY - boundY;
+                }
+                else
+                {
+                    delta.y = deltaY + boundY;
+                }
             }
+
+            transform.position += new Vector3(delta.x, delta.y, 0);
+
         }
-
-        // This is to check if we're inside the bounds on the Y axis.
-        float deltaY = lookAt.position.y - transform.position.y;
-        if (deltaY > boundY || deltaY < -boundY)
-        {
-            if (transform.position.y < lookAt.position.y)
-            {
-                delta.y = deltaY - boundY;
-            }
-            else
-            {
-                delta.y = deltaY + boundY;
-            }
-        }
-
-        transform.position += new Vector3(delta.x, delta.y, 0);
-
     }
 }
