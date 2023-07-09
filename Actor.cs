@@ -48,6 +48,7 @@ public abstract class Actor : Hitbox
 
     //States
     public bool dead = false;
+    public bool hostile = true;
     protected bool alerted = false;
     protected bool attacking = false;
     protected bool jumping = false;
@@ -104,8 +105,12 @@ public abstract class Actor : Hitbox
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
-        TargetCheck();
-        PlayerMove();
+        
+        if (hostile)
+        {
+            TargetCheck();
+            PlayerMove();
+        }
 
         if (move.magnitude <= 0.01f)
         {
