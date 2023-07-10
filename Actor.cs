@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.UI;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.Experimental;
 using static FactionManager;
@@ -54,11 +55,16 @@ public abstract class Actor : Hitbox
     protected bool jumping = false;
     protected bool berserk = false;
     private bool coroutineRunning = false;
+    public bool isFlammable = true;
+    public bool onFire = false;
+    public bool inFire = false;
 
     // Movement
     protected Vector3 move;
-    public float ySpeed = 1.0f;
-    public float xSpeed = 1.0f;
+    public float baseYSpeed;
+    public float baseXSpeed;
+    public float currentYSpeed = 1.0f;
+    public float currentXSpeed = 1.0f;
     protected RaycastHit2D hit;
     protected abstract BoxCollider2D ActorColl { get; }
     protected override BoxCollider2D Coll => ActorColl;
@@ -105,11 +111,12 @@ public abstract class Actor : Hitbox
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
-        
+
+        PlayerMove();
+
         if (hostile)
         {
             TargetCheck();
-            PlayerMove();
         }
 
         if (move.magnitude <= 0.01f)
@@ -139,7 +146,7 @@ public abstract class Actor : Hitbox
     {
         if (!dead && !jumping && !attacking)
         {
-            move = new Vector3(input.x * xSpeed, input.y * ySpeed, 0);
+            move = new Vector3(input.x * currentXSpeed, input.y * currentYSpeed, 0);
             transform.localScale = new Vector3(originalSize.z * Mathf.Sign(move.x), originalSize.y, originalSize.z);
 
             move += pushDirection;
@@ -477,7 +484,6 @@ public abstract class Actor : Hitbox
     }
     public void ReceiveDamage(Damage damage)
     {
-        Debug.Log("Actor receive damage called");
         statManager.ReceiveDamage(damage);
     }
     public void AbilityUse(Rigidbody2D self)
@@ -520,5 +526,12 @@ public abstract class Actor : Hitbox
     public LayerMask GetLayer()
     {
         return CanAttack;
+    }
+    public void StatusCheck()
+    {
+        if (inFire)
+        {
+            // change movement speed to reduce to 10%.
+        }
     }
 }

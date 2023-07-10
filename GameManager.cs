@@ -71,12 +71,12 @@ public class GameManager : MonoBehaviour
     {
         Manager_Stats playerStatManager = player.GetComponent<Manager_Stats>();
 
-        float healthRatio = (float)player.baseHealth / (float)playerStatManager.maxHealth;
-        healthBar.localScale = new Vector3(1, healthRatio, 1);
-        float manaRatio = (float)player.baseMana / (float)playerStatManager.maxMana;
-        manaBar.localScale = new Vector3(1, manaRatio, 1);
-        float staminaRatio = (float)player.baseStamina / (float)playerStatManager.maxStamina;
-        staminaBar.localScale = new Vector3(1, staminaRatio, 1);
+        float healthRatio = (float)playerStatManager.currentHealth / (float)playerStatManager.maxHealth;
+        healthBar.localScale = new Vector3(healthRatio, 1, 1);
+        float manaRatio = (float)playerStatManager.currentMana / (float)playerStatManager.maxMana;
+        manaBar.localScale = new Vector3(manaRatio, 1 , 1);
+        float staminaRatio = (float)playerStatManager.currentStamina / (float)playerStatManager.maxStamina;
+        staminaBar.localScale = new Vector3(staminaRatio, 1, 1);
     }
 
     // Inventory

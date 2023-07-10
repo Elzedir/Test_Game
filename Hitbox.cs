@@ -47,7 +47,7 @@ public abstract class Hitbox : MonoBehaviour
     }
     protected virtual void OnCollide(Collider2D coll)
     {
-        Debug.Log("Collision was not implemented for " + this.name);
+        
     }
 
 }

@@ -33,6 +33,23 @@ public class Manager_Stats : MonoBehaviour
         equipmentManager = GetComponent<Equipment_Manager>();
         actor = GetComponent<Actor>();
         UpdateStats();
+        InitialiseStats();
+    }
+
+    public void InitialiseStats()
+    {
+        if (currentHealth == 0)
+        {
+            currentHealth = maxHealth;
+        }
+        if (currentMana == 0)
+        {
+            currentMana = maxMana;
+        }
+        if (currentStamina == 0) 
+        { 
+            currentStamina = maxStamina;
+        }
     }
 
     public void UpdateStats()
@@ -116,7 +133,6 @@ public class Manager_Stats : MonoBehaviour
     }
     public void ReceiveDamage(Damage damage)
     {
-        Debug.Log("Receive damage called in Stat manager");
         float totalDefence = currentPhysicalDefence + currentMagicalDefence;
         float damageReduction = totalDefence / (totalDefence + 100);
         float finalDamage = damage.damageAmount * (1 - damageReduction);
