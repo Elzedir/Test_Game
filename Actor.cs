@@ -20,6 +20,7 @@ public abstract class Actor : Hitbox
     protected Manager_Stats statManager;
     public Equipment_Manager equipmentManager;
     public Inventory_Manager inventory;
+    public Transform VFX;
 
     // Layers
     public FactionManager.Faction actorFaction;
@@ -55,6 +56,9 @@ public abstract class Actor : Hitbox
     protected bool jumping = false;
     protected bool berserk = false;
     private bool coroutineRunning = false;
+
+    public GameObject onFirePrefab;
+    public GameObject onFireVFX;
     public bool isFlammable = true;
     public bool onFire = false;
     public bool inFire = false;
@@ -180,6 +184,7 @@ public abstract class Actor : Hitbox
             {
                 Move(new Vector3(x, y, 0));
                 transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
+                VFX.transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
             }
         }
     }
@@ -532,6 +537,20 @@ public abstract class Actor : Hitbox
         if (inFire)
         {
             // change movement speed to reduce to 10%.
+        }
+    }
+    public void AddOnFireVFX()
+    {
+        if (onFire)
+        {
+            onFireVFX = Instantiate(onFirePrefab, VFX);
+        }
+    }
+    public void RemoveOnFireVFX()
+    { 
+        if (!onFire)
+        {
+            Destroy(onFireVFX);
         }
     }
 }

@@ -84,7 +84,7 @@ public class Environment_Fire : MonoBehaviour
     {
         int tickCount = Mathf.RoundToInt(burnTime / tickTime);
 
-        // Set the play the burning shader graph.
+        target.AddOnFireVFX();
 
         for (int i = 0; i < tickCount; i++)
         {
@@ -102,6 +102,7 @@ public class Environment_Fire : MonoBehaviour
         else
         {
             target.onFire = false;
+            target.RemoveOnFireVFX();
         }
     }
 
