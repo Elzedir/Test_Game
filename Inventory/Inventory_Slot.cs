@@ -63,4 +63,9 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
             }
         }
     }
+
+    public void OnButtonClick()
+    {
+        Menu_RightClick.instance.RightClickMenuOpen();
+    }
 }

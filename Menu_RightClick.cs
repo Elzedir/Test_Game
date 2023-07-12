@@ -6,7 +6,7 @@ using Unity.VisualScripting;
 using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 
 public class Menu_RightClick : MonoBehaviour
 {
@@ -14,7 +14,6 @@ public class Menu_RightClick : MonoBehaviour
     public Manager_Input inputManager;
     public Menu_RightClick menuRightClickScript;
 
-    public Button pickupButton;
     public bool isOpen = false;
     private bool openingInventory = false;
     private bool openingActor = false;
@@ -30,17 +29,19 @@ public class Menu_RightClick : MonoBehaviour
     private const float RightClickMenuHoldTime = 0.5f;
     private bool menuCanOpen = false;
 
-    private void Start()
+    private void Awake()
     {
         if (instance == null)
         {
             instance = this;
         }
-        else if (instance != this)
+        else
         {
             Destroy(gameObject);
         }
-
+    }
+    private void Start()
+    {
         transform.localScale = Vector3.zero;
     }
     public void Update()
@@ -55,12 +56,9 @@ public class Menu_RightClick : MonoBehaviour
             menuCanOpen = MenuCanOpen();
         }
 
-        if (menuCanOpen)
+        if (menuCanOpen && !isOpen)
         {
-            if (!isOpen)
-            {
-                RightClickMenuOpen();
-            }
+            RightClickMenuOpen();
         }
 
         if (isOpen)
@@ -70,7 +68,6 @@ public class Menu_RightClick : MonoBehaviour
                 RightClickMenuClose();
                 return;
             }
-
             if (openingActor)
             {
                 RightClickActorMenuIsOpen();
@@ -89,21 +86,22 @@ public class Menu_RightClick : MonoBehaviour
         
         if (hit.collider != null)
         {
-            Debug.Log(hit.collider);
+            Debug.Log("Hit something: " + hit.collider.name);
 
             Transform hitTransform = hit.transform;
             RectTransform hitRectTransform = FindFirstObjectByType<Inventory_Window>().transform as RectTransform;
 
-            if (RectTransformUtility.RectangleContainsScreenPoint(hitRectTransform.GetComponent<RectTransform>(), Input.mousePosition))
+            bool isOverInventoryWindow = RectTransformUtility.RectangleContainsScreenPoint(hitRectTransform.GetComponent<RectTransform>(), Input.mousePosition)
+                || RectTransformUtility.RectangleContainsScreenPoint(hitRectTransform.GetComponentInChildren<RectTransform>(), Input.mousePosition);
+
+            if (isOverInventoryWindow)
             {
-                RightClickMenuInventory();
-            }
-            else if (RectTransformUtility.RectangleContainsScreenPoint(hitRectTransform.GetComponentInChildren<RectTransform>(), Input.mousePosition))
-            {
+                Debug.Log("Mouse is over the inventory window");
                 RightClickMenuInventory();
             }
             else if (hit.collider.gameObject.GetComponent<Actor>() != null)
             {
+                Debug.Log("Mouse is over an actor");
                 pressedActor = hitTransform.GetComponent<Actor>();
                 RightClickMenuActor();
             }
@@ -126,6 +124,7 @@ public class Menu_RightClick : MonoBehaviour
 
                 if (RectTransformUtility.RectangleContainsScreenPoint(inventorySlot.GetComponent<RectTransform>(), Input.mousePosition))
                 {
+                    Debug.Log("Inventory slot clicked: " + child.name);
                     rightMouseButtonHeld = true;
                     openingInventory = true;
                     rightMouseClickStart = 0f;

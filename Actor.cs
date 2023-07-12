@@ -13,14 +13,14 @@ using static UnityEngine.GraphicsBuffer;
 public abstract class Actor : Hitbox
 {
     // General
-    private GameObject self;
-    private Actor actor;
+    private GameObject selfGameObject;
+    private Actor selfActor;
     private AbilityManager abilityManager;
     public Dialogue_Data_SO dialogue;
     protected Manager_Stats statManager;
     public Equipment_Manager equipmentManager;
     public Inventory_Manager inventory;
-    public Transform VFX;
+    public Transform VFXArea;
 
     // Layers
     public FactionManager.Faction actorFaction;
@@ -57,8 +57,6 @@ public abstract class Actor : Hitbox
     protected bool berserk = false;
     private bool coroutineRunning = false;
 
-    public GameObject onFirePrefab;
-    public GameObject onFireVFX;
     public bool isFlammable = true;
     public bool onFire = false;
     public bool inFire = false;
@@ -104,7 +102,7 @@ public abstract class Actor : Hitbox
     {
         base.Start();
 
-        actor = GetComponent<Actor>();
+        selfActor = GetComponent<Actor>();
         startingPosition = transform.position;
         abilityManager = GetComponent<AbilityManager>();
         statManager = GetComponent<Manager_Stats>();
@@ -184,7 +182,7 @@ public abstract class Actor : Hitbox
             {
                 Move(new Vector3(x, y, 0));
                 transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
-                VFX.transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
+                VFXArea.transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
             }
         }
     }
@@ -543,14 +541,14 @@ public abstract class Actor : Hitbox
     {
         if (onFire)
         {
-            onFireVFX = Instantiate(onFirePrefab, VFX);
+            VFX_Manager.instance.AddOnFireVFX(selfActor, VFXArea);
         }
     }
     public void RemoveOnFireVFX()
     { 
         if (!onFire)
         {
-            Destroy(onFireVFX);
+            VFX_Manager.instance.RemoveOnFireVFX(selfActor, VFXArea);
         }
     }
 }
