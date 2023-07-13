@@ -50,9 +50,11 @@ public abstract class List_Item
     public float itemRange;
 
     // Defence
-    public float healthBonus;
-    public float physicalDefence;
-    public float magicalDefence;
+    public float itemMaxHealthBonus;
+    public float itemPhysicalArmour;
+    public float itemMagicalArmour;
+    public float itemWeight;
+    public float itemCoverage;
 
     public virtual void Start()
     {

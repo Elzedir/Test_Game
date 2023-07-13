@@ -64,8 +64,9 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         }
     }
 
-    public void OnButtonClick()
+    public void OnPointerDown()
     {
-        Menu_RightClick.instance.RightClickMenuOpen();
+        Inventory_Slot inventorySlot = GetComponentInParent<Inventory_Slot>();
+        Menu_RightClick.instance.RightClickMenuInventory(inventorySlot, inventorySlot.transform.position);
     }
 }

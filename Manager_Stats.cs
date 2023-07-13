@@ -101,9 +101,9 @@ public class Manager_Stats : MonoBehaviour
                 }
                 else if (item is List_Armour armour)
                 {
-                    maxHealth += armour.healthBonus;
-                    currentPhysicalDefence += armour.physicalDefence;
-                    currentMagicalDefence += armour.magicalDefence;
+                    maxHealth += armour.itemMaxHealthBonus;
+                    currentPhysicalDefence += armour.itemPhysicalArmour;
+                    currentMagicalDefence += armour.itemMagicalArmour;
                 }
 
                 maxHealth += actor.baseHealth;

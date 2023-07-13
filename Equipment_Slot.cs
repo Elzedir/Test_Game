@@ -68,7 +68,7 @@ public class Equipment_Slot : MonoBehaviour
         {
             spriteRenderer.sortingOrder = 1;
         }
-
+        
         animator.enabled = true;
 
         animatorController = item.itemAnimatorController;
@@ -193,7 +193,7 @@ public class Equipment_Slot : MonoBehaviour
                 weaponSpeed = item.itemSpeed,
                 weaponForce = item.itemForce,
                 weaponRange = item.itemRange,
-                healthBonus = item.healthBonus
+                healthBonus = item.itemMaxHealthBonus
             };
             displayEquipmentStat = equipmentItem;
         }

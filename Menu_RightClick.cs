@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Burst.CompilerServices;
 using Unity.VisualScripting;
 using Unity.VisualScripting.Antlr3.Runtime;
+using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -28,6 +29,8 @@ public class Menu_RightClick : MonoBehaviour
     private float rightMouseClickStart = 0f;
     private const float RightClickMenuHoldTime = 0.5f;
     private bool menuCanOpen = false;
+
+    private Vector3 position;
 
     private void Awake()
     {
@@ -63,11 +66,6 @@ public class Menu_RightClick : MonoBehaviour
 
         if (isOpen)
         {
-            if (!RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), Input.mousePosition))
-            {
-                RightClickMenuClose();
-                return;
-            }
             if (openingActor)
             {
                 RightClickActorMenuIsOpen();
@@ -86,7 +84,6 @@ public class Menu_RightClick : MonoBehaviour
         
         if (hit.collider != null)
         {
-            Debug.Log("Hit something: " + hit.collider.name);
 
             Transform hitTransform = hit.transform;
             RectTransform hitRectTransform = FindFirstObjectByType<Inventory_Window>().transform as RectTransform;
@@ -94,16 +91,10 @@ public class Menu_RightClick : MonoBehaviour
             bool isOverInventoryWindow = RectTransformUtility.RectangleContainsScreenPoint(hitRectTransform.GetComponent<RectTransform>(), Input.mousePosition)
                 || RectTransformUtility.RectangleContainsScreenPoint(hitRectTransform.GetComponentInChildren<RectTransform>(), Input.mousePosition);
 
-            if (isOverInventoryWindow)
+            if (hit.collider.gameObject.GetComponent<Actor>() != null)
             {
-                Debug.Log("Mouse is over the inventory window");
-                RightClickMenuInventory();
-            }
-            else if (hit.collider.gameObject.GetComponent<Actor>() != null)
-            {
-                Debug.Log("Mouse is over an actor");
                 pressedActor = hitTransform.GetComponent<Actor>();
-                RightClickMenuActor();
+                RightClickMenuActor(hitTransform.position);
             }
         }
     }
@@ -112,30 +103,17 @@ public class Menu_RightClick : MonoBehaviour
         rightMouseButtonHeld = false;
         rightMouseClickStart = 0f;
     }
-    public void RightClickMenuInventory()
+    
+    public void RightClickMenuInventory(Inventory_Slot inventorySlot, Vector3 slotPosition)
     {
-        Transform inventoryCreator = FindFirstObjectByType<Inventory_Creator>().transform;
-
-        if (pressedInventorySlot == null)
-        {
-            foreach (Transform child in inventoryCreator)
-            {
-                Inventory_Slot inventorySlot = child.GetComponent<Inventory_Slot>();
-
-                if (RectTransformUtility.RectangleContainsScreenPoint(inventorySlot.GetComponent<RectTransform>(), Input.mousePosition))
-                {
-                    Debug.Log("Inventory slot clicked: " + child.name);
-                    rightMouseButtonHeld = true;
-                    openingInventory = true;
-                    rightMouseClickStart = 0f;
-                    pressedInventorySlot = inventorySlot;
-                    break;
-                }
-            }
-        }
+        position = slotPosition;
+        openingInventory = true;
+        pressedInventorySlot = inventorySlot;
+        RightClickMenuOpen();
     }
-    public void RightClickMenuActor()
+    public void RightClickMenuActor(Vector3 actorPosition)
     {
+        position = actorPosition;
         rightMouseButtonHeld = true;
         openingActor = true;
         rightMouseClickStart = 0f;
@@ -157,21 +135,9 @@ public class Menu_RightClick : MonoBehaviour
     public void RightClickMenuOpen()
     {
         isOpen = true;
-
         transform.localScale = Vector3.one;
-        Vector3 mousePosition = Input.mousePosition;
-        //Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
-        //transform.position = worldPosition;
-
-        float windowWidth = Screen.width;
-        float windowHeight = Screen.height;
-
-        float menuWidth = GetComponent<RectTransform>().rect.width;
-        float menuHeight = GetComponent<RectTransform>().rect.height;
-        float xPosition = mousePosition.x + menuWidth > windowWidth ? mousePosition.x - menuWidth : mousePosition.x;
-        float yPosition = mousePosition.y + menuHeight > windowHeight ? mousePosition.y - menuHeight : mousePosition.y;
-
-        transform.position = new Vector3(xPosition, yPosition, transform.position.z);
+        transform.SetAsLastSibling();
+        transform.position = position;
     }
     public void RightClickMenuClose()
     {

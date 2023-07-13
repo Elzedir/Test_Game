@@ -63,14 +63,17 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
 
             itemIcon.sprite = itemSprite;
 
-            if (stackSize > 1)
+            if (stackSizeText != null)
             {
-                stackSizeText.text = stackSize.ToString();
-                stackSizeText.enabled = true;
-            }
-            else
-            {
-                stackSizeText.enabled = false;
+                if (stackSize > 1)
+                {
+                    stackSizeText.text = stackSize.ToString();
+                    stackSizeText.enabled = true;
+                }
+                else
+                {
+                    stackSizeText.enabled = false;
+                }
             }
         }
     }

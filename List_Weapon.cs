@@ -12,7 +12,7 @@ using UnityEngine.UIElements;
 
 public class List_Weapon : List_Item
 {
-    public static List<List_Item> allWeaponData = new List<List_Item>();
+    public static List<List_Item> allWeaponData = new();
 
     public List_Weapon
         (int itemID,
@@ -56,11 +56,6 @@ public class List_Weapon : List_Item
         {
             weapon.Start();
         }
-
-        //foreach (var item in allWeaponData)
-        //{
-        //    Debug.Log("item itemID: " + item.itemID + ", itemName: " + item.itemName);
-        //}
     }
     
     static void Shortswords()
@@ -70,7 +65,7 @@ public class List_Weapon : List_Item
             ItemType.Weapon,
             WeaponType.Shortsword,
             "Wood shortsword",
-            SO_List.Instance.sprites[0].sprite,
+            SO_List.Instance.weaponSprites[0].sprite,
             new Vector3(0.4f, 0.4f, 0.4f),
             new Vector3(-0.04f, -0.07f, 0f),
             new Vector3(180, 0, 0),

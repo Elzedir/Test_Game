@@ -8,7 +8,8 @@ public class SO_List : MonoBehaviour
 
     public List_Item itemList;
     
-    public List_Sprites[] sprites;
+    public List_Sprites[] weaponSprites;
+    public List_Sprites[] armourSprites;
 
     public List_AnimatorControllers[] animatorControllers;
 

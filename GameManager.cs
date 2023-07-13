@@ -51,6 +51,7 @@ public class GameManager : MonoBehaviour
     void InitializeGameData()
     {
         List_Weapon.InitializeWeaponData();
+        List_Armour.InitializeArmourData();
     }
 
     // Floating Text

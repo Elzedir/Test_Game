@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Xml.XPath;
 using TreeEditor;
 using Unity.Collections.LowLevel.Unsafe;
@@ -23,6 +24,7 @@ public class Manager_Input : MonoBehaviour
     public Inventory_Creator inventorySlotPanel;
     public Equipment_Window equipmentPanel;
     public Journal_Window journalPanel;
+    private List <Transform> menus = new();
 
     private bool keyHeld = false;
     private float keyHoldStart = 0f;
@@ -40,7 +42,15 @@ public class Manager_Input : MonoBehaviour
         }
     }
 
-    void Update()
+    private void Start()
+    {
+        foreach (Transform child in UICanvas.transform)
+        {
+            menus.Add(child);
+        }
+    }
+
+    public void Update()
     {
         player = FindFirstObjectByType<Player>(); // Need to change this to a function so that it only happens as a part of character change that it will
         // update finding who is the player
@@ -69,7 +79,7 @@ public class Manager_Input : MonoBehaviour
                 
                 foreach (Transform child in UICanvas.transform)
                 {
-                    if (child.gameObject.activeSelf)
+                    if (child.transform.localScale == Vector3.one)
                     {
                         openUIWindows.Add(child.gameObject);
                     }
@@ -100,6 +110,11 @@ public class Manager_Input : MonoBehaviour
 
                         if (openUIWindows.Count > 0)
                         {
+                            foreach (GameObject open in openUIWindows)
+                            {
+                                Debug.Log(open.name);
+                            }
+
                             GameObject lastOpenWindow = openUIWindows.LastOrDefault();
                             SetWindowToBack(lastOpenWindow);
                             CloseUIWindow(lastOpenWindow);
@@ -243,7 +258,7 @@ public class Manager_Input : MonoBehaviour
     public bool OnItemPickup(int slotIndex)
     {
         bool result = false;
-        int itemID = 1;
+        int itemID = 2;
         int stackSize = 1;
 
         List_Item item;
