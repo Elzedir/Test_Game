@@ -13,13 +13,23 @@ using static Equipment_Manager;
 using static UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle;
 using static UnityEditor.Progress;
 
+public enum SlotType
+{
+    Head,
+    Chest,
+    MainHand,
+    OffHand,
+    Legs
+}
+
 [System.Serializable]
 [RequireComponent(typeof(SpriteRenderer))]
 public class Equipment_Slot : MonoBehaviour
 {
+    public SlotType slotType;
     private Equipment_Manager equipmentManager;
     private Manager_Stats statManager;
-    public int slotIndex;
+
     private SpriteRenderer spriteRenderer;
     private AnimatorController animatorController;
     private Animator animator;
@@ -37,9 +47,12 @@ public class Equipment_Slot : MonoBehaviour
 
         animator = GetComponent<Animator>();
 
-        if (animator != null && gameObject.name == "Weapon" && animator.runtimeAnimatorController == null)
+        if (animator != null && animator.runtimeAnimatorController == null)
         {
-            animator.enabled = false;
+            if (slotType == SlotType.MainHand || slotType == SlotType.OffHand)
+            {
+                animator.enabled = false;
+            }
         }
 
         equipmentManager.OnEquipmentChange += PopulateEquipmentSlots;
@@ -47,38 +60,146 @@ public class Equipment_Slot : MonoBehaviour
 
     public void FixedUpdate()
     {
-        if (boxCollider != null && boxCollider.enabled && gameObject.name == "Weapon")
+        if (boxCollider != null && boxCollider.enabled)
         {
-            CollideCheck();
+            if (slotType == SlotType.MainHand || slotType == SlotType.OffHand)
+            {
+                CollideCheck();
+            }
         }
     }
-
-    public void UpdateSprite(List_Item item)
+    public void UpdateSprite(Equipment_Slot equipSlot, List_Item item)
     {
         spriteRenderer.sprite = item.itemIcon;
-        spriteRenderer.transform.localScale = item.itemScale;
-        spriteRenderer.transform.localPosition = item.itemPosition;
-        spriteRenderer.transform.localRotation = Quaternion.Euler(item.itemRotation);
+        SpriteVectors(equipSlot, item);
+        SpriteSortingLayers(item);
+        SpriteAnimator(item);
+    }
 
-        if (item.itemType == ItemType.Weapon)
+    public void SpriteVectors(Equipment_Slot equipSlot, List_Item item)
+    {
+        switch (item.itemType)
         {
-            spriteRenderer.sortingOrder = 2;
+            case ItemType.Weapon:
+
+                switch (item.weaponClass)
+                {
+                    case WeaponClass.Axe:
+                        // Change
+                        //spriteRenderer.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+                        //spriteRenderer.transform.localPosition = new Vector3(-0.04f, -0.07f, 0f);
+                        //spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));
+                        break;
+                    case WeaponClass.ShortSword:
+                        spriteRenderer.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+                        spriteRenderer.transform.localPosition = new Vector3(-0.04f, -0.07f, 0f);
+                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));
+                        break;
+                    case WeaponClass.Spear:
+                        // Change
+                        //spriteRenderer.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+                        //spriteRenderer.transform.localPosition = new Vector3(-0.04f, -0.07f, 0f);
+                        //spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));
+                        break;
+                }
+                break;
+
+            case ItemType.Armour:
+
+                if (equipSlot.slotType == SlotType.Head)
+                {
+                    if (item.armourType == ArmourType.Head)
+                    {
+                        spriteRenderer.transform.localPosition = new Vector3(0f, 0.04f, 0f);
+                        spriteRenderer.transform.localScale = new Vector3(1f, 0.6f, 1f);
+                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+                    }
+                    else if (item.armourType == ArmourType.Chest)
+                    {
+                        spriteRenderer.transform.localPosition = new Vector3(0f, 0.08f, 0f);
+                        spriteRenderer.transform.localScale = new Vector3(1f, 0.6f, 1f);
+                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+                    }
+                    else if (item.armourType == ArmourType.Legs)
+                    {
+                        spriteRenderer.transform.localPosition = new Vector3(0f, 0.08f, 0f);
+                        spriteRenderer.transform.localScale = new Vector3(1.5f, 0.6f, 1f);
+                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));
+                    }
+                }
+                else if (equipSlot.slotType == SlotType.Chest)
+                {
+                    if (item.armourType == ArmourType.Chest)
+                    {
+                        spriteRenderer.transform.localPosition = new Vector3(0f, -0.02f, 0f);
+                        spriteRenderer.transform.localScale = new Vector3(0.9f, 0.4f, 1f);
+                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+                    }
+                    else if (item.armourType == ArmourType.Head || item.armourType == ArmourType.Legs)
+                    {
+                        spriteRenderer.transform.localPosition = new Vector3(0f, -0.02f, 0f);
+                        spriteRenderer.transform.localScale = new Vector3(0.9f, 0.4f, 1f);
+                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+                    }
+                }
+                else if (equipSlot.slotType == SlotType.Legs)
+                {
+                    if (item.armourType == ArmourType.Legs)
+                    {
+                        spriteRenderer.transform.localPosition = new Vector3(0f, -0.06f, 0f);
+                        spriteRenderer.transform.localScale = new Vector3(0.6f, 0.2f, 1f);
+                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+                    }
+                    else if (item.armourType == ArmourType.Head || item.armourType == ArmourType.Chest)
+                    {
+                        spriteRenderer.transform.localPosition = new Vector3(0.035f, -0.06f, 0f);
+                        spriteRenderer.transform.localScale = new Vector3(0.3f, 0.4f, 1f);
+                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+                    }
+                }
+                break;
+
+            default:
+
+                break;
         }
-        else
+    }
+    public void SpriteSortingLayers(List_Item item)
+    {
+        switch (item.itemType)
         {
-            spriteRenderer.sortingOrder = 1;
+            case ItemType.Weapon:
+                spriteRenderer.sortingOrder = 4;
+
+                break;
+            case ItemType.Armour:
+                switch (item.armourType)
+                {
+                    case ArmourType.Head:
+                        spriteRenderer.sortingOrder = 3;
+                        break;
+                    case ArmourType.Chest:
+                        spriteRenderer.sortingOrder = 2;
+                        break;
+                    case ArmourType.Legs:
+                        spriteRenderer.sortingOrder = 1;
+                        break;
+                }
+                break;
+            default:
+                item = null;
+                break;
         }
-        
+    }
+    public void SpriteAnimator(List_Item item)
+    {
         animator.enabled = true;
-
         animatorController = item.itemAnimatorController;
-
         if (animatorController == null)
         {
             animator.enabled = false;
         }
     }
-
     public void Attack()
     {
         if (animator != null)
@@ -156,46 +277,51 @@ public class Equipment_Slot : MonoBehaviour
     {
         Equipment_Manager equipmentManager = GetComponentInParent<Equipment_Manager>();
 
-        int itemID = equipmentManager.currentEquipment[slotIndex].Item1;
-        int stackSize = equipmentManager.currentEquipment[slotIndex].Item2;
-
-        List_Item item = null;
-
-        switch (itemID)
+        foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> equipment in equipmentManager.currentEquipment)
         {
-            case 1:
-                item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
-                break;
-            case 2:
-                item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
-                break;
-            case 3:
-                item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
-                break;
-            default:
-                item = null;
-                break;
-        }
+            (int, int, bool) equipmentData = equipment.Value;
 
-        if (item != null)
-        {
-            EquipmentStats equipmentItem = new EquipmentStats()
+            int itemID = equipmentData.Item1;
+            int stackSize = equipmentData.Item2;
+
+            List_Item item = null;
+
+            switch (itemID)
             {
-                itemID = itemID,
-                itemType = item.itemType,
-                weaponType = item.weaponType,
-                itemName = item.itemName,
-                itemIcon = item.itemIcon,
-                currentStackSize = stackSize,
-                maxStackSize = item.maxStackSize,
-                itemValue = item.itemValue,
-                weaponDamage = item.itemDamage,
-                weaponSpeed = item.itemSpeed,
-                weaponForce = item.itemForce,
-                weaponRange = item.itemRange,
-                healthBonus = item.itemMaxHealthBonus
-            };
-            displayEquipmentStat = equipmentItem;
+                case 1:
+                    item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
+                    break;
+                case 2:
+                    item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
+                    break;
+                case 3:
+                    item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
+                    break;
+                default:
+                    item = null;
+                    break;
+            }
+
+            if (item != null)
+            {
+                EquipmentStats equipmentItem = new EquipmentStats()
+                {
+                    itemID = itemID,
+                    itemType = item.itemType,
+                    weaponType = item.weaponType,
+                    itemName = item.itemName,
+                    itemIcon = item.itemIcon,
+                    currentStackSize = stackSize,
+                    maxStackSize = item.maxStackSize,
+                    itemValue = item.itemValue,
+                    weaponDamage = item.itemDamage,
+                    weaponSpeed = item.itemSpeed,
+                    weaponForce = item.itemForce,
+                    weaponRange = item.itemRange,
+                    healthBonus = item.itemMaxHealthBonus
+                };
+                displayEquipmentStat = equipmentItem;
+            }
         }
     }
 }

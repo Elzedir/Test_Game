@@ -14,7 +14,6 @@ using static UnityEditor.Progress;
 [System.Serializable]
 public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
 {
-    public int slotIndex;
     public TextMeshProUGUI stackSizeText;
     public Image itemIcon;
 
@@ -26,7 +25,6 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
     public void OnDrop(PointerEventData eventData)
     {
         Inventory_EquipmentSlot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().equipmentSlotIndex;
-        int targetSlotIndex = slotIndex;
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
     public virtual void UpdateSlotUI(int itemID, int stackSize)

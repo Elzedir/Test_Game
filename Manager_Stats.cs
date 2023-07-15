@@ -64,7 +64,7 @@ public class Manager_Stats : MonoBehaviour
 
         int currentSlot = 0;
 
-        foreach (KeyValuePair<int, (int, int, bool)> equipment in equipmentManager.currentEquipment)
+        foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> equipment in equipmentManager.currentEquipment)
         {
             if (equipment.Value.Item1 != -1)
             {

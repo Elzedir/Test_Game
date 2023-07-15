@@ -60,6 +60,7 @@ public class Manager_Input : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
                 Actor actor = player.GetComponent<Actor>();
+
                 if (actor != null)
                 {
                     actor.PlayerAttack();
@@ -205,7 +206,6 @@ public class Manager_Input : MonoBehaviour
             if (inventorySlotPanel != null)
             {
                 inventorySlotPanel.CreateSlots(inventorySize);
-                equipmentPanel.AssignSlotIndex();
                 inventorySlotPanel.UpdateInventoryUI(inventoryManager);
                 equipmentPanel.UpdateEquipmentUI(equipmentManager);
             }
@@ -345,7 +345,7 @@ public class Manager_Input : MonoBehaviour
             {
                 Equipment_Window playerEquipmentWindow = inventoryPanel.GetComponentInChildren<Equipment_Window>();
 
-                (bool equipped, int remainingStackSize) = playerEquipmentManager.Equip(item, inventoryItems[inventorySlotIndex].Item2, playerEquipmentWindow);
+                (bool equipped, int remainingStackSize) = playerEquipmentManager.Equip(item, inventoryItems[inventorySlotIndex].Item2);
 
                 if (equipped)
                 {
@@ -363,7 +363,7 @@ public class Manager_Input : MonoBehaviour
 
                         CloseUIWindow(inventoryPanel.gameObject);
                         OpenInventory(playerObject);
-                        playerEquipmentManager.UpdateSprite();
+                        playerEquipmentManager.UpdateSprites();
                     }
                     else
                     {

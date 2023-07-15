@@ -12,9 +12,14 @@ public enum ItemType
 
 public enum WeaponType
 {
+    OneHanded,
+    TwoHanded
+}
+
+public enum WeaponClass
+{
     Axe,
-    Martial,
-    Shortsword,
+    ShortSword,
     Spear
 }
 
@@ -33,6 +38,7 @@ public abstract class List_Item
     public int itemID;
     public ItemType itemType;
     public WeaponType weaponType;
+    public WeaponClass weaponClass;
     public ArmourType armourType;
     public string itemName;
     public Sprite itemIcon;

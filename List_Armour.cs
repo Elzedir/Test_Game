@@ -23,9 +23,9 @@ public class List_Armour : List_Item
         ArmourType armourType,
         string itemName,
         Sprite itemIcon,
-        Vector3 itemScale,
         Vector3 itemPosition,
         Vector3 itemRotation,
+        Vector3 itemScale,
         //AnimatorController itemAnimatorController,
         int maxStackSize,
         int itemValue,
@@ -40,9 +40,9 @@ public class List_Armour : List_Item
         this.armourType = armourType;
         this.itemName = itemName;
         this.itemIcon = itemIcon;
-        this.itemScale = itemScale;
         this.itemPosition = itemPosition;
         this.itemRotation = itemRotation;
+        this.itemScale = itemScale;
         //this.itemAnimatorController = itemAnimatorController;
         this.maxStackSize = maxStackSize;
         this.itemValue = itemValue;
@@ -55,15 +55,15 @@ public class List_Armour : List_Item
 
     static void Heavy()
     {
-        List_Armour heavyData = new List_Armour(
+        List_Armour bronzeChestplate01 = new List_Armour(
             2,
             ItemType.Armour,
             ArmourType.Chest,
             "Bronze chestplate",
             SO_List.Instance.armourSprites[0].sprite,
+            new Vector3(-0.04f, -0.07f, 0f),
+            new Vector3(180, 0, 0),
             new Vector3(0.4f, 0.4f, 0.4f),
-            new Vector3(0f, 0f, 0f),
-            new Vector3(0, 0, 0),
             //SO_List.Instance.animatorControllers[0].animatorController,
             1,
             10,
@@ -73,6 +73,6 @@ public class List_Armour : List_Item
             75,
             10);
 
-        AddToList(allArmourData, heavyData);
+        AddToList(allArmourData, bronzeChestplate01);
     }
 }

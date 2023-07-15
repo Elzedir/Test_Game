@@ -19,6 +19,7 @@ public abstract class Actor : Hitbox
     public Dialogue_Data_SO dialogue;
     protected Manager_Stats statManager;
     public Equipment_Manager equipmentManager;
+    private Equipment_Slot mainHand;
     public Inventory_Manager inventory;
     public Transform VFXArea;
 
@@ -367,44 +368,28 @@ public abstract class Actor : Hitbox
 
         return result;
     }
-    public Equipment_Slot CheckWeaponEquipped()
-    {
-        Actor actor = GetComponent<Actor>();
-
-        if (actor != null)
-        {
-            Transform slot = transform.Find("Weapon");
-            Animator weaponAnimator = slot.GetComponent<Animator>();
-
-            if (slot != null && weaponAnimator.enabled)
-            {
-                return slot.GetComponent<Equipment_Slot>();
-            }
-            else
-            {
-                return null;
-            }
-        }
-        else
-        {
-            return null;
-        }
-    }
     public void PlayerAttack()
     {
-        Equipment_Slot weapon = CheckWeaponEquipped();
-        if (weapon != null)
+        List<Equipment_Slot> equippedWeapons = equipmentManager.WeaponEquipped();
+
+        if (equippedWeapons.Count > 0)
         {
-            weapon.Attack();
+            foreach (var weapon in equippedWeapons)
+            {
+                weapon.Attack();
+            }
         }
     }
     public void NPCAttack(GameObject target)
     {
-        Equipment_Slot weapon = CheckWeaponEquipped();
-        
-        if (weapon != null)
+        List<Equipment_Slot> equippedWeapons = equipmentManager.WeaponEquipped();
+
+        if (equippedWeapons.Count > 0)
         {
-            weapon.Attack();
+            foreach (var weapon in equippedWeapons)
+            {
+                weapon.Attack();
+            }
         }
         else
         {
