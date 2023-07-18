@@ -9,6 +9,6 @@ public class Button_PickupItem : MonoBehaviour
     public void OnButtonPress()
     {
         Debug.Log("Pickup Item Called");
-        buttonPressed = true;
+        Menu_RightClick.instance.PickupButtonPressed();
     }
 }

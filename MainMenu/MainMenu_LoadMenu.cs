@@ -9,12 +9,12 @@ public class MainMenu_LoadMenu : MonoBehaviour
 
     public void Start()
     {
-        transform.localScale = Vector3.zero;
-        deleteSaveCheckWindow.transform.localScale = Vector3.zero;
+        gameObject.SetActive(false);
+        deleteSaveCheckWindow.gameObject.SetActive(false);
     }
     public void OpenMenu()
     {
-        transform.localScale = Vector3.one;
+        gameObject.SetActive (true);
         mainMenuManager.menuOpen = true;
     }
 
@@ -25,7 +25,7 @@ public class MainMenu_LoadMenu : MonoBehaviour
 
     public void DeleteSaveCheckOpen()
     {
-        deleteSaveCheckWindow.transform.localScale = Vector3.one;
+        deleteSaveCheckWindow.gameObject.SetActive(true);
     }
 
     public void DeleteSaveFile(int saveSlot)
@@ -36,12 +36,12 @@ public class MainMenu_LoadMenu : MonoBehaviour
 
     public void DeleteSaveCheckClose()
     {
-        deleteSaveCheckWindow.transform.localScale = Vector3.zero;
+        deleteSaveCheckWindow.gameObject.SetActive(false);
     }
 
     public void CloseMenu()
     {
-        transform.localScale = Vector3.zero;
+        gameObject.SetActive(false);
         mainMenuManager.menuOpen = false;
     }
 

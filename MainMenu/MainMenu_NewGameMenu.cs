@@ -9,17 +9,17 @@ public class MainMenu_NewGameMenu : MonoBehaviour
 
     public void Start()
     {
-        transform.localScale = Vector3.zero;
+        gameObject.SetActive(false);
     }
     public void OpenMenu()
     {
-        transform.localScale = Vector3.one;
+        gameObject.SetActive(true);
         mainMenuManager.menuOpen = true;
     }
 
     public void CloseMenu()
     {
-        transform.localScale = Vector3.zero;
+        gameObject.SetActive(false);
         mainMenuManager.menuOpen = false;
     }
 

@@ -24,14 +24,14 @@ public class Dialogue_Window : MonoBehaviour
     {
         instance = this;
 
-        transform.localScale = Vector3.zero;
+        gameObject.SetActive(false);
     }
 
     public IEnumerator OpenDialogueWindow(GameObject interactedObject, string text)
     {
         isOpen = true;
         interactedCharacter = interactedObject;
-        transform.localScale = Vector3.one;
+        gameObject.SetActive(true);
 
         yield return StartCoroutine(UpdateInteractedObject(text));
         UpdatePlayerObject();
@@ -178,7 +178,7 @@ public class Dialogue_Window : MonoBehaviour
     public void CloseDialogueWindow()
     {
         isOpen = false;
-        transform.localScale = Vector3.zero;
+        gameObject.SetActive(false);
         Dialogue_Manager.instance.StopDialogue();
     }
 }

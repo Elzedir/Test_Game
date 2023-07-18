@@ -13,7 +13,7 @@ public class Inventory_Window : MonoBehaviour
 
     public void Start()
     {
-        transform.localScale = Vector3.zero;
+        gameObject.SetActive(false);
     }
 
     public List<Inventory_Slot> InventorySlots

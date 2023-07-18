@@ -9,6 +9,6 @@ public class Button_Talk : MonoBehaviour
     public void OnButtonPress()
     {
         Debug.Log($"Talk Item button pressed");
-        buttonPressed = true;
+        Menu_RightClick.instance.TalkButtonPressed();
     }
 }

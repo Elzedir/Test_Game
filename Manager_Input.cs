@@ -80,7 +80,7 @@ public class Manager_Input : MonoBehaviour
                 
                 foreach (Transform child in UICanvas.transform)
                 {
-                    if (child.transform.localScale == Vector3.one)
+                    if (child.gameObject.activeSelf)
                     {
                         openUIWindows.Add(child.gameObject);
                     }
@@ -193,7 +193,7 @@ public class Manager_Input : MonoBehaviour
                 inventoryManager.InitialiseInventory();
             }
 
-            inventoryPanel.transform.localScale = Vector3.one;
+            inventoryPanel.gameObject.SetActive(true);
             inventoryManager.isOpen = true;
             SetWindowToFront(inventoryPanel.gameObject);
 
@@ -243,7 +243,7 @@ public class Manager_Input : MonoBehaviour
                 Destroy(slot.gameObject);
             }
 
-            inventoryPanel.transform.localScale = Vector3.zero;
+            inventoryPanel.gameObject.SetActive(false);
             inventoryManager.isOpen = false;
         }
         else if (window == journalPanel.gameObject)

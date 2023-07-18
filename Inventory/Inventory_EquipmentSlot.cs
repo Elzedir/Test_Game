@@ -11,11 +11,21 @@ using UnityEngine.UI;
 using static UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle;
 using static UnityEditor.Progress;
 
+public enum EquipmentSlotType
+{
+    Head,
+    Chest,
+    MainHand,
+    OffHand,
+    Legs
+}
+
 [System.Serializable]
 public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
 {
     public TextMeshProUGUI stackSizeText;
     public Image itemIcon;
+    public EquipmentSlotType equipmentSlotType;
 
     protected virtual void Start()
     {
@@ -74,5 +84,12 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
                 }
             }
         }
+    }
+
+    public void OnPointerDown()
+    {
+        Inventory_EquipmentSlot inventorySlot = GetComponent<Inventory_EquipmentSlot>();
+        Equipment_Window equipmentWindow = GetComponentInParent<Equipment_Window>();
+        Menu_RightClick.instance.RightClickMenuEquipment(inventorySlot, inventorySlot.transform.position, equipmentWindow.actor);
     }
 }

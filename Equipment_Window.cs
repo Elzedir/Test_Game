@@ -4,13 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
-
 public class Equipment_Window : MonoBehaviour
 {
     public Transform equipmentArea;
     public Manager_Stats statsManager;
     public Inventory_EquipmentSlot Head, Chest, MainHand, OffHand, Legs, Consumable;
+    public Actor actor;
 
     public void Start()
     {
@@ -20,7 +19,7 @@ public class Equipment_Window : MonoBehaviour
     public void UpdateEquipmentUI(Equipment_Manager equipmentManager)
     {
         Dictionary<Equipment_Slot, (int, int, bool)> equippedItems = equipmentManager.currentEquipment;
-
+        actor = equipmentManager.GetComponentInParent<Actor>();
         int currentSlot = 0;
         bool hasItems = false;
 
@@ -58,4 +57,6 @@ public class Equipment_Window : MonoBehaviour
             Debug.Log("No items in the equipment.");
         }
     }
+
+
 }

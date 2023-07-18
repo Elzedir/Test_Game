@@ -24,12 +24,12 @@ public class Journal_Window : MonoBehaviour
         }
         instance = this;
 
-        transform.localScale = Vector3.zero;
+        gameObject.SetActive(false);
     }
 
     public void OpenJournalWindow(GameObject player)
     {
-        transform.localScale = Vector3.one;
+        gameObject.SetActive(true);
         isOpen = true;
         SetJournalWindowName(player.name);
         journalInfo.text = "";
@@ -46,7 +46,7 @@ public class Journal_Window : MonoBehaviour
         {
             Destroy(quest.gameObject);
         }
-        transform.localScale = Vector3.zero;
+        gameObject.SetActive(false);
         isOpen = false;
     }
 

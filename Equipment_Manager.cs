@@ -14,7 +14,7 @@ public delegate void EquipmentChangeEvent();
 public class Equipment_Manager : MonoBehaviour
 {
     public Dictionary<Equipment_Slot, (int, int, bool)> currentEquipment = new();
-    private Equipment_Slot Head, Chest, MainHand, OffHand, Legs, Consumable;
+    public Equipment_Slot Head, Chest, MainHand, OffHand, Legs, Consumable;
 
     [SerializeField] public RectTransform equipmentUIBase;
     public bool EquipmentIsInitialised = false;
@@ -313,8 +313,10 @@ public class Equipment_Manager : MonoBehaviour
             return (equipped, remainingStackSize);
         }
     }
-    public void Unequip(Equipment_Slot equipSlot)
+    public void Unequip (Equipment_Slot equipSlot)
     {
+        Debug.Log("unequip called");
+
         if (currentEquipment.ContainsKey(equipSlot))
         {
             List_Item previousEquipment;
