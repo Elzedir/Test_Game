@@ -24,6 +24,7 @@ public class List_Weapon : List_Item
         Vector3 itemPosition,
         Vector3 itemRotation,
         Vector3 itemScale,
+        bool equippable,
         AnimatorController itemAnimatorController,
         int maxStackSize,
         int itemValue,
@@ -41,6 +42,7 @@ public class List_Weapon : List_Item
         this.itemPosition = itemPosition;
         this.itemRotation = itemRotation;
         this.itemScale = itemScale;
+        this.equippable = equippable;
         this.itemAnimatorController = itemAnimatorController;
         this.maxStackSize = maxStackSize;
         this.itemValue = itemValue;
@@ -72,6 +74,7 @@ public class List_Weapon : List_Item
             new Vector3(-0.04f, -0.07f, 0f),
             new Vector3(180, 0, 0),
             new Vector3(0.4f, 0.4f, 0.4f),
+            true,
             SO_List.Instance.animatorControllers[0].animatorController,
             3,
             10,

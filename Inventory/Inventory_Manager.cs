@@ -165,7 +165,15 @@ public abstract class Inventory_Manager : MonoBehaviour
                 }
                 else
                 {
-                    InventoryItemIDs[itemIndex] = (item.itemID, currentStackSize, false);
+                    if (currentStackSize == maxStackSize)
+                    {
+                        InventoryItemIDs[itemIndex] = (item.itemID, currentStackSize, false);
+                    }
+                    else
+                    {
+                        InventoryItemIDs[itemIndex] = (item.itemID, currentStackSize, true);
+                    }
+
                     TriggerChangeInventory();
                     SaveInventory(inventoryManager);
                     result = true;
@@ -208,9 +216,17 @@ public abstract class Inventory_Manager : MonoBehaviour
                         SaveInventory(inventoryManager);
                         result = true;                        
                     }
-                    else if (currentStackSize < maxStackSize)
+                    else
                     {
-                        InventoryItemIDs[emptyItemIndex] = (itemId, currentStackSize, false);               
+                        if (currentStackSize == maxStackSize)
+                        {
+                            InventoryItemIDs[emptyItemIndex] = (item.itemID, currentStackSize, false);
+                        }
+                        else
+                        {
+                            InventoryItemIDs[emptyItemIndex] = (item.itemID, currentStackSize, true);
+                        }
+                                       
                         TriggerChangeInventory();
                         SaveInventory(inventoryManager);
                         result = true;                        
@@ -238,7 +254,6 @@ public abstract class Inventory_Manager : MonoBehaviour
             }
         }
     }
-
     public virtual void RemoveItem(int itemIndex, List_Item item, int removeStackSize)
     {
         int currentStackSize = InventoryItemIDs[itemIndex].Item2 - removeStackSize;
@@ -254,7 +269,34 @@ public abstract class Inventory_Manager : MonoBehaviour
             TriggerChangeInventory();
         }
     }
+    public void DropItem (int itemIndex, int dropAmount, Inventory_Manager inventoryManager)
+    {
+        if (InventoryItemIDs.ContainsKey(itemIndex))
+        {
+            if (dropAmount == -1)
+            {
+                dropAmount = InventoryItemIDs[itemIndex].Item2;
+            }
 
+            int currentStackSize =InventoryItemIDs[itemIndex].Item2 - dropAmount;
+
+            if (currentStackSize <= 0)
+            {
+                InventoryItemIDs[itemIndex] = (-1, 0, false);
+            }
+            else
+            {
+                InventoryItemIDs[itemIndex] = (InventoryItemIDs[itemIndex].Item1, currentStackSize, false);
+            }
+
+            TriggerChangeInventory();
+            SaveInventory(inventoryManager);
+        }
+        else
+        {
+            Debug.Log("Tried to drop from invalid itemIndex: " + itemIndex);
+        }
+    }
     #endregion
 
     public virtual void MoveItem(int sourceSlotIndex, int targetSlotIndex)
@@ -275,27 +317,7 @@ public abstract class Inventory_Manager : MonoBehaviour
                 }
                 else if (sourceItem.Item1 == targetItem.Item1)
                 {
-                    List_Item item;
-
-                    switch (sourceItem.Item1)
-                    {
-                        case 1:
-                            item = List_Item.GetItemData(sourceItem.Item1, List_Weapon.allWeaponData);
-
-                            break;
-                        case 2:
-                            item = List_Item.GetItemData(sourceItem.Item1, List_Armour.allArmourData);
-
-                            break;
-                        case 3:
-                            item = List_Item.GetItemData(sourceItem.Item1, List_Consumable.allConsumableData);
-
-                            break;
-                        default:
-                            item = null;
-                            break;
-                    }
-
+                    List_Item item = List_Item.GetItemData(sourceItem.Item1);
                     int maxStackSize = item.GetMaxStackSize();
                     int totalStackSize = sourceItem.Item2 + targetItem.Item2;
 

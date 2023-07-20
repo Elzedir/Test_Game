@@ -36,7 +36,6 @@ public class Equipment_Manager : MonoBehaviour
     protected string weaponName;
 
     public BoxCollider2D WepCollider;
-    
 
     void Start()
     {
@@ -176,7 +175,6 @@ public class Equipment_Manager : MonoBehaviour
             return (equipped, remainingStackSize);
         }
     }
-
     public Equipment_Slot PrimaryEquipSlot(List_Item item)
     {
         Equipment_Slot primaryEquipSlot = null;
@@ -315,32 +313,12 @@ public class Equipment_Manager : MonoBehaviour
     }
     public void Unequip (Equipment_Slot equipSlot)
     {
-        Debug.Log("unequip called");
-
         if (currentEquipment.ContainsKey(equipSlot))
         {
-            List_Item previousEquipment;
-
-            switch (currentEquipment[equipSlot].Item1)
-            {
-                case 1:
-                    previousEquipment = List_Item.GetItemData(currentEquipment[equipSlot].Item1, List_Weapon.allWeaponData);
-
-                    break;
-                case 2:
-                    previousEquipment = List_Item.GetItemData(currentEquipment[equipSlot].Item1, List_Armour.allArmourData);
-
-                    break;
-                case 3:
-                    previousEquipment = List_Item.GetItemData(currentEquipment[equipSlot].Item1, List_Consumable.allConsumableData);
-
-                    break;
-                default:
-                    previousEquipment = null;
-                    break;
-            }
-
+            List_Item previousEquipment = List_Item.GetItemData(currentEquipment[equipSlot].Item1);
             Inventory_Manager inventoryManager = gameObject.GetComponent<Inventory_Manager>();
+            Actor inventoryActor = GetComponent<Actor>();
+            Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
             int stackSize = currentEquipment[equipSlot].Item2;
 
             bool itemReturnedToInventory = inventoryManager.AddItem(-1, previousEquipment, stackSize);
@@ -348,6 +326,7 @@ public class Equipment_Manager : MonoBehaviour
             if (itemReturnedToInventory)
             {
                 currentEquipment[equipSlot] = (-1, 0, false);
+                Debug.Log(currentEquipment[equipSlot]);
             }
             else
             {
@@ -356,10 +335,43 @@ public class Equipment_Manager : MonoBehaviour
             
             SaveEquipment(this);
             TriggerChangeEquipment();
+            Manager_Input.instance.RefreshUI(inventoryActor.gameObject, equipmentManager);
         }
         else
         {
             Debug.LogWarning("Tried to unequip invalid equipment slot: " + equipSlot);
+        }
+    }
+    public void DropItem(Equipment_Slot equipSlot, int dropAmount)
+    {
+        if (currentEquipment.ContainsKey(equipSlot))
+        {
+            Actor inventoryActor = GetComponent<Actor>();
+            Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
+
+            if (dropAmount == -1)
+            {
+                dropAmount = currentEquipment[equipSlot].Item2;
+            }
+
+            int currentStackSize = currentEquipment[equipSlot].Item2 - dropAmount;
+
+            if (currentStackSize <= 0)
+            {
+                currentEquipment[equipSlot] = (-1, 0, false);
+            }
+            else
+            {
+                currentEquipment[equipSlot] = (currentEquipment[equipSlot].Item1, currentStackSize, false);
+            }
+
+            SaveEquipment(this);
+            TriggerChangeEquipment();
+            Manager_Input.instance.RefreshUI(inventoryActor.gameObject, equipmentManager);
+        }
+        else
+        {
+            Debug.LogWarning("Tried to drop from invalid equipment slot: " + equipSlot);
         }
     }
     public void UnequipAll()
@@ -377,38 +389,14 @@ public class Equipment_Manager : MonoBehaviour
         } 
     }
     public void UpdateSprites()
-    {   
+    {
         foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> equipment in currentEquipment)
         {
             Equipment_Slot equipmentSlot = equipment.Key;
             (int, int, bool) equipmentData = equipment.Value;
 
-            List_Item item;
-
-            switch (equipmentData.Item1)
-            {
-                case 1:
-                    item = List_Item.GetItemData(equipmentData.Item1, List_Weapon.allWeaponData);
-                    break;
-                case 2:
-                    item = List_Item.GetItemData(equipmentData.Item1, List_Armour.allArmourData);
-                    break;
-                case 3:
-                    item = List_Item.GetItemData(equipmentData.Item1, List_Consumable.allConsumableData);
-                    break;
-                default:
-                    item = null;
-                    break;
-            }
-
-            if (item != null)
-            {
-                equipmentSlot.UpdateSprite(equipmentSlot, item);
-            }
-            else
-            {
-                Debug.Log("EquipmentSlot does not have an item");
-            }
+            List_Item item = List_Item.GetItemData(equipmentData.Item1);
+            equipmentSlot.UpdateSprite(equipmentSlot, item);
         }
     }
 

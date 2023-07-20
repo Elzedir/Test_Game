@@ -6,7 +6,7 @@ using static UnityEditor.Progress;
 
 public class Inventory_Creator : MonoBehaviour
 {
-    public GameObject inventorySlotPrefab;
+    public GameObject inventorySlot;
     public Transform inventoryArea;
 
     public void CreateSlots(int numSlots)
@@ -15,7 +15,7 @@ public class Inventory_Creator : MonoBehaviour
 
         for (int i = 0; i < numSlots; i++)
         {
-            GameObject slotObject = Instantiate(inventorySlotPrefab, inventoryArea);
+            GameObject slotObject = Instantiate(inventorySlot, inventoryArea);
             Inventory_Slot slot = slotObject.GetComponent<Inventory_Slot>();
 
             slot.slotIndex = slotID;
@@ -26,6 +26,7 @@ public class Inventory_Creator : MonoBehaviour
     public void UpdateInventoryUI(Inventory_Manager inventoryManager)
     {
         Dictionary<int, (int, int, bool)> inventoryItems = inventoryManager.InventoryItemIDs;
+        Actor inventoryActor = inventoryManager.GetComponent<Actor>();
 
         bool hasItems = false;
 
@@ -36,10 +37,11 @@ public class Inventory_Creator : MonoBehaviour
             if (slot != null)
             {
                 (int itemID, int stackSize, bool isFull) = inventoryItems[slot.slotIndex];
-                
+
+                slot.UpdateSlotUI(itemID, stackSize, inventoryActor);
+
                 if (itemID != -1)
                 {
-                    slot.UpdateSlotUI(itemID, stackSize);
                     hasItems = true;
                 }
             }

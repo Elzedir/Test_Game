@@ -73,26 +73,7 @@ public class Manager_Stats : MonoBehaviour
                     break;
                 }
 
-                List_Item item;
-
-                switch (equipment.Value.Item1)
-                {
-                    case 1:
-                        item = List_Item.GetItemData(equipment.Value.Item1, List_Weapon.allWeaponData);
-
-                        break;
-                    case 2:
-                        item = List_Item.GetItemData(equipment.Value.Item1, List_Armour.allArmourData);
-
-                        break;
-                    case 3:
-                        item = List_Item.GetItemData(equipment.Value.Item1, List_Consumable.allConsumableData);
-
-                        break;
-                    default:
-                        item = null;
-                        break;
-                }
+                List_Item item = List_Item.GetItemData(equipment.Value.Item1);
 
                 if (item is List_Weapon weapon)
                 {

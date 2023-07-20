@@ -10,8 +10,9 @@ using UnityEngine.UI;
 public class Inventory_Slot : MonoBehaviour, IDropHandler
 {
     public int slotIndex;
+    private Actor inventoryActor;
     public TextMeshProUGUI stackSizeText;
-    public Image itemIcon;
+    public Image slotIcon;
     public Button inventoryEquipButton;
 
     public void OnDrop(PointerEventData eventData)
@@ -21,36 +22,26 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
 
-    public virtual void UpdateSlotUI(int itemID, int stackSize)
+    public virtual void UpdateSlotUI(int itemID, int stackSize, Actor actor)
     {
+        inventoryActor = actor;
+
         if (itemID == -1 || stackSize == 0)
         {
-            Debug.Log("item removed from UI");
-            itemIcon = null;
+            slotIcon = null;
             stackSizeText.enabled = false;
         }
         else
         {
-            List_Item item;
+            List_Item item = List_Item.GetItemData(itemID);
+            Sprite itemSprite = item.itemIcon;
 
-            switch (itemID)
+            if (slotIcon == null)
             {
-                case 1:
-                    item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
-                    break;
-                case 2:
-                    item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
-                    break;
-                case 3:
-                    item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
-                    break;
-                default:
-                    item = null;
-                    break;
+                slotIcon = transform.Find("itemIcon").GetComponent<Image>();
             }
 
-            Sprite itemSprite = item.itemIcon;
-            itemIcon.sprite = itemSprite;
+            slotIcon.sprite = itemSprite;
 
             if (stackSize > 1)
             {
@@ -66,7 +57,22 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
 
     public void OnPointerDown()
     {
-        Inventory_Slot inventorySlot = GetComponentInParent<Inventory_Slot>();
-        Menu_RightClick.instance.RightClickMenuInventory(inventorySlot, inventorySlot.transform.position);
+        Inventory_Slot inventorySlot = GetComponent<Inventory_Slot>();
+        Inventory_Manager inventoryManager = inventoryActor.GetComponent<Inventory_Manager>();
+        Actor actor = inventoryManager.GetComponent<Actor>();
+        bool equippable = false;
+        bool droppable = false;
+
+        if (inventoryManager.InventoryItemIDs.ContainsKey(slotIndex))
+        {
+            if (inventoryManager.InventoryItemIDs[slotIndex].Item1 != -1)
+            {
+                equippable = true;
+                droppable = true;
+            }
+        }
+
+        Menu_RightClick.instance.RightClickMenu(inventorySlot.transform.position, actor: actor, equippable: equippable, inventorySlot: inventorySlot, droppable: droppable);
+        
     }
 }

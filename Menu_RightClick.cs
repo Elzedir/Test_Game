@@ -8,17 +8,26 @@ using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static UnityEditor.Progress;
 
 public class Menu_RightClick : MonoBehaviour
 {
     public static Menu_RightClick instance;
     public Manager_Input inputManager;
     public Menu_RightClick menuRightClickScript;
+    public Equipment_Window equipmentWindow;
 
     private Inventory_Slot pressedInventorySlot;
-    private Inventory_EquipmentSlot pressedInventoryEquipmentSlot;
     private Equipment_Slot pressedEquipmentSlot;
     private Actor pressedActor;
+
+    private Button_Equip buttonEquip;
+    private Button_PickupItem buttonPickup;
+    private Button_Talk buttonTalk;
+    private Button_Unequip buttonUnequip;
+    private Button_Drop_One buttonDropOne;
+    private Button_Drop_X buttonDropX;
+    private Button_Drop_All buttonDropAll;
 
     private Vector3 position;
 
@@ -36,6 +45,20 @@ public class Menu_RightClick : MonoBehaviour
     private void Start()
     {
         gameObject.SetActive(false);
+        buttonEquip = GetComponentInChildren<Button_Equip>();
+        buttonEquip.gameObject.SetActive(false);
+        buttonPickup = GetComponentInChildren<Button_PickupItem>();
+        buttonPickup.gameObject.SetActive(false);
+        buttonTalk = GetComponentInChildren<Button_Talk>();
+        buttonTalk.gameObject.SetActive(false);
+        buttonUnequip = GetComponentInChildren<Button_Unequip>();
+        buttonUnequip.gameObject.SetActive(false);
+        buttonDropOne = GetComponentInChildren<Button_Drop_One>();
+        buttonDropOne.gameObject.SetActive(false);
+        buttonDropX = GetComponentInChildren<Button_Drop_X>();
+        buttonDropX.gameObject.SetActive(false);
+        buttonDropAll = GetComponentInChildren<Button_Drop_All>();
+        buttonDropAll.gameObject.SetActive(false);
     }
     
     public void RightClickMenuCheck()
@@ -45,10 +68,12 @@ public class Menu_RightClick : MonoBehaviour
         if (hit.collider != null)
         {
             Transform hitTransform = hit.transform;
-            
-            if (hit.collider.gameObject.GetComponent<Actor>() != null)
+            Actor actor = hit.collider.gameObject.GetComponent<Actor>();
+
+            if (actor != null)
             {
-                RightClickMenuActor(hitTransform);
+
+                RightClickMenu(hitTransform.position, actor: actor, talkable: true);
             }
         }
     }
@@ -56,40 +81,72 @@ public class Menu_RightClick : MonoBehaviour
     {
         gameObject.SetActive(true);
         transform.SetAsLastSibling();
-        transform.position = position;
+
+        Vector3 newPosition = new Vector3(position.x - 27.5f, position.y + 27.5f, position.z);
+        transform.position = newPosition;
     }
     public void RightClickMenuClose()
     {
         gameObject.SetActive(false);
         pressedInventorySlot = null;
-        pressedInventoryEquipmentSlot = null;
+        pressedEquipmentSlot = null;
         pressedActor = null;
+        buttonEquip.gameObject.SetActive(false);
+        buttonPickup.gameObject.SetActive(false);
+        buttonTalk.gameObject.SetActive(false);
+        buttonUnequip.gameObject.SetActive(false);
+        buttonDropOne.gameObject.SetActive(false);
+        buttonDropX.gameObject.SetActive(false);
+        buttonDropAll.gameObject.SetActive(false);
     }
 
-    public void RightClickMenuInventory(Inventory_Slot inventorySlot, Vector3 slotPosition)
+    public void ActiveButtonsCheck(Vector3 menuPosition,
+                               Inventory_Slot inventorySlot = null,
+                               Equipment_Slot equipmentSlot = null,
+                               Actor actor = null,
+                               List_Item item = null,
+                               bool equippable = false,
+                               bool itemEquipped = false,
+                               bool droppable = false,
+                               bool talkable = false)
     {
-        position = slotPosition;
+        position = menuPosition;
+
+        buttonPickup.gameObject.SetActive(true);  // Always active for now, then use item
+
+        buttonEquip.gameObject.SetActive(equippable);
+        buttonUnequip.gameObject.SetActive(itemEquipped);
+        buttonTalk.gameObject.SetActive(talkable);
+        buttonDropOne.gameObject.SetActive(droppable);
+        buttonDropX.gameObject.SetActive(droppable);
+        buttonDropAll.gameObject.SetActive(droppable);
+
         pressedInventorySlot = inventorySlot;
-        RightClickMenuOpen();
-    }
-
-    public void RightClickMenuEquipment(Inventory_EquipmentSlot equipmentSlot, Vector3 slotPosition, Actor actor)
-    {
-        position = slotPosition;
-        pressedInventoryEquipmentSlot = equipmentSlot;
+        pressedEquipmentSlot = equipmentSlot;
         pressedActor = actor;
-        RightClickMenuOpen();
     }
-    public void RightClickMenuActor(Transform actorTransform)
+    public void RightClickMenu(Vector3 position,
+                           Inventory_Slot inventorySlot = null,
+                           Equipment_Slot equipmentSlot = null,
+                           Actor actor = null,
+                           List_Item item = null,
+                           bool equippable = false,
+                           bool itemEquipped = false,
+                           bool droppable = false,
+                           bool talkable = false)
     {
-        position = actorTransform.position;
-        pressedActor = actorTransform.GetComponent<Actor>();
+        ActiveButtonsCheck(position, inventorySlot, equipmentSlot, actor, item, equippable, itemEquipped, droppable, talkable);
         RightClickMenuOpen();
     }
     
     public void EquipButtonPressed()
     {
-        int pressedSlot = pressedInventorySlot.slotIndex;
+        int pressedSlot = -1;
+
+        if (pressedInventorySlot != null)
+        {
+            pressedSlot = pressedInventorySlot.slotIndex;
+        }
 
         if (pressedSlot != -1)
         {
@@ -102,53 +159,76 @@ public class Menu_RightClick : MonoBehaviour
             }
         }
     }
-
     public void UnequipButtonPressed()
     {
-        Debug.Log("unequip button pressed");
-        if (pressedInventoryEquipmentSlot != null)
+        if (pressedEquipmentSlot != null)
         {
-            Equipment_Slot equipSlot = null;
             Equipment_Manager equipmentManager = pressedActor.GetComponent<Equipment_Manager>();
-
-            switch (pressedInventoryEquipmentSlot.equipmentSlotType)
-            {
-                case EquipmentSlotType.Head:
-                    equipSlot = pressedActor.equipmentManager.Head;
-                    break;
-                case EquipmentSlotType.Chest:
-                    equipSlot = pressedActor.equipmentManager.Chest;
-                    break;
-                case EquipmentSlotType.MainHand:
-                    equipSlot = pressedActor.equipmentManager.MainHand;
-                    break;
-                case EquipmentSlotType.OffHand:
-                    equipSlot = pressedActor.equipmentManager.OffHand;
-                    break;
-                case EquipmentSlotType.Legs:
-                    equipSlot = pressedActor.equipmentManager.Legs;
-                    break;
-            }
-
-            
-            equipmentManager.Unequip(equipSlot);
+            equipmentManager.Unequip(pressedEquipmentSlot);
+            RightClickMenuClose();
         }
     }
-
     public void PickupButtonPressed()
     {
-        int pressedSlot = pressedInventorySlot.slotIndex;
+        int pressedSlot = -1;
+
+        if (pressedInventorySlot != null)
+        {
+            pressedSlot = pressedInventorySlot.slotIndex;
+        }
 
         if (pressedSlot != -1)
         {
             bool pickedUp = inputManager.OnItemPickup(pressedSlot);
+            RightClickMenuClose();
 
             if (!pickedUp)
             {
                 Debug.Log("Could not pickup item.");
-                RightClickMenuClose();
             }
         }
+    }
+    public void Drop(int dropAmount, Equipment_Slot equipmentSlot = null, Inventory_Slot inventorySlot = null, Actor actor = null)
+    {
+        if (equipmentSlot != null)
+        {
+            Equipment_Manager equipmentManager = UI_Slider.instance.actor.GetComponent<Equipment_Manager>();
+            equipmentManager.DropItem(equipmentSlot, dropAmount);
+            Manager_Input.instance.RefreshUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
+        }
+
+        else if (inventorySlot != null)
+        {
+            Inventory_Manager inventoryManager = actor.GetComponent<Inventory_Manager>();
+            inventoryManager.DropItem(inventorySlot.slotIndex, dropAmount, inventoryManager);
+            Manager_Input.instance.RefreshUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
+        }
+    }
+    public void DropOneButtonPressed()
+    {
+        Drop(1, equipmentSlot: pressedEquipmentSlot, inventorySlot: pressedInventorySlot, actor: pressedActor);
+    }
+    public void DropXButtonPressed()
+    {
+        UI_Slider.instance.OpenSlider();
+
+        if (pressedEquipmentSlot != null)
+        {
+            Equipment_Manager equipmentManager = pressedActor.GetComponent<Equipment_Manager>();
+            UI_Slider.instance.DropItemSlider(equipmentManager.currentEquipment[pressedEquipmentSlot].Item2, dropXEquipmentSlot: pressedEquipmentSlot, dropXActor: pressedActor);
+            RightClickMenuClose();
+
+        }
+        else if (pressedInventorySlot != null)
+        {
+            Inventory_Manager inventoryManager = pressedActor.GetComponent<Inventory_Manager>();
+            UI_Slider.instance.DropItemSlider(inventoryManager.InventoryItemIDs[pressedInventorySlot.slotIndex].Item2, dropXInventorySlot: pressedInventorySlot, dropXActor: pressedActor);
+            RightClickMenuClose();
+        }
+    }
+    public void DropAllButtonPressed()
+    {
+        Drop(-1, equipmentSlot: pressedEquipmentSlot, inventorySlot: pressedInventorySlot, actor: pressedActor);
     }
     public void TalkButtonPressed()
     {

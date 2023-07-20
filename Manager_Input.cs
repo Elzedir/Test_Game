@@ -148,8 +148,6 @@ public class Manager_Input : MonoBehaviour
             }
             if (Input.GetKeyDown(KeyCode.I))
             {
-                Debug.Log("I pressed");
-
                 GameObject self = player.gameObject;
 
                 OpenInventory(self);
@@ -261,27 +259,8 @@ public class Manager_Input : MonoBehaviour
         int itemID = 2;
         int stackSize = 1;
 
-        List_Item item;
-
-        switch (itemID)
-        {
-            case 1:
-                item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
-
-                break;
-            case 2:
-                item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
-
-                break;
-            case 3:
-                item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
-
-                break;
-            default:
-                item = null;
-                break;
-        }
-
+        List_Item item = List_Item.GetItemData(itemID);
+        
         if (player != null)
         {
             Inventory_Manager inventoryManager = player.GetComponent<Inventory_Manager>();
@@ -316,26 +295,7 @@ public class Manager_Input : MonoBehaviour
         Inventory_Manager playerInventoryManager = Inventory_Manager.InventoryType(playerObject);
         Dictionary<int, (int, int, bool)> inventoryItems = playerInventoryManager.InventoryItemIDs;
 
-        List_Item item;
-
-        switch (inventoryItems[inventorySlotIndex].Item1)
-        {
-            case 1:
-                item = List_Item.GetItemData(inventoryItems[inventorySlotIndex].Item1, List_Weapon.allWeaponData);
-
-                break;
-            case 2:
-                item = List_Item.GetItemData(inventoryItems[inventorySlotIndex].Item1, List_Armour.allArmourData);
-
-                break;
-            case 3:
-                item = List_Item.GetItemData(inventoryItems[inventorySlotIndex].Item1, List_Consumable.allConsumableData);
-
-                break;
-            default:
-                item = null;
-                break;
-        }
+        List_Item item = List_Item.GetItemData(inventoryItems[inventorySlotIndex].Item1);
 
         if (item != null)
         {
@@ -343,8 +303,6 @@ public class Manager_Input : MonoBehaviour
 
             if (playerEquipmentManager != null)
             {
-                Equipment_Window playerEquipmentWindow = inventoryPanel.GetComponentInChildren<Equipment_Window>();
-
                 (bool equipped, int remainingStackSize) = playerEquipmentManager.Equip(item, inventoryItems[inventorySlotIndex].Item2);
 
                 if (equipped)
@@ -358,12 +316,7 @@ public class Manager_Input : MonoBehaviour
                     
                     if (inventoryPanel != null)
                     {
-                        Manager_Stats statManager = player.GetComponent<Manager_Stats>();
-                        statManager.UpdateStats();
-
-                        CloseUIWindow(inventoryPanel.gameObject);
-                        OpenInventory(playerObject);
-                        playerEquipmentManager.UpdateSprites();
+                        RefreshUI(playerObject, playerEquipmentManager);
                     }
                     else
                     {
@@ -392,6 +345,15 @@ public class Manager_Input : MonoBehaviour
             Debug.Log($"Inventory does not have itemID");
             return result;
         }
+    }
+    public void RefreshUI(GameObject actor, Equipment_Manager actorEquipmentManager)
+    {
+        Manager_Stats statManager = player.GetComponent<Manager_Stats>();
+        statManager.UpdateStats();
+
+        CloseUIWindow(inventoryPanel.gameObject);
+        OpenInventory(actor);
+        actorEquipmentManager.UpdateSprites();
     }
     public bool KeyHeld(KeyCode key, float keyHoldTime)
     {

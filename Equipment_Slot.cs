@@ -36,6 +36,8 @@ public class Equipment_Slot : MonoBehaviour
     private BoxCollider2D boxCollider;
     public LayerMask wepCanAttack;
 
+    public List_Item.ItemStats displayItemStats;
+
     public void Start()
     {        
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -70,10 +72,17 @@ public class Equipment_Slot : MonoBehaviour
     }
     public void UpdateSprite(Equipment_Slot equipSlot, List_Item item)
     {
-        spriteRenderer.sprite = item.itemIcon;
-        SpriteVectors(equipSlot, item);
-        SpriteSortingLayers(item);
-        SpriteAnimator(item);
+        if (item == null)
+        {
+            spriteRenderer.sprite = null;
+        }
+        else
+        {
+            spriteRenderer.sprite = item.itemIcon;
+            SpriteVectors(equipSlot, item);
+            SpriteSortingLayers(item);
+            SpriteAnimator(item);
+        }
     }
 
     public void SpriteVectors(Equipment_Slot equipSlot, List_Item item)
@@ -253,26 +262,6 @@ public class Equipment_Slot : MonoBehaviour
         }
     }
 
-    [Serializable]
-    public struct EquipmentStats
-    {
-        public int itemID;
-        public ItemType itemType;
-        public WeaponType weaponType;
-        public string itemName;
-        public Sprite itemIcon;
-        public int currentStackSize;
-        public int maxStackSize;
-        public int itemValue;
-        public float weaponDamage;
-        public float weaponSpeed;
-        public float weaponForce;
-        public float weaponRange;
-        public float healthBonus;
-    }
-
-    public EquipmentStats displayEquipmentStat;
-
     public void PopulateEquipmentSlots()
     {
         Equipment_Manager equipmentManager = GetComponentInParent<Equipment_Manager>();
@@ -284,43 +273,11 @@ public class Equipment_Slot : MonoBehaviour
             int itemID = equipmentData.Item1;
             int stackSize = equipmentData.Item2;
 
-            List_Item item = null;
-
-            switch (itemID)
-            {
-                case 1:
-                    item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
-                    break;
-                case 2:
-                    item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
-                    break;
-                case 3:
-                    item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
-                    break;
-                default:
-                    item = null;
-                    break;
-            }
+            List_Item item = List_Item.GetItemData(itemID);
 
             if (item != null)
             {
-                EquipmentStats equipmentItem = new EquipmentStats()
-                {
-                    itemID = itemID,
-                    itemType = item.itemType,
-                    weaponType = item.weaponType,
-                    itemName = item.itemName,
-                    itemIcon = item.itemIcon,
-                    currentStackSize = stackSize,
-                    maxStackSize = item.maxStackSize,
-                    itemValue = item.itemValue,
-                    weaponDamage = item.itemDamage,
-                    weaponSpeed = item.itemSpeed,
-                    weaponForce = item.itemForce,
-                    weaponRange = item.itemRange,
-                    healthBonus = item.itemMaxHealthBonus
-                };
-                displayEquipmentStat = equipmentItem;
+                displayItemStats = List_Item.DisplayItemStats(itemID, stackSize);
             }
         }
     }

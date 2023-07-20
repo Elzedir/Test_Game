@@ -17,7 +17,8 @@ public enum EquipmentSlotType
     Chest,
     MainHand,
     OffHand,
-    Legs
+    Legs,
+    Consumable
 }
 
 [System.Serializable]
@@ -34,7 +35,7 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
 
     public void OnDrop(PointerEventData eventData)
     {
-        Inventory_EquipmentSlot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().equipmentSlotIndex;
+        //Inventory_EquipmentSlot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().equipmentSlotIndex;
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
     public virtual void UpdateSlotUI(int itemID, int stackSize)
@@ -42,31 +43,19 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
         Debug.Log("Update Slot UI called");
         if (itemID == -1 || stackSize == 0)
         {
-            itemIcon = null;
-            stackSizeText.enabled = false;
+            itemIcon.sprite = null;
+
+            // Change to add stack size to the scene and then remove this
+            if (stackSizeText != null)
+            {
+                stackSizeText.enabled = false;
+            }
         }
         else
         {
             Debug.Log("ItemID " + itemID + " found");
 
-            List_Item item;
-
-            switch (itemID)
-            {
-                case 1:
-                    item = List_Item.GetItemData(itemID, List_Weapon.allWeaponData);
-                    break;
-                case 2:
-                    item = List_Item.GetItemData(itemID, List_Armour.allArmourData);
-                    break;
-                case 3:
-                    item = List_Item.GetItemData(itemID, List_Consumable.allConsumableData);
-                    break;
-                default:
-                    item = null;
-                    break;
-            }
-
+            List_Item item = List_Item.GetItemData(itemID);
             Sprite itemSprite = item.itemIcon;
 
             itemIcon.sprite = itemSprite;
@@ -88,8 +77,49 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
 
     public void OnPointerDown()
     {
-        Inventory_EquipmentSlot inventorySlot = GetComponent<Inventory_EquipmentSlot>();
+        Inventory_EquipmentSlot inventoryEquipmentSlot = GetComponent<Inventory_EquipmentSlot>();
         Equipment_Window equipmentWindow = GetComponentInParent<Equipment_Window>();
-        Menu_RightClick.instance.RightClickMenuEquipment(inventorySlot, inventorySlot.transform.position, equipmentWindow.actor);
+        Equipment_Slot equipSlot;
+        bool equippable = false;
+        bool droppable = false;
+
+        switch (inventoryEquipmentSlot.equipmentSlotType)
+        {
+            case EquipmentSlotType.Head:
+                equipSlot = equipmentWindow.actorHead;
+                break;
+            case EquipmentSlotType.Chest:
+                equipSlot = equipmentWindow.actorChest;
+                break;
+            case EquipmentSlotType.MainHand:
+                equipSlot = equipmentWindow.actorMainHand;
+                break;
+            case EquipmentSlotType.OffHand:
+                equipSlot = equipmentWindow.actorOffHand;
+                break;
+            case EquipmentSlotType.Legs:
+                equipSlot = equipmentWindow.actorLegs;
+                break;
+            case EquipmentSlotType.Consumable:
+                equipSlot = equipmentWindow.actorConsumable;
+                break;
+            default:
+                equipSlot = null;
+                break;
+        }
+
+        if (equipSlot != null)
+        {
+            if (equipmentWindow.actorEquipmentManager.currentEquipment.ContainsKey(equipSlot))
+            {
+                if (equipmentWindow.actorEquipmentManager.currentEquipment[equipSlot].Item1 != -1)
+                {
+                    equippable = true;
+                    droppable = true;
+                }
+            }
+        }
+        
+        Menu_RightClick.instance.RightClickMenu(inventoryEquipmentSlot.transform.position, equipmentSlot: equipSlot, actor: equipmentWindow.actor, equippable: equippable, droppable: droppable);
     }
 }
