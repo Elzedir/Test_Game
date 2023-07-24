@@ -1,22 +1,35 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class Chest : Collectible
+public class Chest : MonoBehaviour
 {
-    public Sprite emptyChest;
-    public int goldAmount = 5;
-    protected override void OnCollect()
+    private SpriteRenderer spriteRenderer;
+    public Chest_Manager.ChestContents displayChestContents;
+
+    // Put in a way for the chest to go back to normal after it closes.
+
+    public void Start()
     {
-        if(!collected)
+        if (TryGetComponent<SpriteRenderer>(out spriteRenderer))
         {
-            collected = true;
-            GetComponent<SpriteRenderer>().sprite = emptyChest;
-            // We are adding to "Gold" in the Game Manager an amount equal to the gold amount in
-            // the chest.
-            GameManager.instance.gold += goldAmount;
-            // Here we are adding the text that will be shown when the chest is opened and its characteristics.
-            GameManager.instance.ShowFloatingText("+" + goldAmount + " gold", 25, Color.yellow, transform.position, Vector3.up * 25, 1.5f);
+            spriteRenderer.sprite = SO_List.instance.chestSprites[0].sprite;
+        }
+    }
+
+    public void OnButtonPress()
+    {
+        Chest_Data chestData = Chest_Manager.instance.GetChestData(this);
+
+        if (chestData != null)
+        {
+            spriteRenderer.sprite = (chestData.itemIDs.Length > 0)
+                ? SO_List.instance.chestSprites[1].sprite
+                :SO_List.instance.chestSprites[2].sprite;
+
+            displayChestContents = Chest_Manager.DisplayChestContents(this);
         }
     }
 }

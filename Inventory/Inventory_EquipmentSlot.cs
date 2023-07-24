@@ -44,20 +44,12 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
         if (itemID == -1 || stackSize == 0)
         {
             itemIcon.sprite = null;
-
-            // Change to add stack size to the scene and then remove this
-            if (stackSizeText != null)
-            {
-                stackSizeText.enabled = false;
-            }
+            stackSizeText.enabled = false;
         }
         else
         {
-            Debug.Log("ItemID " + itemID + " found");
-
             List_Item item = List_Item.GetItemData(itemID);
             Sprite itemSprite = item.itemIcon;
-
             itemIcon.sprite = itemSprite;
 
             if (stackSizeText != null)
@@ -80,7 +72,7 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
         Inventory_EquipmentSlot inventoryEquipmentSlot = GetComponent<Inventory_EquipmentSlot>();
         Equipment_Window equipmentWindow = GetComponentInParent<Equipment_Window>();
         Equipment_Slot equipSlot;
-        bool equippable = false;
+        bool itemEquipped = false;
         bool droppable = false;
 
         switch (inventoryEquipmentSlot.equipmentSlotType)
@@ -114,12 +106,12 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
             {
                 if (equipmentWindow.actorEquipmentManager.currentEquipment[equipSlot].Item1 != -1)
                 {
-                    equippable = true;
+                    itemEquipped = true;
                     droppable = true;
                 }
             }
         }
         
-        Menu_RightClick.instance.RightClickMenu(inventoryEquipmentSlot.transform.position, equipmentSlot: equipSlot, actor: equipmentWindow.actor, equippable: equippable, droppable: droppable);
+        Menu_RightClick.instance.RightClickMenu(interactedThing: equipSlot.gameObject, actor: equipmentWindow.actor, itemEquipped: itemEquipped, droppable: droppable);
     }
 }

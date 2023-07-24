@@ -14,7 +14,7 @@ using static UnityEditor.Progress;
 public class Manager_Input : MonoBehaviour
 {
     public static Manager_Input instance;
-    private Menu_RightClick menuRightClickScript;
+    public Menu_RightClick menuRightClickScript;
 
     public Player player;
     public GameObject interactedCharacter;
@@ -24,7 +24,7 @@ public class Manager_Input : MonoBehaviour
     public Inventory_Creator inventorySlotPanel;
     public Equipment_Window equipmentPanel;
     public Journal_Window journalPanel;
-    private List <Transform> menus = new();
+    private List<Transform> menus = new();
 
     private bool keyHeld = false;
     private float keyHoldStart = 0f;
@@ -34,11 +34,13 @@ public class Manager_Input : MonoBehaviour
 
     private void Awake()
     {
-        instance = this;
-        
-        if (menuRightClickScript == null)
+        if (instance == null)
         {
-            menuRightClickScript = FindFirstObjectByType<Menu_RightClick>();
+            instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
         }
     }
 
@@ -77,7 +79,7 @@ public class Manager_Input : MonoBehaviour
                 bool canExecute = KeyHeld(KeyCode.Escape, escapeHoldTime);
 
                 List<GameObject> openUIWindows = new();
-                
+
                 foreach (Transform child in UICanvas.transform)
                 {
                     if (child.gameObject.activeSelf)
@@ -181,7 +183,7 @@ public class Manager_Input : MonoBehaviour
     }
 
     public void OpenInventory(GameObject interactedObject)
-    { 
+    {
         Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
 
         if (!inventoryManager.isOpen)
@@ -253,21 +255,26 @@ public class Manager_Input : MonoBehaviour
             Debug.Log($"No close function for {window}");
         }
     }
-    public bool OnItemPickup(int slotIndex)
+    public bool OnItemPickup(int itemID = -1, int stackSize = 0)
     {
         bool result = false;
-        int itemID = 2;
-        int stackSize = 1;
+
+        // NB Change the itemID when the game comes out so the pickupitem button doesn't pickup something when there's nothing.
+
+        if (itemID == -1)
+        {
+            itemID = 1;
+        }
 
         List_Item item = List_Item.GetItemData(itemID);
-        
+
         if (player != null)
         {
             Inventory_Manager inventoryManager = player.GetComponent<Inventory_Manager>();
 
             if (inventoryManager != null)
             {
-                inventoryManager.AddItem(slotIndex, item, stackSize);
+                inventoryManager.AddItem(item, stackSize);
 
                 result = true;
 
@@ -287,65 +294,68 @@ public class Manager_Input : MonoBehaviour
 
         return result;
     }
-    public bool OnEquipFromInventory(int inventorySlotIndex)
+    public bool OnEquipFromInventory(Interactable_Item pickedUpItem = null, int inventorySlotIndex = -1)
     {
-        bool result = false;
-
         GameObject playerObject = player.gameObject;
         Inventory_Manager playerInventoryManager = Inventory_Manager.InventoryType(playerObject);
         Dictionary<int, (int, int, bool)> inventoryItems = playerInventoryManager.InventoryItemIDs;
 
-        List_Item item = List_Item.GetItemData(inventoryItems[inventorySlotIndex].Item1);
+        List_Item item = (pickedUpItem == null)
+        ? List_Item.GetItemData(inventoryItems[inventorySlotIndex].Item1)
+        : List_Item.GetItemData(pickedUpItem.itemID);
 
-        if (item != null)
-        {
-            Equipment_Manager playerEquipmentManager = player.GetComponent<Equipment_Manager>();
-
-            if (playerEquipmentManager != null)
-            {
-                (bool equipped, int remainingStackSize) = playerEquipmentManager.Equip(item, inventoryItems[inventorySlotIndex].Item2);
-
-                if (equipped)
-                {
-                    playerInventoryManager.RemoveItem(inventorySlotIndex, item, inventoryItems[inventorySlotIndex].Item2);
-
-                    if (remainingStackSize > 0)
-                    {
-                        playerInventoryManager.AddItem(inventorySlotIndex, item, remainingStackSize);
-                    }
-                    
-                    if (inventoryPanel != null)
-                    {
-                        RefreshUI(playerObject, playerEquipmentManager);
-                    }
-                    else
-                    {
-                        Debug.Log("No open UI window");
-                    }
-                }
-                else
-                {
-                    Debug.Log("Item was not equipped");
-                    return false;
-                }
-
-                result = true;
-                return result;
-            }
-
-            else
-            {
-                Debug.Log("Player does not have equipment manager");
-                return result;
-            }
-        }
-
-        else
+        if (item == null)
         {
             Debug.Log($"Inventory does not have itemID");
-            return result;
+            return false;
         }
+
+        Equipment_Manager playerEquipmentManager = player.GetComponent<Equipment_Manager>();
+
+        if (playerEquipmentManager == null)
+        {
+            Debug.Log("Player does not have equipment manager");
+            return false;
+        }
+
+        int stackSize = (inventorySlotIndex != -1) 
+            ? inventoryItems[inventorySlotIndex].Item2 
+            : pickedUpItem.stackSize;
+
+        (bool equipped, int remainingStackSize) = playerEquipmentManager.Equip(item, stackSize);
+
+        if (!equipped)
+        {
+            Debug.Log("Item was not equipped");
+            return false;
+        }
+
+        if (inventorySlotIndex != -1)
+        {
+            playerInventoryManager.RemoveItem(inventorySlotIndex, item, stackSize);
+        }
+        else
+        {
+            Destroy(pickedUpItem.gameObject);
+        }
+
+        if (remainingStackSize > 0)
+        {
+            playerInventoryManager.AddItem(item, remainingStackSize);
+        }
+
+        if (inventoryPanel != null)
+        {
+            RefreshUI(playerObject, playerEquipmentManager);
+        }
+        else
+        {
+            Debug.Log("No open UI window");
+        }
+
+        return true;
     }
+
     public void RefreshUI(GameObject actor, Equipment_Manager actorEquipmentManager)
     {
         Manager_Stats statManager = player.GetComponent<Manager_Stats>();

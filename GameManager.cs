@@ -37,6 +37,9 @@ public class GameManager : MonoBehaviour
     public int mostRecentAutoSave = 0;
     public int leastRecentAutoSave = 4;
 
+    public GameObject itemPrefab;
+    public Transform itemsArea;
+
     private void Awake()
     {
         instance = this;
@@ -166,5 +169,21 @@ public class GameManager : MonoBehaviour
         System.Random random = new System.Random();
         float randomFloat = (float)(random.NextDouble() * (maxValue - minValue) + minValue);
         return (float)Math.Round(randomFloat, 2);
+    }
+
+    // OTher
+
+    public void CreateNewItem(int itemID, int stackSize)
+    {
+        GameObject droppedItem = Instantiate(itemPrefab, player.transform.position, Quaternion.identity, itemsArea);
+
+        Interactable_Item droppedItemScript = droppedItem.GetComponent<Interactable_Item>();
+
+        if (droppedItemScript != null)
+        {
+            droppedItemScript.itemID = itemID;
+            droppedItemScript.stackSize = stackSize;
+            droppedItemScript.UpdateItem();
+        }
     }
 }

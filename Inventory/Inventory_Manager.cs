@@ -106,9 +106,10 @@ public abstract class Inventory_Manager : MonoBehaviour
     }
     #endregion
     #region Adding and Removing items
-    public virtual bool AddItem(int itemIndex, List_Item item, int stackSize)
+    public virtual bool AddItem(List_Item item, int stackSize)
     {
         bool result = false;
+        int slotIndex = -1;
 
         if (item != null)
         {
@@ -133,31 +134,28 @@ public abstract class Inventory_Manager : MonoBehaviour
                 return result;
             }
 
-            if (itemIndex == -1)
+            foreach (KeyValuePair<int, (int, int, bool)> entry in InventoryItemIDs)
             {
-                foreach (KeyValuePair<int, (int, int, bool)> entry in InventoryItemIDs)
+                if (entry.Value.Item1 == item.itemID && !entry.Value.Item3)
                 {
-                    if (entry.Value.Item1 == item.itemID && !entry.Value.Item3)
-                    {
-                        itemIndex = entry.Key;
-                        break;
-                    }
+                    slotIndex = entry.Key;
+                    break;
                 }
             }
-            
-            if (itemIndex >= 0)
+
+            if (slotIndex >= 0)
             {
-                int currentStackSize = InventoryItemIDs[itemIndex].Item2 + stackSize;
+                int currentStackSize = InventoryItemIDs[slotIndex].Item2 + stackSize;
                 int maxStackSize = item.GetMaxStackSize();
 
                 if (currentStackSize > maxStackSize)
                 {
                     int remainingStackSize = currentStackSize - maxStackSize;
-                    InventoryItemIDs[itemIndex] = (item.itemID, maxStackSize, true);
+                    InventoryItemIDs[slotIndex] = (item.itemID, maxStackSize, true);
                     Debug.Log("Reached max stack size");
                     if (remainingStackSize > 0)
                     {
-                        AddItem(-1, item, remainingStackSize);
+                        AddItem(item, remainingStackSize);
                     }
                     TriggerChangeInventory();
                     SaveInventory(inventoryManager);
@@ -167,11 +165,11 @@ public abstract class Inventory_Manager : MonoBehaviour
                 {
                     if (currentStackSize == maxStackSize)
                     {
-                        InventoryItemIDs[itemIndex] = (item.itemID, currentStackSize, false);
+                        InventoryItemIDs[slotIndex] = (item.itemID, currentStackSize, false);
                     }
                     else
                     {
-                        InventoryItemIDs[itemIndex] = (item.itemID, currentStackSize, true);
+                        InventoryItemIDs[slotIndex] = (item.itemID, currentStackSize, true);
                     }
 
                     TriggerChangeInventory();
@@ -206,15 +204,15 @@ public abstract class Inventory_Manager : MonoBehaviour
                     if (currentStackSize > maxStackSize)
                     {
                         int remainingStackSize = currentStackSize - maxStackSize;
-                        InventoryItemIDs[itemIndex] = (item.itemID, maxStackSize, true);
+                        InventoryItemIDs[slotIndex] = (item.itemID, maxStackSize, true);
                         Debug.Log("Reached max stack size");
                         if (remainingStackSize > 0)
                         {
-                            AddItem(-1, item, remainingStackSize);
+                            AddItem(item, remainingStackSize);
                         }
                         TriggerChangeInventory();
                         SaveInventory(inventoryManager);
-                        result = true;                        
+                        result = true;
                     }
                     else
                     {
@@ -226,10 +224,10 @@ public abstract class Inventory_Manager : MonoBehaviour
                         {
                             InventoryItemIDs[emptyItemIndex] = (item.itemID, currentStackSize, true);
                         }
-                                       
+
                         TriggerChangeInventory();
                         SaveInventory(inventoryManager);
-                        result = true;                        
+                        result = true;
                     }
                 }
             }
@@ -273,12 +271,14 @@ public abstract class Inventory_Manager : MonoBehaviour
     {
         if (InventoryItemIDs.ContainsKey(itemIndex))
         {
+            int tempItemID = InventoryItemIDs[itemIndex].Item1;
+
             if (dropAmount == -1)
             {
                 dropAmount = InventoryItemIDs[itemIndex].Item2;
             }
 
-            int currentStackSize =InventoryItemIDs[itemIndex].Item2 - dropAmount;
+            int currentStackSize = InventoryItemIDs[itemIndex].Item2 - dropAmount;
 
             if (currentStackSize <= 0)
             {
@@ -291,6 +291,8 @@ public abstract class Inventory_Manager : MonoBehaviour
 
             TriggerChangeInventory();
             SaveInventory(inventoryManager);
+
+            GameManager.instance.CreateNewItem(tempItemID, dropAmount);
         }
         else
         {

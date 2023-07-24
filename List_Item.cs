@@ -169,7 +169,6 @@ public abstract class List_Item
 
     public static ItemStats DisplayItemStats(int itemID, int currentStackSize = -1)
     {
-        Debug.Log("1");
         List_Item item = GetItemData(itemID);
 
         if (item != null)

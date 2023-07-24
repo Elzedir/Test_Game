@@ -321,7 +321,7 @@ public class Equipment_Manager : MonoBehaviour
             Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
             int stackSize = currentEquipment[equipSlot].Item2;
 
-            bool itemReturnedToInventory = inventoryManager.AddItem(-1, previousEquipment, stackSize);
+            bool itemReturnedToInventory = inventoryManager.AddItem(previousEquipment, stackSize);
 
             if (itemReturnedToInventory)
             {
@@ -348,6 +348,7 @@ public class Equipment_Manager : MonoBehaviour
         {
             Actor inventoryActor = GetComponent<Actor>();
             Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
+            int tempItemID = currentEquipment[equipSlot].Item1;
 
             if (dropAmount == -1)
             {
@@ -368,6 +369,8 @@ public class Equipment_Manager : MonoBehaviour
             SaveEquipment(this);
             TriggerChangeEquipment();
             Manager_Input.instance.RefreshUI(inventoryActor.gameObject, equipmentManager);
+
+            GameManager.instance.CreateNewItem(tempItemID, dropAmount);
         }
         else
         {

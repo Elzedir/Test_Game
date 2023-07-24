@@ -1,32 +1,38 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Tilemaps;
 using UnityEngine;
 using UnityEngine.UI;
 using static Equipment_Slot;
 
 public class Interactable_Item : MonoBehaviour
 {
-    public Button button;
+    private BoxCollider2D coll;
+    public SpriteRenderer spriteRenderer;
     public int itemID;
     public int stackSize;
     private List_Item item;
     public List_Item.ItemStats displayItemStats;
 
-    public void Start()
+    public void UpdateItem()
     {
-        if (!TryGetComponent<Button>(out button))
-        {
-            button = gameObject.AddComponent<Button>();
-        }
-
+        coll = GetComponent<BoxCollider2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
+        coll.size = spriteSize;
         item = List_Item.GetItemData(itemID);
-        displayItemStats = List_Item.DisplayItemStats(itemID, stackSize);
+        spriteRenderer.sprite = item.itemIcon;
+        transform.localScale = item.itemScale;
+        transform.rotation = Quaternion.Euler(item.itemRotation);
+        gameObject.name = item.itemName;
     }
 
-    public void OnPointerUp()
+    public void OnMouseUp()
     {
-        Menu_RightClick.instance.RightClickMenu(transform.position, item: item, equippable: item.equippable);
+        item = List_Item.GetItemData(itemID);
+        displayItemStats = List_Item.DisplayItemStats(itemID, stackSize);
+        Menu_RightClick.instance.RightClickMenu(interactedThing: this.gameObject, equippable: item.equippable);
     }
 }
 
