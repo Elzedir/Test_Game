@@ -32,7 +32,7 @@ public class Interactable_Item : MonoBehaviour
     {
         item = List_Item.GetItemData(itemID);
         displayItemStats = List_Item.DisplayItemStats(itemID, stackSize);
-        Menu_RightClick.instance.RightClickMenu(interactedThing: this.gameObject, equippable: item.equippable);
+        Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, equippable: item.equippable);
     }
 }
 

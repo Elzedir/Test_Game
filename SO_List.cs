@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class SO_List : MonoBehaviour
 {
-    public static SO_List instance;
+    public static SO_List Instance;
 
     //public GameObject characterPrefab;
 

@@ -335,7 +335,7 @@ public class Equipment_Manager : MonoBehaviour
             
             SaveEquipment(this);
             TriggerChangeEquipment();
-            Manager_Input.instance.RefreshUI(inventoryActor.gameObject, equipmentManager);
+            Manager_Input.Instance.RefreshUI(inventoryActor.gameObject, equipmentManager);
         }
         else
         {
@@ -368,9 +368,9 @@ public class Equipment_Manager : MonoBehaviour
 
             SaveEquipment(this);
             TriggerChangeEquipment();
-            Manager_Input.instance.RefreshUI(inventoryActor.gameObject, equipmentManager);
+            Manager_Input.Instance.RefreshUI(inventoryActor.gameObject, equipmentManager);
 
-            GameManager.instance.CreateNewItem(tempItemID, dropAmount);
+            GameManager.Instance.CreateNewItem(tempItemID, dropAmount);
         }
         else
         {

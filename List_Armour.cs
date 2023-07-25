@@ -62,7 +62,7 @@ public class List_Armour : List_Item
             ItemType.Armour,
             ArmourType.Chest,
             "Bronze chestplate",
-            SO_List.instance.armourSprites[0].sprite,
+            SO_List.Instance.armourSprites[0].sprite,
             new Vector3(-0.04f, -0.07f, 0f),
             new Vector3(180, 0, 0),
             new Vector3(0.4f, 0.4f, 0.4f),

@@ -4,13 +4,18 @@ using UnityEngine;
 
 public class Inventory_NotEquippable : Inventory_Manager
 {
-    public RectTransform inventoryUI;
-    [SerializeField] public override RectTransform inventoryUIBase => inventoryUI;
-
     protected override void Awake()
     {
         base.Awake();
+    }
 
-        inventoryUI = GetComponent<RectTransform>();
+    public override void OpenInventory()
+    {
+        Inventory_Window.Instance.OpenInventoryNotEquippable();
+    }
+
+    public void CloseInventory()
+    {
+        Inventory_Window.Instance.CloseInventoryNotEquippable();
     }
 }

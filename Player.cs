@@ -55,7 +55,7 @@ public class Player : Actor
     }
     public void SwapSprite(int skinID)
     {
-        spriteRenderer.sprite = GameManager.instance.playerSprites[skinID];
+        spriteRenderer.sprite = GameManager.Instance.playerSprites[skinID];
     }
     protected override void OnCollide(Collider2D coll)
     {
@@ -95,7 +95,7 @@ public class Player : Actor
             }
         }
 
-        GameManager.instance.deathMenuAnimator.SetTrigger("Show");
+        GameManager.Instance.deathMenuAnimator.SetTrigger("Show");
     }
     public GameObject GetClosestNPC()
     {

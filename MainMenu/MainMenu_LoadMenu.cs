@@ -20,7 +20,7 @@ public class MainMenu_LoadMenu : MonoBehaviour
 
     public void LoadSaveFile(int saveSlot)
     {
-        GameManager.instance.LoadState(saveSlot);
+        GameManager.Instance.LoadState(saveSlot);
     }
 
     public void DeleteSaveCheckOpen()
@@ -47,7 +47,7 @@ public class MainMenu_LoadMenu : MonoBehaviour
 
     public void LoadMostRecentSave()
     {
-        GameManager.instance.LoadState(GameManager.instance.mostRecentAutoSave);
+        GameManager.Instance.LoadState(GameManager.Instance.mostRecentAutoSave);
     }
 }
 

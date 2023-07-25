@@ -3,13 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using Unity.Services.CloudSave;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance;
+    public static GameManager Instance;
 
     public List<Sprite> playerSprites;
     public List<Sprite> weaponSprites;
@@ -42,7 +44,7 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        instance = this;
+        Instance = this;
         SceneManager.sceneLoaded += OnSceneLoad;
     }
 

@@ -6,14 +6,19 @@ using UnityEngine.UI;
 
 public class Inventory_Equippable : Inventory_Manager
 {
-    public RectTransform inventoryUI;
-    [SerializeField] public override RectTransform inventoryUIBase => inventoryUI;
-
     protected override void Awake()
     {
         base.Awake();
+    }
 
-        inventoryUI = GetComponent<RectTransform>();
+    public override void OpenInventory()
+    {
+        Inventory_Window.Instance.OpenInventoryEquippable();
+    }
+
+    public void CloseInventory()
+    {
+        Inventory_Window.Instance.CloseInventoryEquippable();
     }
 
 }

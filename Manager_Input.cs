@@ -13,14 +13,14 @@ using static UnityEditor.Progress;
 
 public class Manager_Input : MonoBehaviour
 {
-    public static Manager_Input instance;
+    public static Manager_Input Instance;
     public Menu_RightClick menuRightClickScript;
 
     public Player player;
     public GameObject interactedCharacter;
 
     public GameObject UICanvas;
-    public Inventory_Window inventoryPanel;
+    public Inventory_Window _inventoryPanel;
     public Inventory_Creator inventorySlotPanel;
     public Equipment_Window equipmentPanel;
     public Journal_Window journalPanel;
@@ -34,9 +34,9 @@ public class Manager_Input : MonoBehaviour
 
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
+            Instance = this;
         }
         else
         {
@@ -121,6 +121,11 @@ public class Manager_Input : MonoBehaviour
                             GameObject lastOpenWindow = openUIWindows.LastOrDefault();
                             SetWindowToBack(lastOpenWindow);
                             CloseUIWindow(lastOpenWindow);
+
+                            if (Menu_RightClick.Instance.enabled)
+                            {
+                                Menu_RightClick.Instance.RightClickMenuClose();
+                            }
                         }
                     }
                 }
@@ -186,45 +191,46 @@ public class Manager_Input : MonoBehaviour
     {
         Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
 
-        if (!inventoryManager.isOpen)
+        if (!inventoryManager.IsOpen)
         {
             if (!inventoryManager.InventoryIsInitialised)
             {
                 inventoryManager.InitialiseInventory();
             }
-
-            inventoryPanel.gameObject.SetActive(true);
-            inventoryManager.isOpen = true;
-            SetWindowToFront(inventoryPanel.gameObject);
-
-            inventoryPanel.isOpen = true;
-            inventoryPanel.SetInventoryWindowName(interactedObject.name);
-
-            int inventorySize = inventoryManager.GetComponent<Inventory_Manager>().GetInventorySize();
-            Equipment_Manager equipmentManager = player.GetComponent<Equipment_Manager>(); // Change to be for whoever is interacted with
-
+            Debug.Log(_inventoryPanel);
+            _inventoryPanel.Open(interactedObject, inventoryManager);
+            inventoryManager.IsOpen = true;
+            SetWindowToFront(_inventoryPanel.gameObject);
+            
             if (inventorySlotPanel != null)
             {
+                int inventorySize = inventoryManager.GetComponent<Inventory_Manager>().GetInventorySize();
+
                 inventorySlotPanel.CreateSlots(inventorySize);
                 inventorySlotPanel.UpdateInventoryUI(inventoryManager);
-                equipmentPanel.UpdateEquipmentUI(equipmentManager);
+                
             }
             else
             {
                 Debug.Log("Slot creator doesn't exist");
             }
+
+            if (interactedObject.TryGetComponent(out Equipment_Manager equipmentManager))
+            {
+                equipmentPanel.UpdateEquipmentUI(equipmentManager);
+            }
         }
         else
         {
-            int childCount = inventoryPanel.transform.parent.childCount;
+            int childCount = _inventoryPanel.transform.parent.childCount;
 
-            if (inventoryPanel.transform.GetSiblingIndex() == childCount - 1)
+            if (_inventoryPanel.transform.GetSiblingIndex() == childCount - 1)
             {
-                CloseUIWindow(inventoryPanel.gameObject);
+                CloseUIWindow(_inventoryPanel.gameObject);
             }
             else
             {
-                SetWindowToFront(inventoryPanel.gameObject);
+                SetWindowToFront(_inventoryPanel.gameObject);
             }
         }
     }
@@ -233,7 +239,7 @@ public class Manager_Input : MonoBehaviour
         // Need to put in a way to see other inventories, not just the player
         GameObject interactedObject = player.gameObject;
 
-        if (window == inventoryPanel.gameObject)
+        if (window == _inventoryPanel.gameObject)
         {
             Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
             Inventory_Slot[] inventorySlots = inventorySlotPanel.GetComponentsInChildren<Inventory_Slot>();
@@ -243,8 +249,8 @@ public class Manager_Input : MonoBehaviour
                 Destroy(slot.gameObject);
             }
 
-            inventoryPanel.gameObject.SetActive(false);
-            inventoryManager.isOpen = false;
+            _inventoryPanel.gameObject.SetActive(false);
+            inventoryManager.IsOpen = false;
         }
         else if (window == journalPanel.gameObject)
         {
@@ -278,9 +284,9 @@ public class Manager_Input : MonoBehaviour
 
                 result = true;
 
-                if (inventoryPanel != null)
+                if (_inventoryPanel != null)
                 {
-                    Inventory_Creator slotCreator = inventoryPanel.GetComponentInChildren<Inventory_Creator>();
+                    Inventory_Creator slotCreator = _inventoryPanel.GetComponentInChildren<Inventory_Creator>();
                     slotCreator.UpdateInventoryUI(inventoryManager);
                 }
                 else
@@ -344,7 +350,7 @@ public class Manager_Input : MonoBehaviour
             playerInventoryManager.AddItem(item, remainingStackSize);
         }
 
-        if (inventoryPanel != null)
+        if (_inventoryPanel != null)
         {
             RefreshUI(playerObject, playerEquipmentManager);
         }
@@ -361,7 +367,7 @@ public class Manager_Input : MonoBehaviour
         Manager_Stats statManager = player.GetComponent<Manager_Stats>();
         statManager.UpdateStats();
 
-        CloseUIWindow(inventoryPanel.gameObject);
+        CloseUIWindow(_inventoryPanel.gameObject);
         OpenInventory(actor);
         actorEquipmentManager.UpdateSprites();
     }

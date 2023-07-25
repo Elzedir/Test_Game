@@ -14,12 +14,11 @@ using static UnityEditor.Progress;
 
 public class Menu_RightClick : MonoBehaviour
 {
-    public static Menu_RightClick instance;
-    public Manager_Input inputManager;
-    public Menu_RightClick menuRightClickScript;
-    public Equipment_Window equipmentWindow;
+    public static Menu_RightClick Instance;
+    public Manager_Input InputManager;
+    public Equipment_Window EquipmentWindow;
 
-    private GameObject thing;
+    private GameObject _thing;
 
     private Inventory_Slot pressedInventorySlot;
     private Equipment_Slot pressedEquipmentSlot;
@@ -39,9 +38,9 @@ public class Menu_RightClick : MonoBehaviour
 
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
+            Instance = this;
         }
         else
         {
@@ -95,7 +94,7 @@ public class Menu_RightClick : MonoBehaviour
     public void RightClickMenuClose()
     {
         gameObject.SetActive(false);
-        thing = null;
+        _thing = null;
         buttonEquip.gameObject.SetActive(false);
         buttonPickup.gameObject.SetActive(false);
         buttonTalk.gameObject.SetActive(false);
@@ -117,7 +116,7 @@ public class Menu_RightClick : MonoBehaviour
     {
         position = Input.mousePosition;
 
-        thing = interactedThing;
+        _thing = interactedThing;
 
         buttonPickup.gameObject.SetActive(true);  // Always active for now, then use item
 
@@ -129,8 +128,8 @@ public class Menu_RightClick : MonoBehaviour
         buttonDropAll.gameObject.SetActive(droppable);
         buttonOpen.gameObject.SetActive(openable);
 
-        pressedInventorySlot = thing.GetComponent<Inventory_Slot>();
-        pressedEquipmentSlot = thing.GetComponent<Equipment_Slot>();
+        pressedInventorySlot = _thing.GetComponent<Inventory_Slot>();
+        pressedEquipmentSlot = _thing.GetComponent<Equipment_Slot>();
         pressedActor = actor;
         pickedUpItem = GetComponent<Interactable_Item>();
     }
@@ -156,7 +155,7 @@ public class Menu_RightClick : MonoBehaviour
             pressedSlot = pressedInventorySlot.slotIndex;
         }
 
-        bool equipped = inputManager.OnEquipFromInventory(pickedUpItem: pickedUpItem, inventorySlotIndex: pressedSlot);
+        bool equipped = InputManager.OnEquipFromInventory(pickedUpItem: pickedUpItem, inventorySlotIndex: pressedSlot);
         RightClickMenuClose();
     }
     public void UnequipButtonPressed()
@@ -170,7 +169,7 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void PickupButtonPressed()
     {
-        bool pickedUp = inputManager.OnItemPickup(itemID: pickedUpItem.itemID, stackSize: pickedUpItem.stackSize);
+        bool pickedUp = InputManager.OnItemPickup(itemID: pickedUpItem.itemID, stackSize: pickedUpItem.stackSize);
         
         if (pickedUp)
         {
@@ -185,14 +184,14 @@ public class Menu_RightClick : MonoBehaviour
         {
             Equipment_Manager equipmentManager = actor.GetComponent<Equipment_Manager>();
             equipmentManager.DropItem(equipmentSlot, dropAmount);
-            Manager_Input.instance.RefreshUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
+            Manager_Input.Instance.RefreshUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
         }
 
         else if (inventorySlot != null)
         {
             Inventory_Manager inventoryManager = actor.GetComponent<Inventory_Manager>();
             inventoryManager.DropItem(inventorySlot.slotIndex, dropAmount, inventoryManager);
-            Manager_Input.instance.RefreshUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
+            Manager_Input.Instance.RefreshUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
         }
     }
     public void DropOneButtonPressed()
@@ -235,5 +234,10 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void OpenButtonPressed()
     {
+        if (_thing.TryGetComponent<Chest>(out Chest chest))
+        {
+            chest.OpenChestInventory(chest.Inventory_NotEquippable);
+            RightClickMenuClose();
+        }
     }
 }

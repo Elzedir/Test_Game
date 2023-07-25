@@ -27,17 +27,29 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     // Inventory items
     public int inventorySize = 10;
-    public Dictionary<int, (int, int, bool)> InventoryItemIDs = new();
-    [SerializeField] public abstract RectTransform inventoryUIBase { get; }
-    public bool isOpen = false;
-    public bool InventoryIsInitialised = false;
-    public event InventoryChangeEvent OnInventoryChange;
-
     public int InventorySize
     {
         get { return inventorySize; }
         set { inventorySize = value; }
     }
+    public Dictionary<int, (int, int, bool)> InventoryItemIDs = new();
+
+    private bool _isOpen = false;
+    public bool IsOpen
+    {
+        get { return _isOpen; }
+        set { _isOpen = value; }
+    }
+
+    private bool _inventoryIsInitialised = false;
+    public bool InventoryIsInitialised
+    {
+        get { return _inventoryIsInitialised; }
+    }
+
+    public event InventoryChangeEvent OnInventoryChange;
+
+    
     #endregion
 
     protected virtual void Awake()
@@ -68,7 +80,7 @@ public abstract class Inventory_Manager : MonoBehaviour
                 InventoryItemIDs[i] = (-1, 0, false);
             }
         }
-        InventoryIsInitialised = true;
+        _inventoryIsInitialised = true;
         LoadInventory();
     }
 
@@ -292,7 +304,7 @@ public abstract class Inventory_Manager : MonoBehaviour
             TriggerChangeInventory();
             SaveInventory(inventoryManager);
 
-            GameManager.instance.CreateNewItem(tempItemID, dropAmount);
+            GameManager.Instance.CreateNewItem(tempItemID, dropAmount);
         }
         else
         {
@@ -349,6 +361,10 @@ public abstract class Inventory_Manager : MonoBehaviour
 
 
     #region Inventory Windows
+    public virtual void OpenInventory()
+    {
+
+    }
     public int GetInventorySize()
     {
         return inventorySize;

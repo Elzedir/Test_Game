@@ -7,6 +7,6 @@ public class Button_Open : MonoBehaviour
     public void OnButtonPress()
     {
         Debug.Log($"Open button pressed");
-        Menu_RightClick.instance.OpenButtonPressed();
+        Menu_RightClick.Instance.OpenButtonPressed();
     }
 }

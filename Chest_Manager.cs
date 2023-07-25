@@ -12,8 +12,8 @@ public class Chest_Manager : MonoBehaviour
     [SerializeField]
     private List<Chest> chestKeys = new List<Chest>();
     [SerializeField]
-    private List<Chest_Data> chestValues = new List<Chest_Data>();
-    public Dictionary<Chest, Chest_Data> allChests = new Dictionary<Chest, Chest_Data>();
+    private List<Chest_Items> chestValues = new List<Chest_Items>();
+    public Dictionary<Chest, Chest_Items> allChests = new Dictionary<Chest, Chest_Items>();
 
     private Chest chest;
 
@@ -40,7 +40,7 @@ public class Chest_Manager : MonoBehaviour
 
     }
 
-    public Chest_Data GetChestData(Chest chest)
+    public Chest_Items GetChestData(Chest chest)
     {
         if (allChests.ContainsKey(chest))
         {
@@ -50,33 +50,6 @@ public class Chest_Manager : MonoBehaviour
         {
             Debug.Log("Chest does not exist");
             return null; // or you can return a default value or throw an exception
-        }
-    }
-
-    [Serializable]
-    public struct ChestContents
-    {
-        public int[] itemIDs;
-        public int[] stackSizes;
-    }
-
-    public static ChestContents DisplayChestContents(Chest chest)
-    {
-        Chest_Data chestData = Chest_Manager.instance.GetChestData(chest);
-
-        if (chestData != null)
-        {
-            ChestContents chestContents = new ChestContents()
-            {
-                itemIDs = chestData.itemIDs,
-                stackSizes = chestData.stackSizes
-            };
-
-            return chestContents;
-        }
-        else
-        {
-            return default;
         }
     }
 }

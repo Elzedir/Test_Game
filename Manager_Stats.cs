@@ -121,8 +121,8 @@ public class Manager_Stats : MonoBehaviour
         Player player = GetComponent<Player>();
         if (player != null)
         {
-            GameManager.instance.ShowFloatingText(damage.damageAmount.ToString(), 25, Color.red, transform.position, Vector3.up * 30, 0.5f);
-            GameManager.instance.HUDBarChange();
+            GameManager.Instance.ShowFloatingText(damage.damageAmount.ToString(), 25, Color.red, transform.position, Vector3.up * 30, 0.5f);
+            GameManager.Instance.HUDBarChange();
         }
         
         currentHealth -= finalDamage;
@@ -146,8 +146,8 @@ public class Manager_Stats : MonoBehaviour
             return;
         }
 
-        GameManager.instance.ShowFloatingText("+" + amount.ToString() + "hp", 25, Color.green, transform.position, Vector3.up * 30, 1.0f);
-        GameManager.instance.HUDBarChange();
+        GameManager.Instance.ShowFloatingText("+" + amount.ToString() + "hp", 25, Color.green, transform.position, Vector3.up * 30, 1.0f);
+        GameManager.Instance.HUDBarChange();
     }
 
     public void UpdateStatsOnLevelUp()

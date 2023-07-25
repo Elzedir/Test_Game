@@ -9,6 +9,6 @@ public class Button_Equip : MonoBehaviour
     public void OnButtonPress()
     {
         Debug.Log($"Equip Item button pressed");
-        Menu_RightClick.instance.EquipButtonPressed();
+        Menu_RightClick.Instance.EquipButtonPressed();
     }
 }

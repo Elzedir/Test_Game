@@ -48,7 +48,7 @@ public class UI_Slider : MonoBehaviour
 
     public void AcceptButtonPressed()
     {
-        Menu_RightClick.instance.Drop(Mathf.RoundToInt(slider.value), equipmentSlot: equipmentSlot, inventorySlot: inventorySlot, actor: actor);
+        Menu_RightClick.Instance.Drop(Mathf.RoundToInt(slider.value), equipmentSlot: equipmentSlot, inventorySlot: inventorySlot, actor: actor);
         gameObject.SetActive(false);
     }
 

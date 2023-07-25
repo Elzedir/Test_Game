@@ -72,7 +72,7 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
             }
         }
 
-        Menu_RightClick.instance.RightClickMenu(actor: actor, equippable: equippable, interactedThing: inventorySlot.gameObject, droppable: droppable);
+        Menu_RightClick.Instance.RightClickMenu(actor: actor, equippable: equippable, interactedThing: inventorySlot.gameObject, droppable: droppable);
         
     }
 }

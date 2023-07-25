@@ -15,7 +15,7 @@ public class NextLevel : Hitbox
     {
         if (coll.name == "Player")
         {
-            GameManager.instance.SaveState(GameManager.instance.leastRecentAutoSave);
+            GameManager.Instance.SaveState(GameManager.Instance.leastRecentAutoSave);
             string sceneName = sceneNames[Random.Range(0,sceneNames.Length)];
             UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
         }

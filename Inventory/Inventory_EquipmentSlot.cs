@@ -112,6 +112,6 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
             }
         }
         
-        Menu_RightClick.instance.RightClickMenu(interactedThing: equipSlot.gameObject, actor: equipmentWindow.actor, itemEquipped: itemEquipped, droppable: droppable);
+        Menu_RightClick.Instance.RightClickMenu(interactedThing: equipSlot.gameObject, actor: equipmentWindow.actor, itemEquipped: itemEquipped, droppable: droppable);
     }
 }

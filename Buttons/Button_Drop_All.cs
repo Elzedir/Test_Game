@@ -7,6 +7,6 @@ public class Button_Drop_All : MonoBehaviour
     public void OnButtonPress()
     {
         Debug.Log($"Drop All Item button pressed");
-        Menu_RightClick.instance.DropAllButtonPressed();
+        Menu_RightClick.Instance.DropAllButtonPressed();
     }
 }

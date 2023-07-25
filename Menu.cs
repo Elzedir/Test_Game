@@ -27,7 +27,7 @@ public class Menu : MonoBehaviour
             currentCharacterSelection ++;
 
             // If we reach the current total count of available player sprites,
-            if (currentCharacterSelection == GameManager.instance.playerSprites.Count)
+            if (currentCharacterSelection == GameManager.Instance.playerSprites.Count)
                 // Set the character selection back to 0.
                 currentCharacterSelection = 0;
 
@@ -43,7 +43,7 @@ public class Menu : MonoBehaviour
             // If we go beneath the minimum count of available player sprites,
             if (currentCharacterSelection < 0)
                 // Set the character selection back to 1 below the max count.
-                currentCharacterSelection = GameManager.instance.playerSprites.Count - 1;
+                currentCharacterSelection = GameManager.Instance.playerSprites.Count - 1;
 
             // If we are not at the total count, then change the character selection.
             OnSelectionChanged();
@@ -53,9 +53,9 @@ public class Menu : MonoBehaviour
     {
         // The action of OnSelectionChanged takes the current selected sprite and changes the player
         // sprite according to the rules set in OnArrowClick.
-        characterSelectionSprite.sprite = GameManager.instance.playerSprites[currentCharacterSelection];
+        characterSelectionSprite.sprite = GameManager.Instance.playerSprites[currentCharacterSelection];
         // The Game Manager will then tell the player to exectute command SwapSprite
-        GameManager.instance.player.SwapSprite(currentCharacterSelection);
+        GameManager.Instance.player.SwapSprite(currentCharacterSelection);
     }
 
     // Weapon upgrade
@@ -65,18 +65,18 @@ public class Menu : MonoBehaviour
     public void UpdateMenu()
     {
         // UI Bars
-        hitpointText.text = GameManager.instance.player.baseHealth.ToString();
-        goldText.text = GameManager.instance.gold.ToString();
-        levelText.text = GameManager.instance.playerLevel().ToString();
+        hitpointText.text = GameManager.Instance.player.baseHealth.ToString();
+        goldText.text = GameManager.Instance.gold.ToString();
+        levelText.text = GameManager.Instance.playerLevel().ToString();
 
         // XP Bar
-        int currentLevel = GameManager.instance.playerLevel();
+        int currentLevel = GameManager.Instance.playerLevel();
 
         // If the current level is equal to the total number of levels in the xpTable.
-        if(currentLevel == GameManager.instance.xpTable.Count)
+        if(currentLevel == GameManager.Instance.xpTable.Count)
         {
             // then make the xp Text state how much experience you have accumulated in total
-            xpText.text = GameManager.instance.totalExperience.ToString() + " total experience points";
+            xpText.text = GameManager.Instance.totalExperience.ToString() + " total experience points";
             // And scale the xp bar to the scale of 1, which will fill up the whole bar.
             xpBar.localScale = Vector3.one;
         }
@@ -84,15 +84,15 @@ public class Menu : MonoBehaviour
         else
         {
             // Take how much total xp was required to level up last time
-            int previousLevelXp = GameManager.instance.xpReqToLevelUp(currentLevel - 1);
+            int previousLevelXp = GameManager.Instance.xpReqToLevelUp(currentLevel - 1);
             // And take how much total xp will be required to level up this time
-            int nextLevelXp = GameManager.instance.xpReqToLevelUp(currentLevel);
+            int nextLevelXp = GameManager.Instance.xpReqToLevelUp(currentLevel);
 
             // Find the difference between then to give us the current xp required to level up.
             int levelUpXp = nextLevelXp - previousLevelXp;
             // Calculate how far we are into the level by subtracting the total amount of experience
             // required for the previous level up and subtract it from our current total experience.
-            int currentXp = GameManager.instance.totalExperience - previousLevelXp;
+            int currentXp = GameManager.Instance.totalExperience - previousLevelXp;
 
             float xpRatio = (float)currentXp / (float)levelUpXp;
             xpBar.localScale = new Vector3(xpRatio, 1, 1);
