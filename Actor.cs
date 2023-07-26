@@ -99,6 +99,8 @@ public abstract class Actor : Hitbox
     public List<GameObject> NPCs = new List<GameObject>();
     public List<GameObject> attackableTargets = new List<GameObject>();
 
+    public bool RightMouseButtonHeld = false;
+
     protected override void Start()
     {
         base.Start();
@@ -368,6 +370,23 @@ public abstract class Actor : Hitbox
 
         return result;
     }
+
+    public void OnMouseOver()
+    {
+        if (Input.GetMouseButtonUp(1))
+        {
+            if (TryGetComponent<Player> (out Player player))
+            {
+                Debug.Log($"This is the {player}");
+            }
+            else
+            {
+                Debug.Log("1");
+                Menu_RightClick.Instance.RightClickMenu(interactedThing: gameObject, talkable: true);
+            }
+        }
+    }
+
     public void PlayerAttack()
     {
         List<Equipment_Slot> equippedWeapons = equipmentManager.WeaponEquipped();

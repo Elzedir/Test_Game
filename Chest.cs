@@ -25,22 +25,25 @@ public class Chest : MonoBehaviour
     {
         if (TryGetComponent<SpriteRenderer>(out spriteRenderer))
         {
-            spriteRenderer.sprite = SO_List.Instance.chestSprites[0].sprite;
+            spriteRenderer.sprite = SO_List.Instance.ChestSprites[0].sprite;
         }
     }
 
-    public void OnButtonPress()
+    public void OnMouseOver()
     {
-        Chest_Items chestItems = Chest_Manager.instance.GetChestData(this);
-
-        if (chestItems != null)
+        if (Input.GetMouseButtonUp(1))
         {
-            spriteRenderer.sprite = (chestItems.items.Length > 0)
-                ? SO_List.Instance.chestSprites[1].sprite
-                :SO_List.Instance.chestSprites[2].sprite;
-        }
+            Chest_Items chestItems = Chest_Manager.instance.GetChestData(this);
 
-        Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, openable: true);
+            if (chestItems != null)
+            {
+                spriteRenderer.sprite = (chestItems.items.Length > 0)
+                    ? SO_List.Instance.ChestSprites[1].sprite
+                    : SO_List.Instance.ChestSprites[2].sprite;
+            }
+
+            Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, openable: true);
+        }
     }
 
     public void OpenChestInventory(Inventory_NotEquippable inventoryManager)

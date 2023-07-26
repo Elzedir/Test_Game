@@ -2,16 +2,37 @@ using UnityEngine;
 
 public class SO_List : MonoBehaviour
 {
-    public static SO_List Instance;
+    private static SO_List _instance;
 
     //public GameObject characterPrefab;
 
     public List_Item itemList;
 
-    public List_Sprites[] weaponSprites;
-    public List_Sprites[] armourSprites;
-    public List_Sprites[] uiSprites;
-    public List_Sprites[] chestSprites;
+    public List_Sprites[] WeaponSprites;
+    public List_Sprites[] ArmourSprites;
+    public List_Sprites[] UiSprites;
+    public List_Sprites[] ChestSprites;
 
     public List_AnimatorControllers[] animatorControllers;
+
+    public static SO_List Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindFirstObjectByType<SO_List>();
+
+                if (_instance == null)
+                {
+                    GameObject singletonObject = new GameObject(typeof(SO_List).Name);
+                    _instance = singletonObject.AddComponent<SO_List>();
+                }
+
+                DontDestroyOnLoad(_instance.gameObject);
+            }
+
+            return _instance;
+        }
+    }
 }

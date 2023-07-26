@@ -179,6 +179,11 @@ public class GameManager : MonoBehaviour
     {
         GameObject droppedItem = Instantiate(itemPrefab, player.transform.position, Quaternion.identity, itemsArea);
 
+        if (TryGetComponent<SpriteRenderer> (out SpriteRenderer droppedItemSpriteRenderer))
+        {
+            droppedItemSpriteRenderer.sprite = List_Item.GetItemData(itemID).itemIcon;
+        }
+
         Interactable_Item droppedItemScript = droppedItem.GetComponent<Interactable_Item>();
 
         if (droppedItemScript != null)

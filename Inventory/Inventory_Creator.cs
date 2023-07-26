@@ -7,10 +7,19 @@ using static UnityEditor.Progress;
 public class Inventory_Creator : MonoBehaviour
 {
     public GameObject inventorySlot;
-    public Transform inventoryArea;
+    [SerializeField] private Transform inventoryArea;
+    private bool isOpen = false;
+    public Inventory_Manager TempInventoryManager;
+
+    public bool IsOpen
+    {
+        get { return isOpen; }
+        set { isOpen = value; }
+    }
 
     public void CreateSlots(int numSlots)
     {
+        Debug.Log(numSlots);
         int slotID = 0;
 
         for (int i = 0; i < numSlots; i++)
@@ -25,6 +34,8 @@ public class Inventory_Creator : MonoBehaviour
 
     public void UpdateInventoryUI(Inventory_Manager inventoryManager)
     {
+        TempInventoryManager = inventoryManager;
+
         Dictionary<int, (int, int, bool)> inventoryItems = inventoryManager.InventoryItemIDs;
         Actor inventoryActor = inventoryManager.GetComponent<Actor>();
 

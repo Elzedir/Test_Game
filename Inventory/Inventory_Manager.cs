@@ -32,6 +32,7 @@ public abstract class Inventory_Manager : MonoBehaviour
         get { return inventorySize; }
         set { inventorySize = value; }
     }
+
     public Dictionary<int, (int, int, bool)> InventoryItemIDs = new();
 
     private bool _isOpen = false;

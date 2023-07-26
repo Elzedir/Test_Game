@@ -70,7 +70,7 @@ public class List_Weapon : List_Item
             WeaponType.OneHanded,
             WeaponClass.ShortSword,
             "Wood shortsword",
-            SO_List.Instance.weaponSprites[0].sprite,
+            SO_List.Instance.WeaponSprites[0].sprite,
             new Vector3(-0.04f, -0.07f, 0f),
             new Vector3(180, 0, 0),
             new Vector3(0.4f, 0.4f, 0.4f),

@@ -67,22 +67,7 @@ public class Menu_RightClick : MonoBehaviour
         buttonOpen = GetComponentInChildren<Button_Open>();
         buttonOpen.gameObject.SetActive(false);
     }
-    
-    public void RightClickMenuCheck()
-    {
-        RaycastHit2D hit = Physics2D.GetRayIntersection(Camera.main.ScreenPointToRay(Input.mousePosition));
-        
-        if (hit.collider != null)
-        {
-            Actor actor = hit.collider.gameObject.GetComponent<Actor>();
 
-            if (actor != null)
-            {
-
-                RightClickMenu(interactedThing: actor.gameObject, talkable: true);
-            }
-        }
-    }
     public void RightClickMenuOpen()
     {
         gameObject.SetActive(true);
@@ -118,8 +103,11 @@ public class Menu_RightClick : MonoBehaviour
 
         _thing = interactedThing;
 
-        buttonPickup.gameObject.SetActive(true);  // Always active for now, then use item
-
+        if (item != null)
+        {
+            buttonPickup.gameObject.SetActive(true);
+        }
+        
         buttonEquip.gameObject.SetActive(equippable);
         buttonUnequip.gameObject.SetActive(itemEquipped);
         buttonTalk.gameObject.SetActive(talkable);

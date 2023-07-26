@@ -11,6 +11,8 @@ public class Inventory_Window : MonoBehaviour
     public TextMeshProUGUI nameText;
     public  List<Inventory_Slot> inventorySlots = new();
     private bool _isOpen = false;
+    public Transform InventoryEquippableCreator;
+    public Transform InventoryNotEquippableCreator;
 
     public bool IsOpen
     {
@@ -43,6 +45,22 @@ public class Inventory_Window : MonoBehaviour
 
         _isOpen = true;
         SetInventoryWindowName(interactedObject.name);
+    }
+
+    public Inventory_Creator GetInventoryCreator(Inventory_Manager inventoryManager)
+    {
+        Inventory_Creator inventoryCreator = null;
+
+        if (inventoryManager is Inventory_Equippable)
+        {
+            inventoryCreator = InventoryEquippableCreator.GetComponent<Inventory_Creator>();
+        }
+        else if (inventoryManager is Inventory_NotEquippable)
+        {
+            inventoryCreator = InventoryNotEquippableCreator.GetComponent<Inventory_Creator>();
+        }
+
+        return inventoryCreator;
     }
 
     public List<Inventory_Slot> InventorySlots

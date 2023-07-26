@@ -28,11 +28,14 @@ public class Interactable_Item : MonoBehaviour
         gameObject.name = item.itemName;
     }
 
-    public void OnMouseUp()
+    public void OnMouseOver()
     {
-        item = List_Item.GetItemData(itemID);
-        displayItemStats = List_Item.DisplayItemStats(itemID, stackSize);
-        Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, equippable: item.equippable);
+        if (Input.GetMouseButtonUp(1))
+        {
+            item = List_Item.GetItemData(itemID);
+            displayItemStats = List_Item.DisplayItemStats(itemID, stackSize);
+            Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, equippable: item.equippable);
+        }
     }
 }
 
