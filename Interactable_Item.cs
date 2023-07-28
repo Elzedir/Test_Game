@@ -8,33 +8,33 @@ using static Equipment_Slot;
 
 public class Interactable_Item : MonoBehaviour
 {
-    private BoxCollider2D coll;
-    public SpriteRenderer spriteRenderer;
-    public int itemID;
-    public int stackSize;
-    private List_Item item;
-    public List_Item.ItemStats displayItemStats;
+    private BoxCollider2D _coll;
+    public SpriteRenderer SpriteRenderer;
+    public int ItemID;
+    public int StackSize;
+    private List_Item _item;
+    public List_Item.ItemStats DisplayItemStats;
 
     public void UpdateItem()
     {
-        coll = GetComponent<BoxCollider2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
-        coll.size = spriteSize;
-        item = List_Item.GetItemData(itemID);
-        spriteRenderer.sprite = item.itemIcon;
-        transform.localScale = item.itemScale;
-        transform.rotation = Quaternion.Euler(item.itemRotation);
-        gameObject.name = item.itemName;
+        _coll = GetComponent<BoxCollider2D>();
+        SpriteRenderer = GetComponent<SpriteRenderer>();
+        Vector2 spriteSize = SpriteRenderer.sprite.bounds.size;
+        _coll.size = spriteSize;
+        _item = List_Item.GetItemData(ItemID);
+        SpriteRenderer.sprite = _item.itemIcon;
+        transform.localScale = _item.itemScale;
+        transform.rotation = Quaternion.Euler(_item.itemRotation);
+        gameObject.name = _item.itemName;
     }
 
     public void OnMouseOver()
     {
         if (Input.GetMouseButtonUp(1))
         {
-            item = List_Item.GetItemData(itemID);
-            displayItemStats = List_Item.DisplayItemStats(itemID, stackSize);
-            Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, equippable: item.equippable);
+            _item = List_Item.GetItemData(ItemID);
+            DisplayItemStats = List_Item.DisplayItemStats(ItemID, StackSize);
+            Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, equippable: _item.equippable);
         }
     }
 }

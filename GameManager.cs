@@ -188,8 +188,8 @@ public class GameManager : MonoBehaviour
 
         if (droppedItemScript != null)
         {
-            droppedItemScript.itemID = itemID;
-            droppedItemScript.stackSize = stackSize;
+            droppedItemScript.ItemID = itemID;
+            droppedItemScript.StackSize = stackSize;
             droppedItemScript.UpdateItem();
         }
     }

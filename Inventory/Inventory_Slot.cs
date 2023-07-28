@@ -11,6 +11,7 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
 {
     public int slotIndex;
     private Actor inventoryActor;
+    private Chest inventoryChest;
     public TextMeshProUGUI stackSizeText;
     public Image slotIcon;
     public Button inventoryEquipButton;
@@ -22,9 +23,10 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
 
-    public virtual void UpdateSlotUI(int itemID, int stackSize, Actor actor)
+    public virtual void UpdateSlotUI(int itemID, int stackSize, Actor actor = null, Chest chest = null)
     {
         inventoryActor = actor;
+        inventoryChest = chest;
 
         if (itemID == -1 || stackSize == 0)
         {
@@ -55,16 +57,47 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         }
     }
 
-    public void OnPointerDown()
+    public void OnButtonDown()
     {
+        //if (Input.GetMouseButtonUp(0))
+        //{
+        //    Inventory_Slot inventorySlot = GetComponent<Inventory_Slot>();
+
+        //    int pressedSlot = -1;
+
+        //    if (inventorySlot != null)
+        //    {
+        //        pressedSlot = inventorySlot.slotIndex;
+        //    }
+        //    Debug.Log("Left click equip pressed");
+        //    bool equipped = Manager_Input.Instance.OnEquipFromInventory(inventorySlotIndex: pressedSlot);
+        //    Debug.Log(equipped);
+        //}
+
+        //else if (Input.GetMouseButtonUp(1))
+        //{
+
+        Inventory_Manager inventoryManager = null;
+        List_Item item = null;
+
+        if (inventoryActor != null)
+        {
+            inventoryManager = inventoryActor.GetComponent<Inventory_Manager>();
+        }
+        else if (inventoryChest != null)
+        {
+            inventoryManager = inventoryChest.GetComponent<Inventory_Manager>();
+            item = List_Item.GetItemData(inventoryManager.InventoryItemIDs[slotIndex].Item1);
+        }
+
         Inventory_Slot inventorySlot = GetComponent<Inventory_Slot>();
-        Inventory_Manager inventoryManager = inventoryActor.GetComponent<Inventory_Manager>();
-        Actor actor = inventoryManager.GetComponent<Actor>();
+
         bool equippable = false;
         bool droppable = false;
 
-        if (inventoryManager.InventoryItemIDs.ContainsKey(slotIndex))
+        if (inventoryManager != null && inventoryManager.InventoryItemIDs.ContainsKey(slotIndex))
         {
+            // Change the next check to be an enum check when we start adding non-equippable items
             if (inventoryManager.InventoryItemIDs[slotIndex].Item1 != -1)
             {
                 equippable = true;
@@ -72,7 +105,9 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
             }
         }
 
-        Menu_RightClick.Instance.RightClickMenu(actor: actor, equippable: equippable, interactedThing: inventorySlot.gameObject, droppable: droppable);
-        
+        Menu_RightClick.Instance.RightClickMenu(actor: inventoryActor, item: item, equippable: equippable, interactedThing: inventorySlot.gameObject, droppable: droppable, inventoryManager: inventoryManager);
+
+        //}
+
     }
 }

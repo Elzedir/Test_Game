@@ -19,7 +19,6 @@ public class Inventory_Creator : MonoBehaviour
 
     public void CreateSlots(int numSlots)
     {
-        Debug.Log(numSlots);
         int slotID = 0;
 
         for (int i = 0; i < numSlots; i++)
@@ -38,6 +37,7 @@ public class Inventory_Creator : MonoBehaviour
 
         Dictionary<int, (int, int, bool)> inventoryItems = inventoryManager.InventoryItemIDs;
         Actor inventoryActor = inventoryManager.GetComponent<Actor>();
+        Chest inventoryChest = inventoryManager.GetComponent<Chest>();
 
         bool hasItems = false;
 
@@ -47,13 +47,16 @@ public class Inventory_Creator : MonoBehaviour
 
             if (slot != null)
             {
-                (int itemID, int stackSize, bool isFull) = inventoryItems[slot.slotIndex];
-
-                slot.UpdateSlotUI(itemID, stackSize, inventoryActor);
-
-                if (itemID != -1)
+                if (inventoryItems.TryGetValue(slot.slotIndex, out var itemData))
                 {
-                    hasItems = true;
+                    (int itemID, int stackSize, bool isFull) = itemData;
+
+                    slot.UpdateSlotUI(itemID, stackSize, inventoryActor, inventoryChest);
+
+                    if (itemID != -1)
+                    {
+                        hasItems = true;
+                    }
                 }
             }
         }

@@ -8,36 +8,25 @@ using UnityEngine;
 
 public class Chest_Manager : MonoBehaviour
 {
-    public static Chest_Manager instance;
-    [SerializeField]
-    private List<Chest> chestKeys = new List<Chest>();
-    [SerializeField]
-    private List<Chest_Items> chestValues = new List<Chest_Items>();
-    public Dictionary<Chest, Chest_Items> allChests = new Dictionary<Chest, Chest_Items>();
+    public static Chest_Manager Instance;
 
-    private Chest chest;
+    [SerializeField]
+    public List<Chest> chestList = new List<Chest>();
+    [SerializeField]
+    public List<Chest_Items> chestItemsList = new List<Chest_Items>();
+
+    private Dictionary<Chest, Chest_Items> allChests = new Dictionary<Chest, Chest_Items>();
 
     private void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-
-            for (int i = 0; i < Mathf.Min(chestKeys.Count, chestValues.Count); i++)
-            {
-                allChests[chestKeys[i]] = chestValues[i];
-            }
+            Instance = this;
         }
         else
         {
             Destroy(gameObject);
         }
-    }
-
-    public void AddChests()
-    {
-
     }
 
     public Chest_Items GetChestData(Chest chest)
@@ -49,7 +38,7 @@ public class Chest_Manager : MonoBehaviour
         else
         {
             Debug.Log("Chest does not exist");
-            return null; // or you can return a default value or throw an exception
+            return null;
         }
     }
 }

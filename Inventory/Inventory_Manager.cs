@@ -26,7 +26,7 @@ public abstract class Inventory_Manager : MonoBehaviour
     #region fields
 
     // Inventory items
-    public int inventorySize = 10;
+    public int inventorySize;
     public int InventorySize
     {
         get { return inventorySize; }
@@ -70,7 +70,7 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public void InitialiseInventory()
     {
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < inventorySize; i++)
         {
             if (!InventoryItemIDs.ContainsKey(i))
             {

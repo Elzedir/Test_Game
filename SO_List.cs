@@ -28,8 +28,6 @@ public class SO_List : MonoBehaviour
                     GameObject singletonObject = new GameObject(typeof(SO_List).Name);
                     _instance = singletonObject.AddComponent<SO_List>();
                 }
-
-                DontDestroyOnLoad(_instance.gameObject);
             }
 
             return _instance;

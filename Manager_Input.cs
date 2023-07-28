@@ -28,7 +28,6 @@ public class Manager_Input : MonoBehaviour
     private bool keyHeld = false;
     private float keyHoldStart = 0f;
 
-    private bool escCodeExecuted = false;
     private const float escapeHoldTime = 1.5f;
 
     private void Awake()
@@ -70,98 +69,24 @@ public class Manager_Input : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                bool canExecute = KeyHeld(KeyCode.Escape, escapeHoldTime);
-
-                List<GameObject> openUIWindows = new();
-
-                foreach (Transform child in UICanvas.transform)
-                {
-                    if (child.gameObject.activeSelf)
-                    {
-                        openUIWindows.Add(child.gameObject);
-                    }
-                }
-
-                if (canExecute)
-                {
-                    if (openUIWindows.Count > 0)
-                    {
-                        for (int i = 0; i < openUIWindows.Count; i++)
-                        {
-                            GameObject lastOpenWindow = openUIWindows.LastOrDefault();
-                            SetWindowToBack(lastOpenWindow);
-                            CloseUIWindow(lastOpenWindow);
-                        }
-                    }
-
-                    else
-                    {
-                        Debug.Log("No open UI window");
-                    }
-                }
-                else
-                {
-                    if (!escCodeExecuted)
-                    {
-                        escCodeExecuted = true;
-
-                        if (openUIWindows.Count > 0)
-                        {
-                            foreach (GameObject open in openUIWindows)
-                            {
-                                Debug.Log(open.name);
-                            }
-
-                            GameObject lastOpenWindow = openUIWindows.LastOrDefault();
-                            SetWindowToBack(lastOpenWindow);
-                            CloseUIWindow(lastOpenWindow);
-
-                            if (Menu_RightClick.Instance.enabled)
-                            {
-                                Menu_RightClick.Instance.RightClickMenuClose();
-                            }
-                        }
-                    }
-                }
+                CloseUIWindow();
             }
-            else
+
+            if (Input.GetKeyDown(KeyCode.E))
             {
-                if (escCodeExecuted)
-                {
-                    escCodeExecuted = false;
-                }
+                Interact();
             }
 
-            //if (Input.GetKeyDown(KeyCode.E))
-            //{
-            //    // Interact, can use a delegate for the interact button which would see what it is you're interacting with.
-            //    interactedCharacter = player.GetClosestNPC();
-            //    Actor interactedActor = interactedCharacter.GetComponent<Actor>();
-
-            //    if (interactedActor != null)
-            //    {
-            //        Dialogue_Manager.instance.OpenDialogue(interactedActor.gameObject, interactedActor.dialogue);
-            //    }
-            //    else
-            //    {
-            //        Debug.Log("Interacted character does not exist");
-            //    }
-            //}
             if (Input.GetKeyDown(KeyCode.I))
             {
-                GameObject self = player.gameObject;
-
-                OpenInventory(self);
+                OpenInventory(player.gameObject);
             }
+
             if (Input.GetKeyDown(KeyCode.J))
             {
-                Debug.Log("J pressed");
-
-                GameObject self = player.gameObject;
-
                 if (!JournalPanel.isOpen)
                 {
-                    JournalPanel.OpenJournalWindow(self);
+                    JournalPanel.OpenJournalWindow(player.gameObject);
                     SetWindowToFront(JournalPanel.gameObject);
                 }
                 else
@@ -181,8 +106,35 @@ public class Manager_Input : MonoBehaviour
         }
     }
 
+    public void Interact()
+    {
+        // Call interact at the Interactable manager?
+        // In each interactable item, there will be a function that will add itself to the list of interactable items when in range and remove when not.
+        // Game manager will have a function which will check what object you wanted to interact with and call its interact function.
+        // You have two buttons you can press which will change the interacted item.
+        //// In each class that can be interacted with, have a function that is called whenever you are within a collider (interact) range which will enable the interact function and button
+        //interactedCharacter = player.GetClosestNPC();
+        //Actor interactedActor = interactedCharacter.GetComponent<Actor>();
+
+        //if (interactedActor != null)
+        //{
+        //    Dialogue_Manager.instance.OpenDialogue(interactedActor.gameObject, interactedActor.dialogue);
+        //}
+        //else
+        //{
+        //    Debug.Log("Interacted character does not exist");
+        //}
+    }
+
     public void OpenInventory(GameObject interactedObject)
     {
+        Inventory_Window openInventoryWindow = OpenWindowCheck<Inventory_Window>();
+
+        if (openInventoryWindow != null)
+        {
+            CloseUIWindow(openInventoryWindow.gameObject);
+        }
+        
         Inventory_Manager inventoryManager = Inventory_Manager.InventoryType(interactedObject);
 
         if (!inventoryManager.IsOpen)
@@ -203,7 +155,6 @@ public class Manager_Input : MonoBehaviour
             if (inventoryCreator != null)
             {
                 int inventorySize = inventoryManager.GetComponent<Inventory_Manager>().GetInventorySize();
-
                 inventoryCreator.CreateSlots(inventorySize);
                 inventoryCreator.UpdateInventoryUI(inventoryManager);
                 
@@ -232,8 +183,13 @@ public class Manager_Input : MonoBehaviour
             }
         }
     }
-    public void CloseUIWindow(GameObject window)
+    public void CloseUIWindow(GameObject window = null)
     {
+        if (Menu_RightClick.Instance.enabled)
+        {
+            Menu_RightClick.Instance.RightClickMenuClose();
+        }
+
         if (window == InventoryPanel.gameObject)
         {
             Inventory_Creator inventoryCreator = null;
@@ -263,67 +219,103 @@ public class Manager_Input : MonoBehaviour
         {
             JournalPanel.CloseJournalWindow();
         }
+        else if (window == null)
+        {
+            List<GameObject> openUIWindows = new();
+
+            foreach (Transform child in UICanvas.transform)
+            {
+                if (child.gameObject.activeSelf)
+                {
+                    openUIWindows.Add(child.gameObject);
+                }
+            }
+
+            if (openUIWindows.Count > 0)
+            {
+                GameObject lastOpenWindow = openUIWindows.LastOrDefault();
+                SetWindowToBack(lastOpenWindow);
+                CloseUIWindow(lastOpenWindow);
+            }
+        }
         else
         {
             Debug.Log($"No close function for {window}");
         }
     }
-    public bool OnItemPickup(int itemID = -1, int stackSize = 0)
+    public bool OnItemPickup(Interactable_Item pickedUpItem = null, int inventorySlotIndex = -1, GameObject interactedObject = null, Inventory_Manager inventoryManager = null)
     {
-        bool result = false;
+        Dictionary<int, (int, int, bool)> inventoryItems = inventoryManager.InventoryItemIDs;
 
-        // NB Change the itemID when the game comes out so the pickupitem button doesn't pickup something when there's nothing.
-
-        if (itemID == -1)
-        {
-            itemID = 1;
-        }
-
+        int itemID = pickedUpItem != null ? pickedUpItem.ItemID : inventoryItems[inventorySlotIndex].Item1;
+        int stackSize = pickedUpItem != null ? pickedUpItem.StackSize : inventoryItems[inventorySlotIndex].Item2;
+        
         List_Item item = List_Item.GetItemData(itemID);
 
-        if (player != null)
+        if (item == null)
         {
-            Inventory_Manager inventoryManager = player.GetComponent<Inventory_Manager>();
-
-            if (inventoryManager != null)
-            {
-                inventoryManager.AddItem(item, stackSize);
-
-                result = true;
-
-                if (InventoryPanel != null)
-                {
-                    Inventory_Creator slotCreator = InventoryPanel.GetComponentInChildren<Inventory_Creator>();
-                    slotCreator.UpdateInventoryUI(inventoryManager);
-                }
-                else
-                {
-                    Debug.Log("Slot creator not found.");
-                }
-            }
-
-            return result;
+            Debug.Log("Item is null");
+            return false;
         }
 
-        return result;
+        Inventory_Manager playerInventoryManager = GameManager.Instance.player.GetComponent<Inventory_Manager>();
+        playerInventoryManager.AddItem(item, stackSize);
+
+        if (inventorySlotIndex != -1)
+        {
+            inventoryManager.RemoveItem(inventorySlotIndex, item, stackSize);
+
+            if (inventoryManager.TryGetComponent<Chest_Items>(out Chest_Items chestItems))
+            {
+                List<Chest_ItemData> updatedItems = new List<Chest_ItemData>();
+
+                foreach (var entry in inventoryManager.InventoryItemIDs)
+                {
+                    if (entry.Value.Item1 != -1)
+                    {
+                        Chest_ItemData itemData = new Chest_ItemData
+                        {
+                            itemID = entry.Value.Item1,
+                            stackSize = entry.Value.Item2
+                        };
+                        updatedItems.Add(itemData);
+                    }
+                }
+
+                chestItems.items = updatedItems.ToArray();
+            }
+        }
+        else
+        {
+            Destroy(pickedUpItem.gameObject);
+        }
+
+        Inventory_Creator slotCreator = InventoryPanel.GetComponentInChildren<Inventory_Creator>();
+        slotCreator.UpdateInventoryUI(inventoryManager);
+
+        return true;
     }
-    public bool OnEquipFromInventory(Interactable_Item pickedUpItem = null, int inventorySlotIndex = -1)
+    public bool OnEquip(Interactable_Item pickedUpItem = null, int inventorySlotIndex = -1, GameObject interactedObject = null, Inventory_Manager inventoryManager = null)
     {
-        GameObject playerObject = player.gameObject;
-        Inventory_Manager playerInventoryManager = Inventory_Manager.InventoryType(playerObject);
-        Dictionary<int, (int, int, bool)> inventoryItems = playerInventoryManager.InventoryItemIDs;
+        if (inventoryManager == null)
+        {
+            Debug.Log("Interacted Object doesn't have an Inventory Manager");
+            return false;
+        }
+
+        Dictionary<int, (int, int, bool)> inventoryItems = inventoryManager.InventoryItemIDs;
 
         List_Item item = (pickedUpItem == null)
         ? List_Item.GetItemData(inventoryItems[inventorySlotIndex].Item1)
-        : List_Item.GetItemData(pickedUpItem.itemID);
+        : List_Item.GetItemData(pickedUpItem.ItemID);
 
         if (item == null)
         {
             Debug.Log($"Inventory does not have itemID");
             return false;
         }
-
-        Equipment_Manager playerEquipmentManager = player.GetComponent<Equipment_Manager>();
+        
+        Equipment_Manager playerEquipmentManager = GameManager.Instance.player.GetComponent<Equipment_Manager>();
 
         if (playerEquipmentManager == null)
         {
@@ -333,7 +325,7 @@ public class Manager_Input : MonoBehaviour
 
         int stackSize = (inventorySlotIndex != -1) 
             ? inventoryItems[inventorySlotIndex].Item2 
-            : pickedUpItem.stackSize;
+            : pickedUpItem.StackSize;
 
         (bool equipped, int remainingStackSize) = playerEquipmentManager.Equip(item, stackSize);
 
@@ -345,7 +337,27 @@ public class Manager_Input : MonoBehaviour
 
         if (inventorySlotIndex != -1)
         {
-            playerInventoryManager.RemoveItem(inventorySlotIndex, item, stackSize);
+            inventoryManager.RemoveItem(inventorySlotIndex, item, stackSize);
+
+            if (inventoryManager.TryGetComponent<Chest_Items>(out Chest_Items chestItems))
+            {
+                List<Chest_ItemData> updatedItems = new List<Chest_ItemData>();
+
+                foreach (var entry in inventoryManager.InventoryItemIDs)
+                {
+                    if (entry.Value.Item1 != -1)
+                    {
+                        Chest_ItemData itemData = new Chest_ItemData
+                        {
+                            itemID = entry.Value.Item1,
+                            stackSize = entry.Value.Item2
+                        };
+                        updatedItems.Add(itemData);
+                    }
+                }
+
+                chestItems.items = updatedItems.ToArray();
+            }
         }
         else
         {
@@ -354,12 +366,12 @@ public class Manager_Input : MonoBehaviour
 
         if (remainingStackSize > 0)
         {
-            playerInventoryManager.AddItem(item, remainingStackSize);
+            inventoryManager.AddItem(item, remainingStackSize);
         }
 
         if (InventoryPanel != null)
         {
-            RefreshUI(playerObject, playerEquipmentManager);
+            RefreshPlayerUI(inventoryManager.gameObject, playerEquipmentManager);
         }
         else
         {
@@ -369,7 +381,7 @@ public class Manager_Input : MonoBehaviour
         return true;
     }
 
-    public void RefreshUI(GameObject actor, Equipment_Manager actorEquipmentManager)
+    public void RefreshPlayerUI(GameObject actor, Equipment_Manager actorEquipmentManager)
     {
         Manager_Stats statManager = player.GetComponent<Manager_Stats>();
         statManager.UpdateStats();
@@ -384,8 +396,6 @@ public class Manager_Input : MonoBehaviour
 
         if (Input.GetKeyDown(key))
         {
-            Debug.Log($"{key} pressed");
-
             keyHeld = true;
             keyHoldStart = 0f;
         }
@@ -415,5 +425,21 @@ public class Manager_Input : MonoBehaviour
     public void SetWindowToBack(GameObject window)
     {
         window.transform.SetAsFirstSibling();
+    }
+
+    public T OpenWindowCheck<T>() where T : MonoBehaviour
+    {
+        foreach (Transform child in UICanvas.transform)
+        {
+            if (child.gameObject.activeSelf)
+            {
+                T window = child.GetComponent<T>();
+                if (window != null)
+                {
+                    return window;
+                }
+            }
+        }
+        return null;
     }
 }
