@@ -290,6 +290,15 @@ public class Manager_Input : MonoBehaviour
             Destroy(pickedUpItem.gameObject);
         }
 
+        if (InventoryPanel != null)
+        {
+            RefreshPlayerUI(inventoryManager.gameObject);
+        }
+        else
+        {
+            Debug.Log("No open UI window");
+        }
+
         Inventory_Creator slotCreator = InventoryPanel.GetComponentInChildren<Inventory_Creator>();
         slotCreator.UpdateInventoryUI(inventoryManager);
 
@@ -297,12 +306,6 @@ public class Manager_Input : MonoBehaviour
     }
     public bool OnEquip(Interactable_Item pickedUpItem = null, int inventorySlotIndex = -1, GameObject interactedObject = null, Inventory_Manager inventoryManager = null)
     {
-        if (inventoryManager == null)
-        {
-            Debug.Log("Interacted Object doesn't have an Inventory Manager");
-            return false;
-        }
-
         Dictionary<int, (int, int, bool)> inventoryItems = inventoryManager.InventoryItemIDs;
 
         List_Item item = (pickedUpItem == null)
@@ -381,14 +384,18 @@ public class Manager_Input : MonoBehaviour
         return true;
     }
 
-    public void RefreshPlayerUI(GameObject actor, Equipment_Manager actorEquipmentManager)
+    public void RefreshPlayerUI(GameObject interactedObject, Equipment_Manager actorEquipmentManager = null)
     {
         Manager_Stats statManager = player.GetComponent<Manager_Stats>();
         statManager.UpdateStats();
 
         CloseUIWindow(InventoryPanel.gameObject);
-        OpenInventory(actor);
-        actorEquipmentManager.UpdateSprites();
+        OpenInventory(interactedObject);
+
+        if (actorEquipmentManager != null)
+        {
+            actorEquipmentManager.UpdateSprites();
+        }
     }
     public bool KeyHeld(KeyCode key, float keyHoldTime)
     {
