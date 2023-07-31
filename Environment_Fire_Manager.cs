@@ -8,7 +8,7 @@ public class Environment_Fire_Manager : MonoBehaviour
     public static Environment_Fire_Manager instance;
     public Transform environmentFireArea;
 
-    private Dictionary<Actor, Coroutine> fireCoroutines = new();
+    private Dictionary<Actor_Base, Coroutine> fireCoroutines = new();
 
     public GameObject firePrefab;
 
@@ -26,18 +26,18 @@ public class Environment_Fire_Manager : MonoBehaviour
         instance = this;
     }
     
-    public void EnterFire(Actor target)
+    public void EnterFire(Actor_Base target)
     {
         target.inFire = true;
 
-        if (target.isFlammable && !target.onFire && !fireCoroutines.ContainsKey(target))
+        if (target.ActorData.isFlammable && !target.onFire && !fireCoroutines.ContainsKey(target))
         {
             Coroutine fireCoroutine = StartCoroutine(FireBuildup(target));
             fireCoroutines.Add(target, fireCoroutine);
         }
     }
 
-    private IEnumerator FireBuildup(Actor target)
+    private IEnumerator FireBuildup(Actor_Base target)
     {
         yield return new WaitForSeconds(fireBuildupTime);
 
@@ -47,13 +47,13 @@ public class Environment_Fire_Manager : MonoBehaviour
         fireCoroutines[target] = StartCoroutine(Burning(target));
     }
 
-    private IEnumerator Burning(Actor target)
+    private IEnumerator Burning(Actor_Base target)
     {
         int tickCount = Mathf.RoundToInt(burnTime / tickTime);
 
         for (int i = 0; i < tickCount; i++)
         {
-            Damage damage = new Damage { origin = transform.position, damageAmount = target.baseHealth / 100, pushForce = 0 };
+            Damage damage = new Damage { origin = transform.position, damageAmount = target.ActorData.baseHealth / 100, pushForce = 0 };
             target.ReceiveDamage(damage);
             yield return new WaitForSeconds(tickTime);
         }
@@ -70,7 +70,7 @@ public class Environment_Fire_Manager : MonoBehaviour
         }
     }
 
-    public void ExitFire(Actor target)
+    public void ExitFire(Actor_Base target)
     {
         target.inFire = false;
 
@@ -85,7 +85,7 @@ public class Environment_Fire_Manager : MonoBehaviour
         }
     }
 
-    private IEnumerator DelayedFireCheck(Actor target)
+    private IEnumerator DelayedFireCheck(Actor_Base target)
     {
         yield return new WaitForSeconds(0.25f);
 

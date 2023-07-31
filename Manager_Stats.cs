@@ -10,7 +10,7 @@ public class Manager_Stats : MonoBehaviour
 {
     // General
     private Equipment_Manager equipmentManager;
-    private Actor actor;
+    private Actor_Base actor;
 
     // Damager
     public float currentDamageAmount;
@@ -31,7 +31,7 @@ public class Manager_Stats : MonoBehaviour
     private void Start()
     {
         equipmentManager = GetComponent<Equipment_Manager>();
-        actor = GetComponent<Actor>();
+        actor = GetComponent<Actor_Base>();
         UpdateStats();
         InitialiseStats();
     }
@@ -54,13 +54,13 @@ public class Manager_Stats : MonoBehaviour
 
     public void UpdateStats()
     {
-        currentDamageAmount = actor.baseDamage;
-        currentPushForce = actor.baseForce;
-        maxHealth = actor.baseHealth;
-        maxMana = actor.baseMana;
-        maxStamina = actor.baseStamina;
-        currentPhysicalDefence = actor.basePhysicalDefence;
-        currentMagicalDefence = actor.baseMagicalDefence;
+        currentDamageAmount = actor.ActorData.baseDamage;
+        currentPushForce = actor.ActorData.baseForce;
+        maxHealth = actor.ActorData.baseHealth;
+        maxMana = actor.ActorData.baseMana;
+        maxStamina = actor.ActorData.baseStamina;
+        currentPhysicalDefence = actor.ActorData.basePhysicalDefence;
+        currentMagicalDefence = actor.ActorData.baseMagicalDefence;
 
         int currentSlot = 0;
 
@@ -87,7 +87,7 @@ public class Manager_Stats : MonoBehaviour
                     currentMagicalDefence += armour.itemMagicalArmour;
                 }
 
-                maxHealth += actor.baseHealth;
+                maxHealth += actor.ActorData.baseHealth;
                 if (currentHealth > maxHealth)
                 {
                     currentHealth = maxHealth;

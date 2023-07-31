@@ -3,15 +3,13 @@ using System.Collections.Generic;
 using TMPro.EditorUtilities;
 using UnityEngine;
 
-public class Crate : Actor
+public class Crate : Actor_Base
 {
     
     protected Rigidbody2D boxBody;
     protected BoxCollider2D boxColl;
     protected LayerMask destructable;
-    protected override Rigidbody2D Rigidbody2D => boxBody;
     protected override BoxCollider2D Coll => boxColl;
-    protected override BoxCollider2D ActorColl => boxColl;
 
     protected override void Start()
     {

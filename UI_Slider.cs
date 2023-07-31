@@ -14,7 +14,7 @@ public class UI_Slider : MonoBehaviour
     public TextMeshProUGUI sliderAmount;
     public Equipment_Slot equipmentSlot;
     public Inventory_Slot inventorySlot;
-    public Actor actor;
+    public Actor_Base actor;
 
     public void Awake()
     {
@@ -57,7 +57,7 @@ public class UI_Slider : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    public void DropItemSlider(int currentStackSize, Equipment_Slot dropXEquipmentSlot = null, Inventory_Slot dropXInventorySlot = null, Actor dropXActor = null)
+    public void DropItemSlider(int currentStackSize, Equipment_Slot dropXEquipmentSlot = null, Inventory_Slot dropXInventorySlot = null, Actor_Base dropXActor = null)
     {
         if (dropXActor != null)
         {

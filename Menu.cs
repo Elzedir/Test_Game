@@ -55,7 +55,7 @@ public class Menu : MonoBehaviour
         // sprite according to the rules set in OnArrowClick.
         characterSelectionSprite.sprite = GameManager.Instance.playerSprites[currentCharacterSelection];
         // The Game Manager will then tell the player to exectute command SwapSprite
-        GameManager.Instance.player.SwapSprite(currentCharacterSelection);
+        //GameManager.Instance.player.SwapSprite(currentCharacterSelection);
     }
 
     // Weapon upgrade
@@ -65,7 +65,7 @@ public class Menu : MonoBehaviour
     public void UpdateMenu()
     {
         // UI Bars
-        hitpointText.text = GameManager.Instance.player.baseHealth.ToString();
+        //hitpointText.text = GameManager.Instance.player.ActorData.baseHealth.ToString();
         goldText.text = GameManager.Instance.gold.ToString();
         levelText.text = GameManager.Instance.playerLevel().ToString();
 

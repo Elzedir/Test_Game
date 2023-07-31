@@ -6,7 +6,6 @@ public class Orbiter : Orbitee
 {
     protected BoxCollider2D orbiterColl;
     public float startTime;
-    protected override BoxCollider2D ActorColl => orbiterColl;
     protected override BoxCollider2D Coll => orbiterColl;
 
     protected override void Start()

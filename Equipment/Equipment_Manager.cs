@@ -317,7 +317,7 @@ public class Equipment_Manager : MonoBehaviour
         {
             List_Item previousEquipment = List_Item.GetItemData(currentEquipment[equipSlot].Item1);
             Inventory_Manager inventoryManager = gameObject.GetComponent<Inventory_Manager>();
-            Actor inventoryActor = GetComponent<Actor>();
+            Actor_Base inventoryActor = GetComponent<Actor_Base>();
             Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
             int stackSize = currentEquipment[equipSlot].Item2;
 
@@ -346,7 +346,7 @@ public class Equipment_Manager : MonoBehaviour
     {
         if (currentEquipment.ContainsKey(equipSlot))
         {
-            Actor inventoryActor = GetComponent<Actor>();
+            Actor_Base inventoryActor = GetComponent<Actor_Base>();
             Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
             int tempItemID = currentEquipment[equipSlot].Item1;
 

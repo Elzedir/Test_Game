@@ -8,7 +8,7 @@ public class Equipment_Window : MonoBehaviour
 {
     public Transform equipmentArea;
     public Manager_Stats statsManager;
-    public Actor actor;
+    public Actor_Base actor;
     public Equipment_Manager actorEquipmentManager;
     public Inventory_EquipmentSlot Head, Chest, MainHand, OffHand, Legs, Consumable;
     public Equipment_Slot actorHead, actorChest, actorMainHand, actorOffHand, actorLegs, actorConsumable;
@@ -21,7 +21,7 @@ public class Equipment_Window : MonoBehaviour
     public void UpdateEquipmentUI(Equipment_Manager equipmentManager)
     {
         Dictionary<Equipment_Slot, (int, int, bool)> equippedItems = equipmentManager.currentEquipment;
-        actor = equipmentManager.GetComponentInParent<Actor>();
+        actor = equipmentManager.GetComponentInParent<Actor_Base>();
         actorEquipmentManager = equipmentManager;
         SetActorEquipmentSlots();
         int currentSlot = 0;

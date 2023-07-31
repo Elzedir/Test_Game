@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.FilePathAttribute;
 
 public enum Vocation
 {
@@ -11,25 +13,25 @@ public enum Vocation
 
 public class Actor_Vocation : MonoBehaviour
 {
-    private Dictionary<Vocation, (bool, float)> _vocationList = new();
-    private Vocation _vocation;
-    private Actor _actor;
-    public Vocation Vocation
-    {
-        get { return _vocation; }
-    }
+    private Actor_Stats _actorStats;
+    private Actor_Base _actor;
 
     private void Awake()
     {
+        _actorStats = GetComponent<Actor_Base>().ActorData.ActorStats;
         InitialiseVocations();
-        LoadVocations()
+        LoadVocations();
     }
 
     private void InitialiseVocations()
     {
-        _vocationList[Vocation.Farmer] = (false, 0);
-        _vocationList[Vocation.LumberJack] = (false, 0);
-        _vocationList[Vocation.Miner] = (false, 0);
+        foreach (Vocation vocation in Enum.GetValues(typeof(Vocation)))
+        {
+            if (!_actorStats.VocationExperience.Exists(entry => entry.vocation == vocation))
+            {
+                _actorStats.VocationExperience.Add(new Actor_Vocation_Entry { vocation = vocation, experience = 0 });
+            }
+        }
     }
 
     public void SaveVocations()
@@ -39,27 +41,15 @@ public class Actor_Vocation : MonoBehaviour
 
     public void LoadVocations()
     {
-        if (TryGetComponent<Actor>(out _actor))
-        {
-            foreach (KeyValuePair<Vocation, float> vocation in _actor.Vocations)
-            {
-                if (_vocationList.ContainsKey(vocation.Key))
-                {
-                    bool discovered = vocation.Value > 0;
-                    _vocationList[vocation.Key] = (discovered, vocation.Value);
-                    if (discovered)
-                    {
-                        _vocation = vocation.Key;
-                    }
-                }
-            }
-        }
+        // Load logic here
     }
 
-    public int GainVocationExperience(GameObject interactedObject, Actor actor)
+    public void GainVocationExperience(Vocation vocation, int amount)
     {
-        int experience = 0;
-
-        return experience;
+        Actor_Vocation_Entry entry = _actorStats.VocationExperience.Find(e => e.vocation == vocation);
+        if (entry != null)
+        {
+            entry.experience += amount;
+        }
     }
 }

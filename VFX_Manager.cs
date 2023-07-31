@@ -17,7 +17,7 @@ public class VFX_Manager : MonoBehaviour
         instance = this;
     }
 
-    public void AddOnFireVFX(Actor actor, Transform VFXArea)
+    public void AddOnFireVFX(Actor_Base actor, Transform VFXArea)
     {
         if (!onFireExists)
         {
@@ -25,7 +25,7 @@ public class VFX_Manager : MonoBehaviour
             onFireExists = true;
         }
     }
-    public void RemoveOnFireVFX(Actor actor, Transform VFXArea)
+    public void RemoveOnFireVFX(Actor_Base actor, Transform VFXArea)
     {
         if (onFireExists)
         {

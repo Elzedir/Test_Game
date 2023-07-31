@@ -6,7 +6,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements.Experimental;
 
-public class Enemy_Monster : Actor
+public class Enemy_Monster : Actor_Base
 {
     // General
     private LayerMask enemyMonsterCanAttack;
@@ -16,9 +16,7 @@ public class Enemy_Monster : Actor
     private Animator anim;
 
     // Overrides
-    protected override BoxCollider2D ActorColl => enemyMonsterSize;
     protected override BoxCollider2D Coll => enemyMonsterSize;
-    protected override Rigidbody2D Rigidbody2D => enemyMonsterBody;
     
     
     protected override void Start()

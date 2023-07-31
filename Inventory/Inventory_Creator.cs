@@ -36,7 +36,7 @@ public class Inventory_Creator : MonoBehaviour
         TempInventoryManager = inventoryManager;
 
         Dictionary<int, (int, int, bool)> inventoryItems = inventoryManager.InventoryItemIDs;
-        Actor inventoryActor = inventoryManager.GetComponent<Actor>();
+        Actor_Base inventoryActor = inventoryManager.GetComponent<Actor_Base>();
         Chest inventoryChest = inventoryManager.GetComponent<Chest>();
 
         bool hasItems = false;

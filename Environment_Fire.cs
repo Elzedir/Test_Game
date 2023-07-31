@@ -24,7 +24,7 @@ public class Environment_Fire : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D target)
     {
-        if (target.TryGetComponent<Actor>(out Actor actor))
+        if (target.TryGetComponent<Actor_Base>(out Actor_Base actor))
         {
             Environment_Fire_Manager.instance.EnterFire(actor);
         }
@@ -32,7 +32,7 @@ public class Environment_Fire : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D target)
     {
-        if (target.TryGetComponent<Actor>(out Actor actor))
+        if (target.TryGetComponent<Actor_Base>(out Actor_Base actor))
         {
             Environment_Fire_Manager.instance.ExitFire(actor);
         }

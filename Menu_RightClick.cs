@@ -22,7 +22,7 @@ public class Menu_RightClick : MonoBehaviour
 
     private Inventory_Slot _inventorySlot;
     private Equipment_Slot _equipmentSlot;
-    private Actor _actor;
+    private Actor_Base _actor;
     private Inventory_Manager _inventoryManager;
     private Interactable_Item _item;
 
@@ -97,7 +97,7 @@ public class Menu_RightClick : MonoBehaviour
     }
 
     public void ActiveButtonsCheck(GameObject interactedThing = null,
-                               Actor actor = null,
+                               Actor_Base actor = null,
                                Inventory_Manager inventoryManager = null,
                                List_Item item = null,
                                bool equippable = false,
@@ -134,7 +134,7 @@ public class Menu_RightClick : MonoBehaviour
         _actor = actor;
     }
     public void RightClickMenu(GameObject interactedThing = null,
-                           Actor actor = null,
+                           Actor_Base actor = null,
                            Inventory_Manager inventoryManager = null,
                            List_Item item = null,
                            bool equippable = false,
@@ -173,7 +173,7 @@ public class Menu_RightClick : MonoBehaviour
             RightClickMenuClose();
         }
     }
-    public void Drop(int dropAmount, Equipment_Slot equipmentSlot = null, Inventory_Slot inventorySlot = null, Actor actor = null)
+    public void Drop(int dropAmount, Equipment_Slot equipmentSlot = null, Inventory_Slot inventorySlot = null, Actor_Base actor = null)
     {
         if (equipmentSlot != null)
         {

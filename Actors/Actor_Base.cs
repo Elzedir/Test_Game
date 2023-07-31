@@ -10,107 +10,88 @@ using static UnityEngine.GraphicsBuffer;
 
 [RequireComponent(typeof(Manager_Stats))]
 [RequireComponent(typeof(Equipment_Manager))]
-public abstract class Actor : Hitbox
+public class Actor_Base : Hitbox
 {
     // General
     private GameObject selfGameObject;
-    private Actor selfActor;
+    private Actor_Base selfActor;
     private AbilityManager abilityManager;
     public Dialogue_Data_SO dialogue;
-    protected Manager_Stats statManager;
+    public Manager_Stats StatManager;
     public Equipment_Manager equipmentManager;
     private Equipment_Slot mainHand;
     public Inventory_Manager inventory;
     public Transform VFXArea;
 
     // Layers
-    public FactionManager.Faction actorFaction;
-    protected LayerMask CanAttack
-    {
-        get
-        {
-            FactionManager factionManager = FactionManager.instance;
-
-            if (factionManager != null && factionManager.factionMasks.ContainsKey(actorFaction))
-            {
-                return factionManager.factionMasks[actorFaction];
-            }
-            else
-            {
-                return 0;
-            }
-        }
-    }
     protected GameObject closestEnemy = null;
     protected GameObject closestNPC = null;
     protected int layerCount = 0;
     
-
-    // Trigger Zone
-    public float triggerRadius = 3.0f;
-
-    //States
+    private bool coroutineRunning = false;
     public bool dead = false;
     public bool hostile = true;
     protected bool alerted = false;
     protected bool attacking = false;
     protected bool jumping = false;
     protected bool berserk = false;
-    private bool coroutineRunning = false;
-
-    public bool isFlammable = true;
     public bool onFire = false;
     public bool inFire = false;
 
     // Movement
     protected Vector3 move;
-    public float baseYSpeed;
-    public float baseXSpeed;
+    
     public float currentYSpeed = 1.0f;
     public float currentXSpeed = 1.0f;
     protected RaycastHit2D hit;
-    protected abstract BoxCollider2D ActorColl { get; }
-    protected override BoxCollider2D Coll => ActorColl;
-    protected abstract Rigidbody2D Rigidbody2D { get; }
+    private BoxCollider2D _actorColl;
+    public BoxCollider2D ActorColl
+    {
+        get { return _actorColl; }
+    }
+    protected override BoxCollider2D Coll => _actorColl;
+    private Rigidbody2D _actorBody;
+    public Rigidbody2D ActorBody
+    {
+        get { return _actorBody; }
+    }
 
     // Combat
 
     protected Vector3 startingPosition;
-    public float triggerLength;
-    public float chaseLength;
-    public float baseHealth;
-    public float baseMana;
-    public float baseStamina;
     
-    protected Vector3 pushDirection;
-    public float pushRecoverySpeed = 0.2f;
-    public int xpValue;
-    public float baseDamage;
-    public float baseSpeed;
-    public float baseForce;
-    public float baseAtkRange;
-    public float baseSwingTime;
-    protected float cooldown;
+    public Vector3 PushDirection;
+    
     protected float lastAttack;
-
-    public float basePhysicalDefence;
-    public float baseMagicalDefence;
 
     public List<GameObject> NPCs = new List<GameObject>();
     public List<GameObject> attackableTargets = new List<GameObject>();
 
     public bool RightMouseButtonHeld = false;
 
+    public Actor_Data_SO ActorData;
+
+    public GameObject Weapon;
+    public Transform SheathedPosition;
+
+    private SpriteRenderer _spriteRenderer;
+    private Animator _actorAnimator;
+    private Player _player;
+
     protected override void Start()
     {
         base.Start();
 
-        selfActor = GetComponent<Actor>();
+        selfActor = GetComponent<Actor_Base>();
         startingPosition = transform.position;
         abilityManager = GetComponent<AbilityManager>();
-        statManager = GetComponent<Manager_Stats>();
+        StatManager = GetComponent<Manager_Stats>();
         equipmentManager = GetComponent<Equipment_Manager>();
         inventory = GetComponent<Inventory_Manager>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _actorColl = GetComponent<BoxCollider2D>();
+        _actorBody = GetComponent<Rigidbody2D>();
+        _actorAnimator = GetComponent<Animator>();
         LayerCount();
     }
     protected override void FixedUpdate()
@@ -154,17 +135,17 @@ public abstract class Actor : Hitbox
             move = new Vector3(input.x * currentXSpeed, input.y * currentYSpeed, 0);
             transform.localScale = new Vector3(originalSize.z * Mathf.Sign(move.x), originalSize.y, originalSize.z);
 
-            move += pushDirection;
+            move += PushDirection;
 
-            pushDirection = Vector3.Lerp(pushDirection, Vector3.zero, pushRecoverySpeed);
+            PushDirection = Vector3.Lerp(PushDirection, Vector3.zero, ActorData.pushRecoverySpeed);
 
-            hit = Physics2D.BoxCast(transform.position, ActorColl.bounds.size, 0, new Vector2(0, move.y), Mathf.Abs(move.y * Time.deltaTime), LayerMask.GetMask("Blocking"));
+            hit = Physics2D.BoxCast(transform.position, _actorColl.bounds.size, 0, new Vector2(0, move.y), Mathf.Abs(move.y * Time.deltaTime), LayerMask.GetMask("Blocking"));
             if (hit.collider == null)
             {
                 transform.Translate(0, move.y * Time.deltaTime, 0);
                 SetMovementSpeed(move.magnitude);
             }
-            hit = Physics2D.BoxCast(transform.position, ActorColl.bounds.size, 0, new Vector2(move.x, 0), Mathf.Abs(move.x * Time.deltaTime), LayerMask.GetMask("Blocking"));
+            hit = Physics2D.BoxCast(transform.position, _actorColl.bounds.size, 0, new Vector2(move.x, 0), Mathf.Abs(move.x * Time.deltaTime), LayerMask.GetMask("Blocking"));
             if (hit.collider == null)
             {
                 transform.Translate(move.x * Time.deltaTime, 0, 0);
@@ -175,7 +156,12 @@ public abstract class Actor : Hitbox
 
     public virtual void PlayerMove()
     {
-        if (GetComponent<Player>() != null)
+        if (_player == null)
+        {
+            _player = FindFirstObjectByType<Player>();
+        }
+
+        if (_player != null)
         {
             float x = Input.GetAxisRaw("Horizontal");
             float y = Input.GetAxisRaw("Vertical");
@@ -193,7 +179,7 @@ public abstract class Actor : Hitbox
     {
         float maxTargetDistance = float.MaxValue;
         Player player = GetComponent<Player>();
-        Collider2D[] triggerHits = Physics2D.OverlapCircleAll(transform.position, triggerRadius, CanAttack);
+        Collider2D[] triggerHits = Physics2D.OverlapCircleAll(transform.position, ActorData.triggerRadius, ActorData.CanAttack);
 
         foreach (Collider2D hits in triggerHits)
         {
@@ -273,7 +259,7 @@ public abstract class Actor : Hitbox
         {
             float distanceFromStart = Vector2.Distance(transform.position, startingPosition);
 
-            if (distanceFromStart > chaseLength)
+            if (distanceFromStart > ActorData.chaseLength)
             {
                 ReturnToStartPosition();
                 alerted = false;
@@ -283,9 +269,9 @@ public abstract class Actor : Hitbox
             {
                 float distanceToTarget = Vector2.Distance(closestEnemy.transform.position, transform.position);
 
-                if (distanceToTarget < chaseLength)
+                if (distanceToTarget < ActorData.chaseLength)
                 {
-                    if (distanceToTarget < triggerLength)
+                    if (distanceToTarget < ActorData.triggerLength)
                     {
                         alerted = true;
                     }
@@ -348,7 +334,7 @@ public abstract class Actor : Hitbox
     {
         float attackRange;
 
-        attackRange = baseAtkRange; // Include weapon attack range, do the calculation in Stat manager?
+        attackRange = ActorData.baseAtkRange; // Include weapon attack range, do the calculation in Stat manager?
 
         return attackRange;
     }
@@ -491,7 +477,7 @@ public abstract class Actor : Hitbox
     }
     public void ReceiveDamage(Damage damage)
     {
-        statManager.ReceiveDamage(damage);
+        StatManager.ReceiveDamage(damage);
     }
     public void AbilityUse(Rigidbody2D self)
     {
@@ -504,8 +490,8 @@ public abstract class Actor : Hitbox
     {
         OnActorDeath(gameObject);
         Destroy(gameObject);
-        GameManager.Instance.GrantXp(xpValue);
-        GameManager.Instance.ShowFloatingText("+" + xpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
+        GameManager.Instance.GrantXp(ActorData.xpValue);
+        GameManager.Instance.ShowFloatingText("+" + ActorData.xpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
         Debug.Log("Dead body not implemented");
     }
     public void LayerCount()
@@ -523,16 +509,16 @@ public abstract class Actor : Hitbox
         if (closestEnemy != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, chaseLength);
+            Gizmos.DrawWireSphere(transform.position, ActorData.chaseLength);
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, triggerLength);
+            Gizmos.DrawWireSphere(transform.position, ActorData.triggerLength);
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(transform.position, GetAttackRange());
         }
     }
     public LayerMask GetLayer()
     {
-        return CanAttack;
+        return ActorData.CanAttack;
     }
     public void StatusCheck()
     {
@@ -554,5 +540,15 @@ public abstract class Actor : Hitbox
         {
             VFX_Manager.instance.RemoveOnFireVFX(selfActor, VFXArea);
         }
+    }
+
+    public void SwapSprite(int skinID)
+    {
+        _spriteRenderer.sprite = GameManager.Instance.playerSprites[skinID];
+    }
+
+    public GameObject GetClosestNPC()
+    {
+        return closestNPC;
     }
 }

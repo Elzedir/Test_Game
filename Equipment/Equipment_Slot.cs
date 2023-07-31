@@ -44,7 +44,7 @@ public class Equipment_Slot : MonoBehaviour
         equipmentManager = GetComponentInParent<Equipment_Manager>();
         boxCollider = GetComponent<BoxCollider2D>();
         statManager = GetComponentInParent<Manager_Stats>();
-        Actor actor = GetComponentInParent<Actor>();
+        Actor_Base actor = GetComponentInParent<Actor_Base>();
         wepCanAttack = actor.GetLayer();
 
         animator = GetComponent<Animator>();
@@ -244,7 +244,7 @@ public class Equipment_Slot : MonoBehaviour
     }
     private void OnCollide(Collider2D coll)
     {
-        Actor parent = GetComponentInParent<Actor>();
+        Actor_Base parent = GetComponentInParent<Actor_Base>();
 
         if (parent == null)
         {

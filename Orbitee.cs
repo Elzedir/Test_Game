@@ -7,7 +7,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class Orbitee : Actor
+public class Orbitee : Actor_Base
 {
     protected LayerMask orbitersCanAttack;
 
@@ -18,10 +18,8 @@ public class Orbitee : Actor
     public float[] orbitRadii;
     public float[] orbitOffsets;
 
-    protected override BoxCollider2D ActorColl => ActorColl;
     protected override BoxCollider2D Coll => Coll;
 
-    protected override Rigidbody2D Rigidbody2D => Rigidbody2D;
     
 
     protected override void Start()

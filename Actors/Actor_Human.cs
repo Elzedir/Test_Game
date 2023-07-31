@@ -6,7 +6,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements.Experimental;
 
-public class Actor_Human : Actor
+public class Actor_Human : Actor_Base
 {
     // General
     private LayerMask humanCanAttack;
@@ -16,9 +16,7 @@ public class Actor_Human : Actor
     private Animator anim;
 
     // Overrides
-    protected override BoxCollider2D ActorColl => humanSize;
     protected override BoxCollider2D Coll => humanSize;
-    protected override Rigidbody2D Rigidbody2D => humanBody;
 
 
     protected override void Start()

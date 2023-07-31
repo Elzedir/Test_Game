@@ -13,6 +13,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    public bool PlayerDead = false;
+
     public List<Sprite> playerSprites;
     public List<Sprite> weaponSprites;
     public List<int> upgradePrices;
@@ -122,14 +124,6 @@ public class GameManager : MonoBehaviour
     {
         int CurrentLevel = playerLevel();
         totalExperience += xp;
-        if (CurrentLevel < playerLevel())
-            LevelUp();
-    }
-    public void LevelUp()
-    {
-        Debug.Log("Level up!");
-        player.LevelUp();
-        HUDBarChange();
     }
 
     // Save and Load
@@ -153,7 +147,7 @@ public class GameManager : MonoBehaviour
             gold = loadedData.score;
             totalExperience = loadedData.level;
             SceneManager.LoadScene(loadedData.levelName);
-            player.SetLevel(playerLevel());
+            // Actors set level?
         }
     }
 
@@ -162,7 +156,7 @@ public class GameManager : MonoBehaviour
     {
         deathMenuAnimator.SetTrigger("Hide");
         SceneManager.LoadScene("Main");
-        player.Respawn();
+        player.PlayerRespawn();
     }
 
     // Utility

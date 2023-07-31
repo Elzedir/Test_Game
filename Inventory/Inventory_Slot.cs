@@ -10,7 +10,7 @@ using UnityEngine.UI;
 public class Inventory_Slot : MonoBehaviour, IDropHandler
 {
     public int slotIndex;
-    private Actor inventoryActor;
+    private Actor_Base inventoryActor;
     private Chest inventoryChest;
     public TextMeshProUGUI stackSizeText;
     public Image slotIcon;
@@ -23,7 +23,7 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
 
-    public virtual void UpdateSlotUI(int itemID, int stackSize, Actor actor = null, Chest chest = null)
+    public virtual void UpdateSlotUI(int itemID, int stackSize, Actor_Base actor = null, Chest chest = null)
     {
         inventoryActor = actor;
         inventoryChest = chest;

@@ -59,7 +59,7 @@ public class Manager_Input : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
-                Actor actor = player.GetComponent<Actor>();
+                Actor_Base actor = player.GetComponent<Actor_Base>();
 
                 if (actor != null)
                 {
