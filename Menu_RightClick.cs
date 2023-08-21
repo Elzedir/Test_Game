@@ -149,7 +149,7 @@ public class Menu_RightClick : MonoBehaviour
 
     public void EquipButtonPressed()
     {
-        bool equipped = InputManager.OnEquip(pickedUpItem: _item, inventorySlotIndex: _inventorySlot.slotIndex, interactedObject: _thing, inventoryManager: _inventoryManager);
+        bool equipped = _inventoryManager.OnEquip(pickedUpItem: _item, inventorySlotIndex: _inventorySlot.slotIndex, interactedObject: _thing);
         if (equipped)
         {
             RightClickMenuClose();
@@ -166,7 +166,7 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void PickupButtonPressed()
     {
-        bool pickedUp = InputManager.OnItemPickup(pickedUpItem: _item, inventorySlotIndex: _inventorySlot.slotIndex, interactedObject: _thing, inventoryManager: _inventoryManager);
+        bool pickedUp = _inventoryManager.OnItemPickup(pickedUpItem: _item, inventorySlotIndex: _inventorySlot.slotIndex, interactedObject: _thing);
         
         if (pickedUp && _item != null)
         {
@@ -179,14 +179,14 @@ public class Menu_RightClick : MonoBehaviour
         {
             Equipment_Manager equipmentManager = actor.GetComponent<Equipment_Manager>();
             equipmentManager.DropItem(equipmentSlot, dropAmount);
-            Manager_Input.Instance.RefreshPlayerUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
+            Manager_Menu.Instance.InventoryMenu.RefreshPlayerUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
         }
 
         else if (inventorySlot != null)
         {
             Inventory_Manager inventoryManager = actor.GetComponent<Inventory_Manager>();
             inventoryManager.DropItem(inventorySlot.slotIndex, dropAmount, inventoryManager);
-            Manager_Input.Instance.RefreshPlayerUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
+            Manager_Menu.Instance.InventoryMenu.RefreshPlayerUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
         }
     }
     public void DropOneButtonPressed()

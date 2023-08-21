@@ -20,34 +20,18 @@ public abstract class Hitbox : MonoBehaviour
     {
         originalSize = transform.localScale;
     }
+
     protected virtual void FixedUpdate()
     {
-        CollideCheck();
+
     }
-    protected virtual void CollideCheck()
+
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        int numHits = Coll.Overlap(Filter, hits);
-
-        if (numHits == 0)
-        {
-            return;
-        }
-
-        for (int i = 0; i < hits.Length; i++)
-        {
-            if (hits[i] == null)
-            {
-                continue;
-            }
-
-            OnCollide(hits[i]);
-
-            hits[i] = null;
-        }
+        OnCollide(collision.collider);
     }
     protected virtual void OnCollide(Collider2D coll)
     {
-        
-    }
 
+    }
 }

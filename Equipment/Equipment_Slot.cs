@@ -13,28 +13,19 @@ using static Equipment_Manager;
 using static UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle;
 using static UnityEditor.Progress;
 
-public enum SlotType
-{
-    Head,
-    Chest,
-    MainHand,
-    OffHand,
-    Legs
-}
-
 [System.Serializable]
 [RequireComponent(typeof(SpriteRenderer))]
 public class Equipment_Slot : MonoBehaviour
 {
-    public SlotType slotType;
-    private Equipment_Manager equipmentManager;
-    private Manager_Stats statManager;
+    protected Equipment_Manager equipmentManager;
+    protected Manager_Stats statManager;
 
-    private SpriteRenderer spriteRenderer;
-    private AnimatorController animatorController;
-    private Animator animator;
-    private BoxCollider2D boxCollider;
+    protected SpriteRenderer spriteRenderer;
+    protected AnimatorController animatorController;
+    protected Animator animator;
+    protected BoxCollider2D boxCollider;
     public LayerMask wepCanAttack;
+    protected bool _attacking;
 
     public List_Item.ItemStats displayItemStats;
 
@@ -60,16 +51,7 @@ public class Equipment_Slot : MonoBehaviour
         equipmentManager.OnEquipmentChange += PopulateEquipmentSlots;
     }
 
-    public void FixedUpdate()
-    {
-        if (boxCollider != null && boxCollider.enabled)
-        {
-            if (slotType == SlotType.MainHand || slotType == SlotType.OffHand)
-            {
-                CollideCheck();
-            }
-        }
-    }
+    
     public void UpdateSprite(Equipment_Slot equipSlot, List_Item item)
     {
         if (item == null)
@@ -85,92 +67,17 @@ public class Equipment_Slot : MonoBehaviour
         }
     }
 
-    public void SpriteVectors(Equipment_Slot equipSlot, List_Item item)
+    public void SpriteVectors()
     {
         switch (item.itemType)
         {
             case ItemType.Weapon:
 
-                switch (item.weaponClass)
-                {
-                    case WeaponClass.Axe:
-                        // Change
-                        //spriteRenderer.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
-                        //spriteRenderer.transform.localPosition = new Vector3(-0.04f, -0.07f, 0f);
-                        //spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));
-                        break;
-                    case WeaponClass.ShortSword:
-                        spriteRenderer.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
-                        spriteRenderer.transform.localPosition = new Vector3(-0.04f, -0.07f, 0f);
-                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));
-                        break;
-                    case WeaponClass.Spear:
-                        // Change
-                        //spriteRenderer.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
-                        //spriteRenderer.transform.localPosition = new Vector3(-0.04f, -0.07f, 0f);
-                        //spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));
-                        break;
-                }
-                break;
+                
 
             case ItemType.Armour:
 
-                if (equipSlot.slotType == SlotType.Head)
-                {
-                    if (item.armourType == ArmourType.Head)
-                    {
-                        spriteRenderer.transform.localPosition = new Vector3(0f, 0.04f, 0f);
-                        spriteRenderer.transform.localScale = new Vector3(1f, 0.6f, 1f);
-                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
-                    }
-                    else if (item.armourType == ArmourType.Chest)
-                    {
-                        spriteRenderer.transform.localPosition = new Vector3(0f, 0.08f, 0f);
-                        spriteRenderer.transform.localScale = new Vector3(1f, 0.6f, 1f);
-                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
-                    }
-                    else if (item.armourType == ArmourType.Legs)
-                    {
-                        spriteRenderer.transform.localPosition = new Vector3(0f, 0.08f, 0f);
-                        spriteRenderer.transform.localScale = new Vector3(1.5f, 0.6f, 1f);
-                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));
-                    }
-                }
-                else if (equipSlot.slotType == SlotType.Chest)
-                {
-                    if (item.armourType == ArmourType.Chest)
-                    {
-                        spriteRenderer.transform.localPosition = new Vector3(0f, -0.02f, 0f);
-                        spriteRenderer.transform.localScale = new Vector3(0.9f, 0.4f, 1f);
-                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
-                    }
-                    else if (item.armourType == ArmourType.Head || item.armourType == ArmourType.Legs)
-                    {
-                        spriteRenderer.transform.localPosition = new Vector3(0f, -0.02f, 0f);
-                        spriteRenderer.transform.localScale = new Vector3(0.9f, 0.4f, 1f);
-                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
-                    }
-                }
-                else if (equipSlot.slotType == SlotType.Legs)
-                {
-                    if (item.armourType == ArmourType.Legs)
-                    {
-                        spriteRenderer.transform.localPosition = new Vector3(0f, -0.06f, 0f);
-                        spriteRenderer.transform.localScale = new Vector3(0.6f, 0.2f, 1f);
-                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
-                    }
-                    else if (item.armourType == ArmourType.Head || item.armourType == ArmourType.Chest)
-                    {
-                        spriteRenderer.transform.localPosition = new Vector3(0.035f, -0.06f, 0f);
-                        spriteRenderer.transform.localScale = new Vector3(0.3f, 0.4f, 1f);
-                        spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
-                    }
-                }
-                break;
-
-            default:
-
-                break;
+                
         }
     }
     public void SpriteSortingLayers(List_Item item)
@@ -216,18 +123,20 @@ public class Equipment_Slot : MonoBehaviour
             StartCoroutine(AttackCoroutine(animator));
         }
     }
-
     private IEnumerator AttackCoroutine(Animator animator)
     {
+        _attacking = true;
         animator.runtimeAnimatorController = animatorController;
         animator.SetTrigger("Attack");
+        _attacking = false;
 
         float delayDuration = 0.1f;
         yield return new WaitForSeconds(delayDuration);
 
         animator.ResetTrigger("Attack");
+        
     }
-    private void CollideCheck()
+    protected void CollideCheck()
     {
         Vector2 boxSize = boxCollider.size;
         Vector2 boxPosition = boxCollider.transform.position;

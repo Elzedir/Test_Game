@@ -8,10 +8,20 @@ using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
+public enum GameState
+{
+    Playing,
+    Paused,
+    Cinematic,
+    Loading,
+    PlayerDead
+}
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+
+    public GameState CurrentState { get; private set; }
 
     public bool PlayerDead = false;
 
@@ -20,7 +30,7 @@ public class GameManager : MonoBehaviour
     public List<int> upgradePrices;
     public List<int> xpTable;
 
-    public Player player;
+    public Player Player;
 
     public FloatingTextManager floatingTextManager;
 
@@ -47,6 +57,7 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        CurrentState = GameState.Playing;
         SceneManager.sceneLoaded += OnSceneLoad;
     }
 
@@ -54,11 +65,65 @@ public class GameManager : MonoBehaviour
     {
         InitializeGameData();
     }
+    private void Update()
+    {
+        Player = FindFirstObjectByType<Player>();
+    }
 
     void InitializeGameData()
     {
         List_Weapon.InitializeWeaponData();
         List_Armour.InitializeArmourData();
+    }
+
+    public void ChangeState(GameState newState)
+    {
+        switch (CurrentState)
+        {
+            case GameState.Playing:
+                break;
+            case GameState.Paused:
+                break;
+            case GameState.Loading:
+                // hide the loading screen
+                // switch to the next level
+                break;
+            case GameState.Cinematic:
+                // Hide the cinematic
+                // Resume player controls
+                break;
+            case GameState.PlayerDead:
+                // Reset the player
+                break;
+        }
+
+        CurrentState = newState;
+
+        switch (CurrentState)
+        {
+            case GameState.Playing:
+                Time.timeScale = 1f;
+                // enbale player controls
+                // resume normal sound and music
+                break;
+            case GameState.Paused:
+                Time.timeScale = 0f;
+                // disable player controls
+                // play pause music and stop game sounds
+                break;
+            case GameState.Loading:
+                // play a loading screen and slowly load the map in
+                // begin loading the next level
+                break;
+            case GameState.Cinematic:
+                // Play the cinematic
+                // Stop player controls
+                break;
+            case GameState.PlayerDead:
+                // Stop the player controls and enemies moving
+                // Play game over sound effect
+                break;
+        }
     }
 
     // Floating Text
@@ -77,7 +142,7 @@ public class GameManager : MonoBehaviour
     //HUD Bar
     public void HUDBarChange()
     {
-        Manager_Stats playerStatManager = player.GetComponent<Manager_Stats>();
+        Manager_Stats playerStatManager = Player.GetComponent<Manager_Stats>();
 
         float healthRatio = Mathf.Clamp((float)playerStatManager.currentHealth / (float)playerStatManager.maxHealth, 0f, 1f);
         healthBar.localScale = new Vector3(healthRatio, 1, 1);
@@ -129,11 +194,11 @@ public class GameManager : MonoBehaviour
     // Save and Load
     public void OnSceneLoad(Scene s, LoadSceneMode mode)
     {
-        player.transform.position = GameObject.Find("spawn_player").transform.position;
+        Player = FindFirstObjectByType<Player>();
+        Player.transform.position = GameObject.Find("spawn_player").transform.position;
     }
     public void SaveState(int saveSlot)
     {
-
         string currentSceneName = SceneManager.GetActiveScene().name;
         Save_Data saveData = new Save_Data(gold, totalExperience, currentSceneName);
         Save_Manager.SaveGame(saveData, saveSlot);
@@ -156,7 +221,7 @@ public class GameManager : MonoBehaviour
     {
         deathMenuAnimator.SetTrigger("Hide");
         SceneManager.LoadScene("Main");
-        player.PlayerRespawn();
+        Player.PlayerRespawn();
     }
 
     // Utility
@@ -171,7 +236,7 @@ public class GameManager : MonoBehaviour
 
     public void CreateNewItem(int itemID, int stackSize)
     {
-        GameObject droppedItem = Instantiate(itemPrefab, player.transform.position, Quaternion.identity, itemsArea);
+        GameObject droppedItem = Instantiate(itemPrefab, Player.transform.position, Quaternion.identity, itemsArea);
 
         if (TryGetComponent<SpriteRenderer> (out SpriteRenderer droppedItemSpriteRenderer))
         {

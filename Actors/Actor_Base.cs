@@ -10,6 +10,8 @@ using static UnityEngine.GraphicsBuffer;
 
 [RequireComponent(typeof(Manager_Stats))]
 [RequireComponent(typeof(Equipment_Manager))]
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Collider2D))]
 public class Actor_Base : Hitbox
 {
     // General
@@ -21,7 +23,7 @@ public class Actor_Base : Hitbox
     public Equipment_Manager equipmentManager;
     private Equipment_Slot mainHand;
     public Inventory_Manager inventory;
-    public Transform VFXArea;
+    public Actor_VFX _actor_VFX;
 
     // Layers
     protected GameObject closestEnemy = null;
@@ -92,14 +94,17 @@ public class Actor_Base : Hitbox
         _actorColl = GetComponent<BoxCollider2D>();
         _actorBody = GetComponent<Rigidbody2D>();
         _actorAnimator = GetComponent<Animator>();
+        _actor_VFX = GetComponentInChildren<Actor_VFX>();
         LayerCount();
     }
     protected override void FixedUpdate()
     {
         base.FixedUpdate();
 
-        PlayerMove();
-
+        if (GameManager.Instance.Player.gameObject == this.gameObject)
+        {
+            PlayerMove();
+        }
         if (hostile)
         {
             TargetCheck();
@@ -116,6 +121,11 @@ public class Actor_Base : Hitbox
             {
                 HandleNPCBehavior();
             }
+        }
+
+        if (dead)
+        {
+            Death();
         }
     }
 
@@ -171,7 +181,7 @@ public class Actor_Base : Hitbox
             {
                 Move(new Vector3(x, y, 0));
                 transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
-                VFXArea.transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
+                _actor_VFX.transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
             }
         }
     }
@@ -489,10 +499,9 @@ public class Actor_Base : Hitbox
     protected virtual void Death()
     {
         OnActorDeath(gameObject);
-        Destroy(gameObject);
+        // replace the sprite with a dead sprite for a set amount of time, and then destroy the body when you load a new level.
         GameManager.Instance.GrantXp(ActorData.xpValue);
         GameManager.Instance.ShowFloatingText("+" + ActorData.xpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
-        Debug.Log("Dead body not implemented");
     }
     public void LayerCount()
     {
@@ -531,14 +540,14 @@ public class Actor_Base : Hitbox
     {
         if (onFire)
         {
-            VFX_Manager.instance.AddOnFireVFX(selfActor, VFXArea);
+            VFX_Manager.instance.AddOnFireVFX(selfActor, _actor_VFX.transform);
         }
     }
     public void RemoveOnFireVFX()
     { 
         if (!onFire)
         {
-            VFX_Manager.instance.RemoveOnFireVFX(selfActor, VFXArea);
+            VFX_Manager.instance.RemoveOnFireVFX(selfActor, _actor_VFX.transform);
         }
     }
 

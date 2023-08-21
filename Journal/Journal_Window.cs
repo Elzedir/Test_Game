@@ -4,12 +4,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Journal_Window : MonoBehaviour
+public class Journal_Window : Menu_UI
 {
-    public static Journal_Window instance;
+    public static Journal_Window Instance;
 
     public TextMeshProUGUI nameText;
-    public bool isOpen = false;
     public GameObject questButtonPrefab;
     public Transform journalListArea;
     public TextMeshProUGUI journalInfo;
@@ -17,21 +16,21 @@ public class Journal_Window : MonoBehaviour
 
     public void Start()
     {
-        if (instance != null)
+        if (Instance != null)
         {
             Destroy(gameObject);
             return;
         }
-        instance = this;
+        Instance = this;
 
         gameObject.SetActive(false);
     }
 
-    public void OpenJournalWindow(GameObject player)
+    public override void OpenMenu(GameObject interactedObject = null)
     {
         gameObject.SetActive(true);
-        isOpen = true;
-        SetJournalWindowName(player.name);
+        _isOpen = true;
+        SetJournalWindowName(GameManager.Instance.Player.name);
         journalInfo.text = "";
         foreach (Transform quest in journalListArea)
         {
@@ -40,14 +39,14 @@ public class Journal_Window : MonoBehaviour
         CreateQuestButtons();
     }
 
-    public void CloseJournalWindow()
+    public override void CloseMenu()
     {
         foreach (Transform quest in journalListArea)
         {
             Destroy(quest.gameObject);
         }
         gameObject.SetActive(false);
-        isOpen = false;
+        _isOpen = false;
     }
 
     public void SetJournalWindowName(string name)

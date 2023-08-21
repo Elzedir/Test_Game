@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-public enum Race
+public enum Type
 {
+    Crate,
     Demon,
     Human,
     Orc
@@ -16,7 +17,7 @@ public class Actor_Data_SO : ScriptableObject
     // Static Data
 
     public string characterName;
-    private Race _race;
+    public Type Type;
     private FactionManager.Faction _faction;
     public LayerMask CanAttack
     {
@@ -45,6 +46,7 @@ public class Actor_Data_SO : ScriptableObject
 
     //States
     public bool isFlammable;
+    public bool IsTalkable;
 
     public float baseYSpeed;
     public float baseXSpeed;

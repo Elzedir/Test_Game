@@ -50,7 +50,7 @@ public class Chest : MonoBehaviour
     public void OpenChestInventory(Inventory_NotEquippable inventoryManager)
     {
         RefreshInventoryIDs();
-        Manager_Input.Instance.OpenInventory(this.gameObject);
+        Inventory_Window.Instance.OpenMenu(this.gameObject);
     }
 
     public void RefreshInventoryIDs()

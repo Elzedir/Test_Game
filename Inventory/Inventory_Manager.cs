@@ -360,6 +360,148 @@ public abstract class Inventory_Manager : MonoBehaviour
         }
     }
 
+    public bool OnItemPickup(Interactable_Item pickedUpItem = null, int inventorySlotIndex = -1, GameObject interactedObject = null)
+    {
+        Dictionary<int, (int, int, bool)> inventoryItems = InventoryItemIDs;
+
+        int itemID = pickedUpItem != null ? pickedUpItem.ItemID : inventoryItems[inventorySlotIndex].Item1;
+        int stackSize = pickedUpItem != null ? pickedUpItem.StackSize : inventoryItems[inventorySlotIndex].Item2;
+
+        List_Item item = List_Item.GetItemData(itemID);
+
+        if (item == null)
+        {
+            Debug.Log("Item is null");
+            return false;
+        }
+
+        Inventory_Manager playerInventoryManager = GameManager.Instance.Player.GetComponent<Inventory_Manager>();
+        playerInventoryManager.AddItem(item, stackSize);
+
+        if (inventorySlotIndex != -1)
+        {
+            RemoveItem(inventorySlotIndex, item, stackSize);
+
+            if (TryGetComponent<Chest_Items>(out Chest_Items chestItems))
+            {
+                List<Chest_ItemData> updatedItems = new List<Chest_ItemData>();
+
+                foreach (var entry in InventoryItemIDs)
+                {
+                    if (entry.Value.Item1 != -1)
+                    {
+                        Chest_ItemData itemData = new Chest_ItemData
+                        {
+                            itemID = entry.Value.Item1,
+                            stackSize = entry.Value.Item2
+                        };
+                        updatedItems.Add(itemData);
+                    }
+                }
+
+                chestItems.items = updatedItems.ToArray();
+            }
+        }
+        else
+        {
+            Destroy(pickedUpItem.gameObject);
+        }
+
+        if (Manager_Menu.Instance.InventoryMenu != null)
+        {
+            Manager_Menu.Instance.InventoryMenu.RefreshPlayerUI(gameObject);
+        }
+        else
+        {
+            Debug.Log("No open UI window");
+        }
+
+        Inventory_Creator slotCreator = Manager_Menu.Instance.InventoryMenu.GetComponentInChildren<Inventory_Creator>();
+        slotCreator.UpdateInventoryUI(this);
+
+        return true;
+    }
+
+    public bool OnEquip(Interactable_Item pickedUpItem = null, int inventorySlotIndex = -1, GameObject interactedObject = null)
+    {
+        Dictionary<int, (int, int, bool)> inventoryItems = InventoryItemIDs;
+
+        List_Item item = (pickedUpItem == null)
+        ? List_Item.GetItemData(inventoryItems[inventorySlotIndex].Item1)
+        : List_Item.GetItemData(pickedUpItem.ItemID);
+
+        if (item == null)
+        {
+            Debug.Log($"Inventory does not have itemID");
+            return false;
+        }
+
+        Equipment_Manager playerEquipmentManager = GameManager.Instance.Player.GetComponent<Equipment_Manager>();
+
+        if (playerEquipmentManager == null)
+        {
+            Debug.Log("Player does not have equipment manager");
+            return false;
+        }
+
+        int stackSize = (inventorySlotIndex != -1)
+            ? inventoryItems[inventorySlotIndex].Item2
+            : pickedUpItem.StackSize;
+
+        (bool equipped, int remainingStackSize) = playerEquipmentManager.Equip(item, stackSize);
+
+        if (!equipped)
+        {
+            Debug.Log("Item was not equipped");
+            return false;
+        }
+
+        if (inventorySlotIndex != -1)
+        {
+            RemoveItem(inventorySlotIndex, item, stackSize);
+
+            if (TryGetComponent<Chest_Items>(out Chest_Items chestItems))
+            {
+                List<Chest_ItemData> updatedItems = new List<Chest_ItemData>();
+
+                foreach (var entry in InventoryItemIDs)
+                {
+                    if (entry.Value.Item1 != -1)
+                    {
+                        Chest_ItemData itemData = new Chest_ItemData
+                        {
+                            itemID = entry.Value.Item1,
+                            stackSize = entry.Value.Item2
+                        };
+                        updatedItems.Add(itemData);
+                    }
+                }
+
+                chestItems.items = updatedItems.ToArray();
+            }
+        }
+        else
+        {
+            Destroy(pickedUpItem.gameObject);
+        }
+
+        if (remainingStackSize > 0)
+        {
+            AddItem(item, remainingStackSize);
+        }
+
+        if (Manager_Menu.Instance.InventoryMenu != null)
+        {
+            Manager_Menu.Instance.InventoryMenu.RefreshPlayerUI(gameObject, playerEquipmentManager);
+        }
+        else
+        {
+            Debug.Log("No open UI window");
+        }
+
+        return true;
+    }
+
 
     #region Inventory Windows
     public virtual void OpenInventory()

@@ -24,7 +24,7 @@ public class Interactable_Manager : MonoBehaviour
 
     public void Interact()
     {
-        Player player = GameManager.Instance.player;
+        Player player = GameManager.Instance.Player;
 
         if (player == null)
         {
