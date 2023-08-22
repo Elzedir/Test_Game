@@ -74,21 +74,26 @@ public class Equipment_Manager : MonoBehaviour
 
             if (child != null)
             {
-                switch (child.slotType)
+                switch (child.transform.name)
                 {
-                    case SlotType.Head:
+                    case "Head":
+                        child.slotType = SlotType.Head;
                         Head = child;
                         break;
-                    case SlotType.Chest:
+                    case "Chest":
+                        child.slotType = SlotType.Chest;
                         Chest = child;
                         break;
-                    case SlotType.MainHand:
+                    case "MainHand":
+                        child.slotType = SlotType.MainHand;
                         MainHand = child;
                         break;
-                    case SlotType.OffHand:
+                    case "OffHand":
+                        child.slotType = SlotType.OffHand;
                         OffHand = child;
                         break;
-                    case SlotType.Legs:
+                    case "Legs":
+                        child.slotType = SlotType.Legs;
                         Legs = child;
                         break;
                 }

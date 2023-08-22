@@ -3,12 +3,24 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-public enum Type
+public enum ActorType
 {
-    Crate,
+    Playable,
+    NonPlayable
+}
+
+public enum PlayableRace
+{
     Demon,
     Human,
     Orc
+}
+
+public enum NonPlayableType
+{
+    Crate,
+    Box,
+    Tree
 }
 
 [CreateAssetMenu(fileName = "New Character", menuName = "Character/Character Data")]
@@ -16,9 +28,19 @@ public class Actor_Data_SO : ScriptableObject
 {
     // Static Data
 
-    public string characterName;
-    public Type Type;
-    private FactionManager.Faction _faction;
+    public string CharacterName;
+    public ActorType ActorType;
+    public FactionManager.Faction _faction;
+    private PlayableRace _playableRace;
+    private NonPlayableType _nonPlayableType;
+    public PlayableRace PlayableRace
+    {  get { return _playableRace; }
+       set { _playableRace = value; }
+    }
+    public NonPlayableType NonPlayableType
+    { get { return _nonPlayableType; } 
+      set { _nonPlayableType = value; } 
+    }
     public LayerMask CanAttack
     {
         get
@@ -80,5 +102,32 @@ public class Actor_Data_SO : ScriptableObject
     public void DisplayThisActorStats()
     {
         DisplayActorStats = _actorStats.DisplayActorStats(_actor);
+    }
+
+    public void SetActorLayer(GameObject actor)
+    {
+        FactionManager factionManager = FactionManager.instance;
+        string layerName = factionManager.GetLayerNameFromFaction(_faction);
+        int layerIndex = LayerMask.NameToLayer(layerName);
+        actor.layer = layerIndex;
+        SetActorChildLayerRecursively(actor, layerIndex);
+    }
+
+    public void SetActorChildLayerRecursively(GameObject obj, int newLayer)
+    {
+        if (obj == null)
+        {
+            return;
+        }
+
+        obj.layer = newLayer;
+
+        foreach (Transform child in obj.transform)
+        {
+            if (child != null)
+            {
+                SetActorChildLayerRecursively(child.gameObject, newLayer);
+            }
+        }
     }
 }

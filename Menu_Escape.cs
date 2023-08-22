@@ -38,7 +38,14 @@ public class Menu_Escape : Menu_UI
 
     public void SwitchCharacterButtonPressed()
     {
-        Menu_CharacterSelect.Instance.OpenMenu();
-        CloseMenu();
+        if (GameManager.Instance.CurrentState != GameState.InCombat)
+        {
+            Menu_CharacterSelect.Instance.OpenMenu();
+            CloseMenu();
+        }
+        else
+        {
+            Debug.Log("Player is in combat");
+        }
     }
 }

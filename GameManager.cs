@@ -14,7 +14,8 @@ public enum GameState
     Paused,
     Cinematic,
     Loading,
-    PlayerDead
+    PlayerDead,
+    InCombat
 }
 
 public class GameManager : MonoBehaviour
@@ -251,5 +252,10 @@ public class GameManager : MonoBehaviour
             droppedItemScript.StackSize = stackSize;
             droppedItemScript.UpdateItem();
         }
+    }
+
+    public void CreateDeadBody(Actor_Base actor)
+    {
+        // Instantiate a new game object and give it a dead body script with a certain animation and sprite.
     }
 }

@@ -65,4 +65,25 @@ public class FactionManager : MonoBehaviour
     {
         return new Dictionary<Faction, LayerMask>(factionMasks);
     }
+
+    public string GetLayerNameFromFaction(FactionManager.Faction faction)
+    {
+        switch (faction)
+        {
+            case FactionManager.Faction.Player:
+                return "Player";
+            case FactionManager.Faction.EnemyHuman:
+                return "Enemy Human";
+            case FactionManager.Faction.Passive:
+                return "Passive";
+            case FactionManager.Faction.EnemyMonster:
+                return "Enemy Monster";
+            case FactionManager.Faction.Human:
+                return "Human";
+            case FactionManager.Faction.Destructable:
+                return "Destructable";
+            default:
+                return "Default";
+        }
+    }
 }

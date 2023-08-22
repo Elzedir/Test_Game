@@ -129,7 +129,7 @@ public class Manager_Stats : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            actor.dead = true;
+            actor.Death();
             return;
         }
 

@@ -1,3 +1,4 @@
+using NUnit.Framework.Constraints;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,6 +7,7 @@ using UnityEngine;
 
 public enum ItemType
 {
+    None,
     Weapon,
     Armour,
     Consumable,
@@ -14,12 +16,14 @@ public enum ItemType
 
 public enum WeaponType
 {
+    None,
     OneHanded,
     TwoHanded
 }
 
 public enum WeaponClass
 {
+    None,
     Axe,
     ShortSword,
     Spear
@@ -27,6 +31,7 @@ public enum WeaponClass
 
 public enum ArmourType
 {
+    None,
     Chest,
     Head,
     Legs,
@@ -137,6 +142,14 @@ public abstract class List_Item
     [Serializable]
     public struct ItemStats
     {
+        public CommonStats CommonStats;
+        public WeaponStats WeaponStats;
+        public ArmourStats ArmourStats;
+    }
+
+    [Serializable]
+    public struct CommonStats
+    {
         public int itemID;
         public ItemType itemType;
         public string itemName;
@@ -150,16 +163,22 @@ public abstract class List_Item
         public Vector3 itemPosition;
         public Vector3 itemRotation;
         public AnimatorController itemAnimatorController;
+    }
 
-        // Attack
+    [Serializable]
+    public struct WeaponStats
+    {
         public WeaponType weaponType;
         public WeaponClass weaponClass;
         public float itemDamage;
         public float itemSpeed;
         public float itemForce;
         public float itemRange;
+    }
 
-        // Defence
+    [Serializable]
+    public struct ArmourStats
+    {
         public ArmourType armourType;
         public float itemMaxHealthBonus;
         public float itemPhysicalArmour;
@@ -175,48 +194,51 @@ public abstract class List_Item
         {
             ItemStats displayItem = new ItemStats()
             {
-                itemID = item.itemID,
-                itemType = item.itemType,
-                itemName = item.itemName,
-                itemIcon = item.itemIcon,
-                currentStackSize = currentStackSize,
-                maxStackSize = item.maxStackSize,
-                itemValue = item.itemValue, 
-                itemWeight = item.itemWeight,
-                equippable = item.equippable
+                CommonStats = new CommonStats()
+                {
+                    itemID = item.itemID,
+                    itemType = item.itemType,
+                    itemName = item.itemName,
+                    itemIcon = item.itemIcon,
+                    currentStackSize = currentStackSize,
+                    maxStackSize = item.maxStackSize,
+                    itemValue = item.itemValue,
+                    itemWeight = item.itemWeight,
+                    equippable = item.equippable,
+                },
+
+                WeaponStats = new WeaponStats()
+                {
+                    weaponType = item.weaponType,
+                    weaponClass = item.weaponClass,
+                    itemDamage = item.itemDamage,
+                    itemSpeed = item.itemSpeed,
+                    itemForce = item.itemForce,
+                    itemRange = item.itemRange,
+                },
+                
+                ArmourStats = new ArmourStats()
+                {
+                    armourType = item.armourType,
+                    itemMaxHealthBonus = item.itemMaxHealthBonus,
+                    itemPhysicalArmour = item.itemPhysicalArmour,
+                    itemMagicalArmour = item.itemMagicalArmour,
+                    itemCoverage = item.itemCoverage
+                }
             };
-
-            switch (item.itemType)
-            {
-                case ItemType.Weapon:
-                    displayItem.weaponType = item.weaponType;
-                    displayItem.weaponClass = item.weaponClass;
-                    displayItem.itemDamage = item.itemDamage;
-                    displayItem.itemSpeed = item.itemSpeed;
-                    displayItem.itemForce = item.itemForce;
-                    displayItem.itemRange = item.itemRange;
-                    break;
-                case ItemType.Armour:
-                    displayItem.armourType = item.armourType;
-                    displayItem.itemMaxHealthBonus = item.itemMaxHealthBonus;
-                    displayItem.itemPhysicalArmour = item.itemPhysicalArmour;
-                    displayItem.itemMagicalArmour = item.itemMagicalArmour;
-                    displayItem.itemCoverage = item.itemCoverage;
-                    break;
-                case ItemType.Consumable:
-                    // ... consumable-specific assignments ...
-                    break;
-                default:
-                    Debug.Log($"Unknown item type for itemID: {itemID}");
-                    break;
-            }
-
-            return displayItem;
+                return displayItem;
         }
+
         else
         {
             Debug.Log($"Failed to retrieve item stats for itemID: {itemID}");
-            return new ItemStats { itemType = ItemType.Unknown };
+            return new ItemStats
+            {
+                CommonStats = new CommonStats
+                {
+                    itemType = ItemType.Unknown
+                }
+            };
         }
     }
 }

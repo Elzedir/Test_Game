@@ -27,7 +27,7 @@ public class Crate : Actor_Base
         }
     }
 
-    protected override void Death()
+    public override void Death()
     {
         Destroy(gameObject);
         OnActorDeath(gameObject);

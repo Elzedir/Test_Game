@@ -15,9 +15,9 @@ using static UnityEngine.GraphicsBuffer;
 public class Actor_Base : Hitbox
 {
     // General
-    private GameObject selfGameObject;
-    private Actor_Base selfActor;
-    private AbilityManager abilityManager;
+    private GameObject _selfGameObject;
+    private Actor_Base _selfActor;
+    private AbilityManager _abilityManager;
     public Dialogue_Data_SO dialogue;
     public Manager_Stats StatManager;
     public Equipment_Manager equipmentManager;
@@ -33,7 +33,7 @@ public class Actor_Base : Hitbox
     private bool coroutineRunning = false;
     public bool dead = false;
     public bool hostile = true;
-    protected bool alerted = false;
+    public bool alerted = false;
     protected bool attacking = false;
     protected bool jumping = false;
     protected bool berserk = false;
@@ -83,10 +83,51 @@ public class Actor_Base : Hitbox
     protected override void Start()
     {
         base.Start();
+        InitialiseComponents();
+        LayerCount();
+        if (ActorData.ActorType == ActorType.Playable)
+        {
+            CharacterComponentCheck();
+        }
+        ActorData.SetActorLayer(_selfActor.gameObject);
+    }
 
-        selfActor = GetComponent<Actor_Base>();
+    protected override void FixedUpdate()
+    {
+        base.FixedUpdate();
+
+        if (ActorData.ActorType == ActorType.Playable)
+        {
+            if (hostile)
+            {
+                TargetCheck();
+            }
+
+            if (GameManager.Instance.Player.gameObject == this.gameObject)
+            {
+                PlayerMove();
+            }
+            else 
+            {
+                if (closestEnemy != null)
+                {
+                    HandleNPCBehavior();
+                }
+            }
+
+            if (move.magnitude <= 0.01f)
+            {
+                SetMovementSpeed(0f);
+            }
+        }
+    }
+
+    private void InitialiseComponents()
+    {
+
+        _selfActor = GetComponent<Actor_Base>();
         startingPosition = transform.position;
-        abilityManager = GetComponent<AbilityManager>();
+        _abilityManager = GetComponent<AbilityManager>();
         StatManager = GetComponent<Manager_Stats>();
         equipmentManager = GetComponent<Equipment_Manager>();
         inventory = GetComponent<Inventory_Manager>();
@@ -95,43 +136,50 @@ public class Actor_Base : Hitbox
         _actorBody = GetComponent<Rigidbody2D>();
         _actorAnimator = GetComponent<Animator>();
         _actor_VFX = GetComponentInChildren<Actor_VFX>();
-        LayerCount();
     }
-    protected override void FixedUpdate()
+    private void CharacterComponentCheck()
     {
-        base.FixedUpdate();
+        string[] requiredParts = { "Head", "Chest", "MainHand", "OffHand", "Legs", "VFX" };
+        Transform parentTransform = transform;
 
-        if (GameManager.Instance.Player.gameObject == this.gameObject)
+        foreach (string part in requiredParts)
         {
-            PlayerMove();
-        }
-        if (hostile)
-        {
-            TargetCheck();
-        }
-
-        if (move.magnitude <= 0.01f)
-        {
-            SetMovementSpeed(0f);
-        }
-
-        if (closestEnemy != null)
-        {
-            if (GetComponent<Player>() == null)
+            Transform childTransform = parentTransform.Find(part);
+            if (childTransform == null)
             {
-                HandleNPCBehavior();
-            }
-        }
+                GameObject newPart = new GameObject(part);
+                newPart.transform.SetParent(parentTransform);
+                Equipment_Slot equipmentSlot = null;
 
-        if (dead)
-        {
-            Death();
+                switch (part)
+                {
+                    case "Head":
+                        equipmentSlot = newPart.AddComponent<Equipment_Slot_Armour>();
+                        break;
+                    case "Chest":
+                        equipmentSlot = newPart.AddComponent<Equipment_Slot_Armour>();
+                        break;
+                    case "MainHand":
+                        equipmentSlot = newPart.AddComponent<Equipment_Slot_Weapon>();
+                        break;
+                    case "OffHand":
+                        equipmentSlot = newPart.AddComponent<Equipment_Slot_Weapon>();
+                        break;
+                    case "Legs":
+                        equipmentSlot = newPart.AddComponent<Equipment_Slot_Armour>();
+                        break;
+                    case "VFX":
+                        newPart.AddComponent<Actor_VFX>();
+                        break;
+                }
+            }
         }
     }
 
     private void HandleNPCBehavior()
     {
         Chase();
+
         if (alerted)
         {
             // AbilityUse();
@@ -166,23 +214,15 @@ public class Actor_Base : Hitbox
 
     public virtual void PlayerMove()
     {
-        if (_player == null)
-        {
-            _player = FindFirstObjectByType<Player>();
-        }
-
-        if (_player != null)
+        if (!dead)
         {
             float x = Input.GetAxisRaw("Horizontal");
             float y = Input.GetAxisRaw("Vertical");
             var dir = Input.mousePosition - Camera.main.WorldToScreenPoint(transform.position);
 
-            if (!dead)
-            {
-                Move(new Vector3(x, y, 0));
-                transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
-                _actor_VFX.transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
-            }
+            Move(new Vector3(x, y, 0));
+            transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
+            _actor_VFX.transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
         }
     }
     public virtual void TargetCheck()
@@ -195,7 +235,7 @@ public class Actor_Base : Hitbox
         {
             GameObject target = hits.gameObject;
 
-            if (target != null && !attackableTargets.Contains(target) && target.gameObject.name != "Weapon")
+            if (target != null && !attackableTargets.Contains(target) && target.gameObject.name != "MainHand" && target.gameObject.name != "OffHand")
             {
                 BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
 
@@ -496,12 +536,15 @@ public class Actor_Base : Hitbox
             AbilityManager.instance.Charge(closestEnemy, self);
         }
     }
-    protected virtual void Death()
+    public virtual void Death()
     {
+        dead = true;
         OnActorDeath(gameObject);
         // replace the sprite with a dead sprite for a set amount of time, and then destroy the body when you load a new level.
         GameManager.Instance.GrantXp(ActorData.xpValue);
         GameManager.Instance.ShowFloatingText("+" + ActorData.xpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
+        GameManager.Instance.CreateDeadBody(this);
+        Destroy(gameObject);
     }
     public void LayerCount()
     {
@@ -540,14 +583,14 @@ public class Actor_Base : Hitbox
     {
         if (onFire)
         {
-            VFX_Manager.instance.AddOnFireVFX(selfActor, _actor_VFX.transform);
+            VFX_Manager.instance.AddOnFireVFX(_selfActor, _actor_VFX.transform);
         }
     }
     public void RemoveOnFireVFX()
     { 
         if (!onFire)
         {
-            VFX_Manager.instance.RemoveOnFireVFX(selfActor, _actor_VFX.transform);
+            VFX_Manager.instance.RemoveOnFireVFX(_selfActor, _actor_VFX.transform);
         }
     }
 
