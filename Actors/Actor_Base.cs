@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.UI;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.Experimental;
@@ -17,6 +18,7 @@ public class Actor_Base : Hitbox
     // General
     private GameObject _selfGameObject;
     private Actor_Base _selfActor;
+    public NavMeshAgent _selfAgent;
     private AbilityManager _abilityManager;
     public Dialogue_Data_SO dialogue;
     public Manager_Stats StatManager;
@@ -72,6 +74,11 @@ public class Actor_Base : Hitbox
     public bool RightMouseButtonHeld = false;
 
     public Actor_Data_SO ActorData;
+    public Actor_PatrolData_SO PatrolData;
+
+    private int _currentPatrolPoint;
+    private bool _isWaiting = false;
+
 
     public GameObject Weapon;
     public Transform SheathedPosition;
@@ -107,12 +114,9 @@ public class Actor_Base : Hitbox
             {
                 PlayerMove();
             }
-            else 
+            else
             {
-                if (closestEnemy != null)
-                {
-                    HandleNPCBehavior();
-                }
+                HandleNPCBehavior();
             }
 
             if (move.magnitude <= 0.01f)
@@ -126,6 +130,9 @@ public class Actor_Base : Hitbox
     {
 
         _selfActor = GetComponent<Actor_Base>();
+        _selfAgent = GetComponent<NavMeshAgent>() != null ? GetComponent<NavMeshAgent>() : gameObject.AddComponent<NavMeshAgent>();
+        _selfAgent.updateRotation = false;
+        _selfAgent.updateUpAxis = false;
         startingPosition = transform.position;
         _abilityManager = GetComponent<AbilityManager>();
         StatManager = GetComponent<Manager_Stats>();
@@ -178,11 +185,18 @@ public class Actor_Base : Hitbox
 
     private void HandleNPCBehavior()
     {
-        Chase();
-
-        if (alerted)
+        if (closestEnemy == null)
         {
-            // AbilityUse();
+            Patrol();
+        }
+        else
+        {
+            Chase();
+
+            if (alerted)
+            {
+                // AbilityUse();
+            }
         }
     }
 
@@ -288,21 +302,6 @@ public class Actor_Base : Hitbox
             }                
         }
     }
-    public void OnActorDeath(GameObject actor)
-    {
-        Debug.Log("OnActorDeath called");
-        
-        if (attackableTargets.Contains(actor))
-        {
-            Debug.Log(actor + " died");
-            attackableTargets.Remove(actor);
-        }
-
-        if (NPCs.Contains(actor))
-        {
-            NPCs.Remove(actor);
-        }
-    }
     public virtual void Chase()
     {
         if (GetComponent<Player>() == null || berserk)
@@ -333,7 +332,7 @@ public class Actor_Base : Hitbox
 
                     if (!withinAttackRange)
                     {
-                        Move((closestEnemy.transform.position - transform.position).normalized);
+                        _selfAgent.SetDestination(closestEnemy.transform.position);
                     }
                     else
                     {
@@ -357,6 +356,50 @@ public class Actor_Base : Hitbox
             }
         }
     }
+
+    public void Patrol()
+    {
+        if (PatrolData == null || PatrolData.PatrolPoints.Length == 0) return;
+
+        if (_isWaiting) return;
+
+        Vector2 targetPosition = PatrolData.PatrolPoints[_currentPatrolPoint];
+        Vector2 currentPosition = transform.position;
+
+        if (Vector2.Distance(currentPosition, targetPosition) < 0.1f)
+        {
+            StartCoroutine(WaitAtPatrolPoint());
+            return;
+        }
+
+        Vector2 direction = (targetPosition - currentPosition).normalized;
+        Move(direction * PatrolData.PatrolSpeed);
+    }
+
+    private IEnumerator WaitAtPatrolPoint()
+    {
+        _isWaiting = true;
+        yield return new WaitForSeconds(PatrolData.WaitTimeAtPoint);
+        _currentPatrolPoint = (_currentPatrolPoint + 1) % PatrolData.PatrolPoints.Length;
+        _isWaiting = false;
+    }
+
+    public void OnActorDeath(GameObject actor)
+    {
+        Debug.Log("OnActorDeath called");
+
+        if (attackableTargets.Contains(actor))
+        {
+            Debug.Log(actor + " died");
+            attackableTargets.Remove(actor);
+        }
+
+        if (NPCs.Contains(actor))
+        {
+            NPCs.Remove(actor);
+        }
+    }
+
     public void SetMovementSpeed(float speed)
     {
         Animator animator = GetComponent<Animator>();
@@ -372,7 +415,7 @@ public class Actor_Base : Hitbox
         
         if(distanceToStart > 0.01f)
         {
-            Move((startingPosition - transform.position).normalized);
+            _selfAgent.SetDestination(startingPosition - transform.position);
         }
         else
         {
