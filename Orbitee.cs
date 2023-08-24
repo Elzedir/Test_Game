@@ -35,9 +35,9 @@ public class Orbitee : Actor_Base
     
     // put a while statement that the orbiters will only orbit when the player is within checklength range
 
-    protected override void FixedUpdate()
+    protected override void Update()
     {
-        base.FixedUpdate();
+        base.Update();
 
         for (int i = 0; i < orbiters.Length; i++)
         {

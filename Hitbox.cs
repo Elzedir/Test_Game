@@ -21,9 +21,12 @@ public abstract class Hitbox : MonoBehaviour
         originalSize = transform.localScale;
     }
 
-    protected virtual void FixedUpdate()
+    protected virtual void Update()
     {
-
+        if (GameManager.Instance.CurrentState == GameState.Paused)
+        {
+            return;
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

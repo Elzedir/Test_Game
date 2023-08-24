@@ -99,9 +99,9 @@ public class Actor_Base : Hitbox
         ActorData.SetActorLayer(_selfActor.gameObject);
     }
 
-    protected override void FixedUpdate()
+    protected override void Update()
     {
-        base.FixedUpdate();
+        base.Update();
 
         if (ActorData.ActorType == ActorType.Playable)
         {
@@ -332,15 +332,17 @@ public class Actor_Base : Hitbox
 
                     if (!withinAttackRange)
                     {
+                        _selfAgent.isStopped = false;
                         _selfAgent.SetDestination(closestEnemy.transform.position);
                     }
                     else
                     {
+                        _selfAgent.isStopped = true;
                         SetMovementSpeed(0f);
 
                         if (!attacking)
                         {
-                            NPCAttack(closestEnemy); // change this to be a different target when we have more
+                            NPCAttack();
                         }
                     }
                 }
@@ -415,7 +417,7 @@ public class Actor_Base : Hitbox
         
         if(distanceToStart > 0.01f)
         {
-            _selfAgent.SetDestination(startingPosition - transform.position);
+            _selfAgent.SetDestination(startingPosition);
         }
         else
         {
@@ -478,8 +480,9 @@ public class Actor_Base : Hitbox
             }
         }
     }
-    public void NPCAttack(GameObject target)
+    public void NPCAttack()
     {
+        // currently only working for closesnt enemy
         List<Equipment_Slot> equippedWeapons = equipmentManager.WeaponEquipped();
 
         if (equippedWeapons.Count > 0)
@@ -491,7 +494,7 @@ public class Actor_Base : Hitbox
         }
         else
         {
-            UnarmedAttack(target);
+            UnarmedAttack(closestEnemy);
         }
     }
     public void UnarmedAttack(GameObject target)

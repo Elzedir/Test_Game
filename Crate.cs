@@ -18,9 +18,9 @@ public class Crate : Actor_Base
         boxColl = GetComponent<BoxCollider2D>();
     }
 
-    protected override void FixedUpdate()
+    protected override void Update()
     {
-        base.FixedUpdate();
+        base.Update();
         if (dead)
         {
             Death();
