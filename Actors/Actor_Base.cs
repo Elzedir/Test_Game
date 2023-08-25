@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.UI;
@@ -20,7 +21,7 @@ public class Actor_Base : Hitbox
     private Actor_Base _selfActor;
     public NavMeshAgent _selfAgent;
     private AbilityManager _abilityManager;
-    public Dialogue_Data_SO dialogue;
+    public Dialogue_Data_SO DialogueData;
     public Manager_Stats StatManager;
     public Equipment_Manager equipmentManager;
     private Equipment_Slot mainHand;
@@ -28,7 +29,7 @@ public class Actor_Base : Hitbox
     public Actor_VFX _actor_VFX;
 
     // Layers
-    protected GameObject closestEnemy = null;
+    public GameObject closestEnemy = null;
     protected GameObject closestNPC = null;
     protected int layerCount = 0;
     
@@ -77,7 +78,7 @@ public class Actor_Base : Hitbox
     public Actor_PatrolData_SO PatrolData;
 
     private int _currentPatrolPoint;
-    private bool _isWaiting = false;
+    private bool _isPatrolWaiting = false;
 
 
     public GameObject Weapon;
@@ -86,6 +87,14 @@ public class Actor_Base : Hitbox
     private SpriteRenderer _spriteRenderer;
     private Animator _actorAnimator;
     private Player _player;
+
+    [SerializeField] private WanderData WanderData;
+    public Vector3 WanderTargetPosition;
+    private bool _isWandering = false;
+    private bool _isWanderingCoroutineRunning = false;
+    private bool _isWanderWaiting = false;
+
+    public bool Talking;
 
     protected override void Start()
     {
@@ -105,6 +114,10 @@ public class Actor_Base : Hitbox
 
         if (ActorData.ActorType == ActorType.Playable)
         {
+            if (Talking)
+            {
+                return;
+            }
             if (hostile)
             {
                 TargetCheck();
@@ -128,7 +141,6 @@ public class Actor_Base : Hitbox
 
     private void InitialiseComponents()
     {
-
         _selfActor = GetComponent<Actor_Base>();
         _selfAgent = GetComponent<NavMeshAgent>() != null ? GetComponent<NavMeshAgent>() : gameObject.AddComponent<NavMeshAgent>();
         _selfAgent.updateRotation = false;
@@ -187,7 +199,14 @@ public class Actor_Base : Hitbox
     {
         if (closestEnemy == null)
         {
-            Patrol();
+            if (WanderData.WanderRegion != null)
+            {
+                Wander();
+            }
+            else if (PatrolData != null)
+            {
+                Patrol();
+            }
         }
         else
         {
@@ -363,7 +382,7 @@ public class Actor_Base : Hitbox
     {
         if (PatrolData == null || PatrolData.PatrolPoints.Length == 0) return;
 
-        if (_isWaiting) return;
+        if (_isPatrolWaiting) return;
 
         Vector2 targetPosition = PatrolData.PatrolPoints[_currentPatrolPoint];
         Vector2 currentPosition = transform.position;
@@ -380,10 +399,57 @@ public class Actor_Base : Hitbox
 
     private IEnumerator WaitAtPatrolPoint()
     {
-        _isWaiting = true;
+        _isPatrolWaiting = true;
         yield return new WaitForSeconds(PatrolData.WaitTimeAtPoint);
         _currentPatrolPoint = (_currentPatrolPoint + 1) % PatrolData.PatrolPoints.Length;
-        _isWaiting = false;
+        _isPatrolWaiting = false;
+    }
+
+    public void Wander()
+    {
+        if (!_isWandering && !_isWanderWaiting)
+        {
+            Bounds wanderBounds = WanderData.WanderRegion.bounds;
+
+            //float minDistance = 0.5f;
+
+            //float x = transform.position.x + UnityEngine.Random.Range(-minDistance, minDistance);
+            //float y = transform.position.y + UnityEngine.Random.Range(-minDistance, minDistance);
+
+            //x = Mathf.Clamp(x, wanderBounds.min.x, wanderBounds.max.x);
+            //y = Mathf.Clamp(y, wanderBounds.min.y, wanderBounds.max.y);
+
+            float x = UnityEngine.Random.Range(wanderBounds.min.x, wanderBounds.max.x);
+            float y = UnityEngine.Random.Range(wanderBounds.min.y, wanderBounds.max.y);
+
+            WanderTargetPosition = new Vector3(x, y, transform.position.z);
+
+            _selfAgent.SetDestination(WanderTargetPosition);
+            _selfAgent.speed = WanderData.WanderSpeed;
+
+            _isWandering = true;
+        }
+
+        if (_isWandering && !_isWanderingCoroutineRunning)
+        {
+            _isWanderingCoroutineRunning = true;
+            StartCoroutine(WanderCoroutine());
+        }
+    }
+
+    private IEnumerator WanderCoroutine()
+    {
+        yield return new WaitForSeconds(WanderData.WanderTime);
+        StartCoroutine(WaitAtWanderPoint());
+        _isWanderingCoroutineRunning = false;
+    }
+
+    private IEnumerator WaitAtWanderPoint()
+    {
+        _isWandering = false;
+        _isWanderWaiting = true;
+        yield return new WaitForSeconds(WanderData.WanderWaitTime);
+        _isWanderWaiting = false;
     }
 
     public void OnActorDeath(GameObject actor)
@@ -462,8 +528,7 @@ public class Actor_Base : Hitbox
             }
             else
             {
-                Debug.Log("1");
-                Menu_RightClick.Instance.RightClickMenu(interactedThing: gameObject, talkable: true);
+                Menu_RightClick.Instance.RightClickMenu(interactedThing: gameObject, actor: _selfActor, talkable: true) ;
             }
         }
     }

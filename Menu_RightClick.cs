@@ -219,7 +219,7 @@ public class Menu_RightClick : MonoBehaviour
     {
         if (_actor != null)
         {
-            Dialogue_Manager.instance.OpenDialogue(_actor.gameObject, _actor.dialogue);
+            Dialogue_Manager.instance.OpenDialogue(_actor.gameObject, _actor.DialogueData);
             RightClickMenuClose();
         }
         else

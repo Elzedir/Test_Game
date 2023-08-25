@@ -140,23 +140,23 @@ public class Dialogue_Window : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        if (currentLine.dialogueChoices != null && currentLine.dialogueChoices.Length > 0)
+        if (currentLine.Choices != null && currentLine.Choices.Length > 0)
         {
-            CreateChoiceButtons(currentLine.dialogueChoices.Length);
+            CreateChoiceButtons(currentLine.Choices.Length);
 
             int i = 0;
 
             foreach (Transform child in choiceArea)
             {
-                if (i < currentLine.dialogueChoices.Length)
+                if (i < currentLine.Choices.Length)
                 {
                     Button choiceButton = child.GetComponent<Button>();
                     TextMeshProUGUI buttonText = choiceButton.GetComponentInChildren<TextMeshProUGUI>();
 
                     if (choiceButton != null && buttonText != null)
                     {
-                        DialogueChoice choice = currentLine.dialogueChoices[i];
-                        buttonText.text = choice.choiceText;
+                        DialogueChoice choice = currentLine.Choices[i];
+                        buttonText.text = choice.Choice;
                         choiceButton.onClick.AddListener(() => Dialogue_Manager.instance.OptionSelected(choice, choiceArea));
 
                         i++;

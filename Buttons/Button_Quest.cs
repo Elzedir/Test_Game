@@ -8,10 +8,10 @@ public class Button_Quest : MonoBehaviour
     public TextMeshProUGUI questTitle;
     public TextMeshProUGUI questDescription;
 
-    public void LinkQuestToButton(Journal_Data_SO quest)
+    public void LinkQuestToButton(Quest_Data_SO quest)
     {
-        questTitle.text = quest.questTitle;
-        questDescription.text = quest.questDescription;
+        questTitle.text = quest.QuestTitle;
+        questDescription.text = quest.QuestDescription;
     }
 
     public void OnQuestClick()

@@ -10,9 +10,10 @@ public class Dialogue_Manager : MonoBehaviour
     public static Dialogue_Manager instance;
     public Dialogue_Window dialogueWindow;
     public GameObject interactedChar;
+    private Actor_Base _interactedActor;
     public bool optionSelected = false;
     private Coroutine dialogueCoroutine;
-    private int currentDialogueLine;
+    private Dialogue_Lines_SO _currentDialogueLines;
     private bool stopCurrentDialogue = false;
 
     public void Start()
@@ -20,17 +21,32 @@ public class Dialogue_Manager : MonoBehaviour
         instance = this;
     }
 
-    public void OpenDialogue(GameObject interactedCharacter, Dialogue_Data_SO dialogueData)
+    public void OpenDialogue(GameObject interactedCharacter, Dialogue_Data_SO dialogueData = null, Dialogue_Lines_SO dialogueLines = null, int dialogueIndex = 0)
     {
-        if (interactedCharacter == null || dialogueData == null)
+        if (interactedCharacter == null && dialogueData == null && dialogueLines == null)
         {
-            Debug.LogWarning("InteractedCharacter or DialogueData is null");
+            Debug.LogWarning($"Interacted Character: {interactedCharacter} or DialogueData: {dialogueData} or DialogueOption: {dialogueLines} is null");
             return;
         }
 
         stopCurrentDialogue = false;
+        _interactedActor = interactedCharacter.GetComponent<Actor_Base>();
+        _interactedActor.Talking = true;
         interactedChar = interactedCharacter;
-        dialogueCoroutine = StartCoroutine(DisplayDialogue(dialogueData));
+
+        if (dialogueLines == null && !dialogueData.Introduced && dialogueIndex == 0)
+        {
+            dialogueLines = dialogueData.DialogueOptions[0].DialogueBranches[0];
+            dialogueData.Introduced = true;
+        }
+        else if (dialogueLines == null && dialogueIndex == 0)
+        {
+            dialogueLines = dialogueData.DialogueOptions[0].DialogueBranches[1];
+        }
+
+        _currentDialogueLines = dialogueLines;
+        
+        dialogueCoroutine = StartCoroutine(DisplayDialogue(dialogueLines, dialogueIndex));
     }
 
     public void OptionSelected(DialogueChoice dialogueChoice, Transform choiceArea)
@@ -42,24 +58,31 @@ public class Dialogue_Manager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        OpenDialogue(interactedChar, dialogueChoice.nextDialogue);
-
-        if (dialogueChoice.quest != null)
+        if (dialogueChoice.ReturnToIndex >= 0)
         {
-            Journal_Manager.instance.StartQuest(dialogueChoice.quest);
+            OpenDialogue(interactedChar, dialogueLines: _currentDialogueLines, dialogueIndex: dialogueChoice.ReturnToIndex);
         }
+
+        else if (dialogueChoice.NextLine != null)
+        {
+            OpenDialogue(interactedChar, dialogueLines: dialogueChoice.NextLine);
+        }
+
+        //if (dialogueChoice.Links != null && dialogueChoice.Links.Length > 0)
+        //{
+        //    foreach (QuestHints hint in Links.QuestHints)
+        //    {
+        //        Journal_Manager.Instance.AddHintToQuest();
+        //    }
+        //}
     }
 
 
-    IEnumerator DisplayDialogue(Dialogue_Data_SO dialogueData)
+    IEnumerator DisplayDialogue(Dialogue_Lines_SO dialogueLines, int dialogueIndex)
     {
-        yield return null;
-
-        currentDialogueLine = 0;
-
-        for (currentDialogueLine = 0; currentDialogueLine < dialogueData.dialogueLines.Length; currentDialogueLine++)
+        for (; dialogueIndex < dialogueLines.Lines.Length; dialogueIndex++)
         {
-            yield return StartCoroutine(HandleDialogueLine(dialogueData.dialogueLines[currentDialogueLine]));
+            yield return StartCoroutine(HandleDialogueLine(dialogueLines.Lines[dialogueIndex]));
             {
                 if (stopCurrentDialogue)
                 {
@@ -71,7 +94,7 @@ public class Dialogue_Manager : MonoBehaviour
 
     IEnumerator HandleDialogueLine(DialogueLine dialogue)
     {
-        yield return StartCoroutine(dialogueWindow.OpenDialogueWindow(interactedChar, dialogue.line));
+        yield return StartCoroutine(dialogueWindow.OpenDialogueWindow(interactedChar, dialogue.Line));
 
         while (!Dialogue_Window.instance.interactedText.GetComponent<Dialogue_Text_Interacted>().IsFinishedTyping())
         {
@@ -82,9 +105,9 @@ public class Dialogue_Manager : MonoBehaviour
 
         Dialogue_Window.instance.UpdateChoicesUI(dialogue);
 
-        if (dialogue.displayTime != 0)
+        if (dialogue.DisplayTime != 0)
         {
-            yield return StartCoroutine(WaitForDisplayTimeOrEnter(dialogue.displayTime));
+            yield return StartCoroutine(WaitForDisplayTimeOrEnter(dialogue.DisplayTime));
         }
         else
         {
@@ -122,6 +145,7 @@ public class Dialogue_Manager : MonoBehaviour
             StopCoroutine(dialogueCoroutine);
             dialogueCoroutine = null;
             stopCurrentDialogue = true;
+            _interactedActor.Talking = false;
         }
     }
 }

@@ -16,7 +16,7 @@ public class Dialogue_Text_Interacted : MonoBehaviour
     }
 
     private IEnumerator WriteTextCoroutine(string text)
-    {   
+    {
         for (int i = 0; i < text.Length; i++)
         {
             interactedTextBox.text += text[i];

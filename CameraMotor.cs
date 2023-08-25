@@ -11,7 +11,6 @@ public class CameraMotor : MonoBehaviour
 
     private void LateUpdate()
     {
-        // Change this so that it doesn't check every frame and instead only changes when the player changes. Can use an event.
         _player = GameManager.Instance.Player;
 
         if (_player != null)

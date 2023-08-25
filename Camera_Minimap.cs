@@ -1,15 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class Camera_Minimap : MonoBehaviour
 {
-    public Transform target; // The game object to track (e.g., player, enemy)
-    public RectTransform icon; // The UI element representing the target on the minimap
+    public Player _player;
+    public RectTransform icon;
 
     void Update()
     {
-        Vector2 newPosition = Camera.main.WorldToViewportPoint(target.position);
-        icon.anchoredPosition = new Vector2(newPosition.x * Screen.width, newPosition.y * Screen.height);
+        _player = GameManager.Instance.Player;
+        transform.position = new Vector3(_player.transform.position.x, _player.transform.position.y, transform.position.z);
     }
 }

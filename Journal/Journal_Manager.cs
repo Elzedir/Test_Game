@@ -6,37 +6,37 @@ using static Equipment_Manager;
 
 public class Journal_Manager : MonoBehaviour
 {
-    public static Journal_Manager instance;
-    public Journal_Window journalWindow;
-    public List<Journal_Data_SO> questList = new();
+    public static Journal_Manager Instance;
+    public Journal_Window JournalWindow;
+    public List<Quest_Data_SO> QuestList = new();
 
     public void Start()
     {
-        if (instance != null)
+        if (Instance != null)
         {
             Destroy(gameObject);
             return;
         }
-        instance = this;
+        Instance = this;
     }
 
-    public void StartQuest(Journal_Data_SO questToStart)
+    public void StartQuest(Quest_Data_SO questToStart)
     {
         Debug.Log(questToStart);
 
-        if (!questList.Contains(questToStart))
+        if (!QuestList.Contains(questToStart))
         {
-            questList.Add(questToStart);
+            QuestList.Add(questToStart);
         }
 
-        UpdateQuestStage(questToStart, Journal_Data_SO.QuestStage.Started);
+        UpdateQuestStage(questToStart, Quest_Data_SO.QuestStage.Started);
     }
 
-    public void UpdateQuestStage(Journal_Data_SO quest, Journal_Data_SO.QuestStage newQuestStage)
+    public void UpdateQuestStage(Quest_Data_SO quest, Quest_Data_SO.QuestStage newQuestStage)
     {
-        if (questList.Contains(quest))
+        if (QuestList.Contains(quest))
         {
-            quest.questStage = newQuestStage;
+            quest._QuestStage = newQuestStage;
         }
     }
 }

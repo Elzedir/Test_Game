@@ -57,7 +57,7 @@ public class Journal_Window : Menu_UI
 
     public void CreateQuestButtons()
     {
-        List<Journal_Data_SO> questList = journalManager.questList;
+        List<Quest_Data_SO> questList = journalManager.QuestList;
 
         foreach (var quest in questList)
         {

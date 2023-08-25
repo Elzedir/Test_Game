@@ -33,6 +33,7 @@ public class Actor_Data_SO : ScriptableObject
     public FactionManager.Faction _faction;
     private PlayableRace _playableRace;
     private NonPlayableType _nonPlayableType;
+    public Worldstate Worldstate;
     public PlayableRace PlayableRace
     {  get { return _playableRace; }
        set { _playableRace = value; }

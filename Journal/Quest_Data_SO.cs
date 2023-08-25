@@ -7,41 +7,43 @@ using UnityEngine.UI;
 [CreateAssetMenu(fileName = "QuestData", menuName = "QuestData", order = 0)]
 
 [System.Serializable]
-public class Journal_Data_SO : ScriptableObject
+public class Quest_Data_SO : ScriptableObject
 {
     public enum QuestStage { NotDiscovered, NotStarted, Started, Completed }
 
     [Header("Quest")]
-    public int questID;
-    public QuestStage questStage;
-    public string questTitle;
+    public int QuestID;
+    public QuestStage _QuestStage;
+    public string QuestTitle;
     [TextArea(1, 10)]
-    public string questDescription;
+    public string QuestDescription;
 
-    public QuestObjectives[] questObjectives;
-    public QuestHints[] questHints;
-    public QuestOutcomes[] questOutcomes;
-    public QuestReward[] questRewards;
+    public QuestObjectives[] QuestObjectives;
+    public QuestHints[] QuestHints;
+    public QuestOutcomes[] QuestOutcomes;
+    public QuestReward[] QuestRewards;
 
     [Header("Follow-on Quest")]
-    public Journal_Data_SO nextQuest;
+    public Quest_Data_SO NextQuest;
 }
 
 [System.Serializable]
 
 public class QuestObjectives
 {
-    public string objectiveName;
+    public string ObjectiveName;
     [TextArea(1, 10)]
-    public string objectiveDescription;
+    public string ObjectiveDescription;
 }
 
 [System.Serializable]
 public class QuestReward
 {
     [TextArea(1, 10)]
-    public string rewardName;
-    public Sprite questRewardIcon;
+    public string RewardName;
+    public int QuestRewardID;
+    public int QuestRewardAmount;
+    public Sprite QuestRewardIcon;
     // Put items into here as buttons you can press to choose.
 }
 
@@ -49,14 +51,14 @@ public class QuestReward
 public class QuestOutcomes
 {
     [TextArea(1, 10)]
-    public string outcomeText;
-    public UnityEvent questOutcome; // This will become a worldstate modifier.
+    public string OutcomeText;
+    public int QuestOutcome; // This will become a worldstate modifier.
 }
 
 [System.Serializable]
 public class QuestHints
 {
     [TextArea(1, 10)]
-    public string hint;
-    public Button hintLink;
+    public string Hint;
+    public Button HintLink;
 }
