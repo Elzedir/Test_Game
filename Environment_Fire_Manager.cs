@@ -28,9 +28,9 @@ public class Environment_Fire_Manager : MonoBehaviour
     
     public void EnterFire(Actor_Base target)
     {
-        target.inFire = true;
+        target.ActorStates.InFire = true;
 
-        if (target.ActorData.isFlammable && !target.onFire && !fireCoroutines.ContainsKey(target))
+        if (target.ActorData.isFlammable && !target.ActorStates.OnFire && !fireCoroutines.ContainsKey(target))
         {
             Coroutine fireCoroutine = StartCoroutine(FireBuildup(target));
             fireCoroutines.Add(target, fireCoroutine);
@@ -41,7 +41,7 @@ public class Environment_Fire_Manager : MonoBehaviour
     {
         yield return new WaitForSeconds(fireBuildupTime);
 
-        target.onFire = true;
+        target.ActorStates.OnFire = true;
         target.AddOnFireVFX();
 
         fireCoroutines[target] = StartCoroutine(Burning(target));
@@ -58,13 +58,13 @@ public class Environment_Fire_Manager : MonoBehaviour
             yield return new WaitForSeconds(tickTime);
         }
 
-        if (target.inFire)
+        if (target.ActorStates.InFire)
         {
             fireCoroutines[target] = StartCoroutine(Burning(target));
         }
         else
         {
-            target.onFire = false;
+            target.ActorStates.OnFire = false;
             target.RemoveOnFireVFX();
             fireCoroutines.Remove(target);
         }
@@ -72,9 +72,9 @@ public class Environment_Fire_Manager : MonoBehaviour
 
     public void ExitFire(Actor_Base target)
     {
-        target.inFire = false;
+        target.ActorStates.InFire = false;
 
-        if (target.onFire && !fireCoroutines.ContainsKey(target))
+        if (target.ActorStates.OnFire && !fireCoroutines.ContainsKey(target))
         {
             Coroutine fireCoroutine = StartCoroutine(Burning(target));
             fireCoroutines.Add(target, fireCoroutine);
@@ -89,7 +89,7 @@ public class Environment_Fire_Manager : MonoBehaviour
     {
         yield return new WaitForSeconds(0.25f);
 
-        if (target.inFire && !target.onFire)
+        if (target.ActorStates.InFire && !target.ActorStates.OnFire)
         {
             fireCoroutines[target] = StartCoroutine(Burning(target));
         }

@@ -23,6 +23,8 @@ public class Dialogue_Manager : MonoBehaviour
 
     public void OpenDialogue(GameObject interactedCharacter, Dialogue_Data_SO dialogueData = null, Dialogue_Lines_SO dialogueLines = null, int dialogueIndex = 0)
     {
+        StopDialogue();
+
         if (interactedCharacter == null && dialogueData == null && dialogueLines == null)
         {
             Debug.LogWarning($"Interacted Character: {interactedCharacter} or DialogueData: {dialogueData} or DialogueOption: {dialogueLines} is null");
@@ -31,7 +33,7 @@ public class Dialogue_Manager : MonoBehaviour
 
         stopCurrentDialogue = false;
         _interactedActor = interactedCharacter.GetComponent<Actor_Base>();
-        _interactedActor.Talking = true;
+        _interactedActor.ActorStates.Talking = true;
         interactedChar = interactedCharacter;
 
         if (dialogueLines == null && !dialogueData.Introduced && dialogueIndex == 0)
@@ -145,7 +147,7 @@ public class Dialogue_Manager : MonoBehaviour
             StopCoroutine(dialogueCoroutine);
             dialogueCoroutine = null;
             stopCurrentDialogue = true;
-            _interactedActor.Talking = false;
+            _interactedActor.ActorStates.Talking = false;
         }
     }
 }

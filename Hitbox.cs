@@ -13,12 +13,17 @@ public abstract class Hitbox : MonoBehaviour
     protected Collider2D[] hits = new Collider2D[42];
 
     // Other
-    protected Vector3 originalSize;
+    protected Vector3 _originalSize;
+
+    public Vector3 OriginalSize
+    {
+        get { return _originalSize; }
+    }
 
     #endregion
     protected virtual void Start()
     {
-        originalSize = transform.localScale;
+        _originalSize = transform.localScale;
     }
 
     protected virtual void Update()

@@ -33,8 +33,8 @@ public class Dialogue_Window : MonoBehaviour
         interactedCharacter = interactedObject;
         gameObject.SetActive(true);
 
-        yield return StartCoroutine(UpdateInteractedObject(text));
         UpdatePlayerObject();
+        yield return StartCoroutine(UpdateInteractedObject(text));
     }
 
     public IEnumerator UpdateInteractedObject(string text)
@@ -168,11 +168,6 @@ public class Dialogue_Window : MonoBehaviour
                 }
             }
         }
-    }
-
-    public void EndConversation()
-    {
-        CloseDialogueWindow();
     }
 
     public void CloseDialogueWindow()

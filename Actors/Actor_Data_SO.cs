@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public enum ActorType
 {
@@ -35,12 +36,14 @@ public class Actor_Data_SO : ScriptableObject
     private NonPlayableType _nonPlayableType;
     public Worldstate Worldstate;
     public PlayableRace PlayableRace
-    {  get { return _playableRace; }
-       set { _playableRace = value; }
+    {
+        get { return _playableRace; }
+        set { _playableRace = value; }
     }
     public NonPlayableType NonPlayableType
-    { get { return _nonPlayableType; } 
-      set { _nonPlayableType = value; } 
+    {
+        get { return _nonPlayableType; }
+        set { _nonPlayableType = value; }
     }
     public LayerMask CanAttack
     {
@@ -123,12 +126,24 @@ public class Actor_Data_SO : ScriptableObject
 
         obj.layer = newLayer;
 
-        foreach (Transform child in obj.transform)
+        foreach (UnityEngine.Transform child in obj.transform)
         {
             if (child != null)
             {
                 SetActorChildLayerRecursively(child.gameObject, newLayer);
             }
         }
+    }
+
+    public bool WithinTriggerRadius(GameObject target, GameObject self)
+    {
+        float distanceToTarget = Vector2.Distance(target.transform.position, self.transform.position);
+
+        if (distanceToTarget < triggerLength)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,23 +11,19 @@ using UnityEngine.UIElements.Experimental;
 using static FactionManager;
 using static UnityEngine.GraphicsBuffer;
 
-[RequireComponent(typeof(Manager_Stats))]
-[RequireComponent(typeof(Equipment_Manager))]
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Collider2D))]
 public class Actor_Base : Hitbox
 {
+    public ActorScripts ActorScripts;
+    public ActorStates ActorStates;
+    public ActorComponents ActorComponents;
+
     // General
     private GameObject _selfGameObject;
     private Actor_Base _selfActor;
-    public NavMeshAgent _selfAgent;
-    private AbilityManager _abilityManager;
+    private NavMeshAgent _selfAgent;
     public Dialogue_Data_SO DialogueData;
-    public Manager_Stats StatManager;
-    public Equipment_Manager equipmentManager;
     private Equipment_Slot mainHand;
-    public Inventory_Manager inventory;
-    public Actor_VFX _actor_VFX;
+    protected override BoxCollider2D Coll => ActorComponents.ActorColl;
 
     // Layers
     public GameObject closestEnemy = null;
@@ -34,37 +31,11 @@ public class Actor_Base : Hitbox
     protected int layerCount = 0;
     
     private bool coroutineRunning = false;
-    public bool dead = false;
-    public bool hostile = true;
-    public bool alerted = false;
-    protected bool attacking = false;
-    protected bool jumping = false;
-    protected bool berserk = false;
-    public bool onFire = false;
-    public bool inFire = false;
-
-    // Movement
-    protected Vector3 move;
-    
-    public float currentYSpeed = 1.0f;
-    public float currentXSpeed = 1.0f;
-    protected RaycastHit2D hit;
-    private BoxCollider2D _actorColl;
-    public BoxCollider2D ActorColl
-    {
-        get { return _actorColl; }
-    }
-    protected override BoxCollider2D Coll => _actorColl;
-    private Rigidbody2D _actorBody;
-    public Rigidbody2D ActorBody
-    {
-        get { return _actorBody; }
-    }
 
     // Combat
 
     protected Vector3 startingPosition;
-    
+
     public Vector3 PushDirection;
     
     protected float lastAttack;
@@ -75,11 +46,6 @@ public class Actor_Base : Hitbox
     public bool RightMouseButtonHeld = false;
 
     public Actor_Data_SO ActorData;
-    public Actor_PatrolData_SO PatrolData;
-
-    private int _currentPatrolPoint;
-    private bool _isPatrolWaiting = false;
-
 
     public GameObject Weapon;
     public Transform SheathedPosition;
@@ -88,13 +54,10 @@ public class Actor_Base : Hitbox
     private Animator _actorAnimator;
     private Player _player;
 
-    [SerializeField] private WanderData WanderData;
-    public Vector3 WanderTargetPosition;
-    private bool _isWandering = false;
-    private bool _isWanderingCoroutineRunning = false;
-    private bool _isWanderWaiting = false;
+    [SerializeField] private WanderData _wanderData;
+    [SerializeField] private PatrolData _patrolData;
 
-    public bool Talking;
+    
 
     protected override void Start()
     {
@@ -108,53 +71,23 @@ public class Actor_Base : Hitbox
         ActorData.SetActorLayer(_selfActor.gameObject);
     }
 
-    protected override void Update()
-    {
-        base.Update();
-
-        if (ActorData.ActorType == ActorType.Playable)
-        {
-            if (Talking)
-            {
-                return;
-            }
-            if (hostile)
-            {
-                TargetCheck();
-            }
-
-            if (GameManager.Instance.Player.gameObject == this.gameObject)
-            {
-                PlayerMove();
-            }
-            else
-            {
-                HandleNPCBehavior();
-            }
-
-            if (move.magnitude <= 0.01f)
-            {
-                SetMovementSpeed(0f);
-            }
-        }
-    }
-
     private void InitialiseComponents()
     {
+        _player = GetComponent<Player>();
         _selfActor = GetComponent<Actor_Base>();
         _selfAgent = GetComponent<NavMeshAgent>() != null ? GetComponent<NavMeshAgent>() : gameObject.AddComponent<NavMeshAgent>();
         _selfAgent.updateRotation = false;
         _selfAgent.updateUpAxis = false;
         startingPosition = transform.position;
-        _abilityManager = GetComponent<AbilityManager>();
-        StatManager = GetComponent<Manager_Stats>();
-        equipmentManager = GetComponent<Equipment_Manager>();
-        inventory = GetComponent<Inventory_Manager>();
+        ActorScripts.AbilityManager = GetComponent<AbilityManager>();
+        ActorScripts.StatManager = GetComponent<Manager_Stats>();
+        ActorScripts.EquipmentManager = GetComponent<Equipment_Manager>();
+        ActorScripts.InventoryManager = GetComponent<Inventory_Manager>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
-        _actorColl = GetComponent<BoxCollider2D>();
-        _actorBody = GetComponent<Rigidbody2D>();
+        ActorComponents.ActorColl = GetComponent<BoxCollider2D>();
+        ActorComponents.ActorBody = GetComponent<Rigidbody2D>();
         _actorAnimator = GetComponent<Animator>();
-        _actor_VFX = GetComponentInChildren<Actor_VFX>();
+        ActorScripts.Actor_VFX = GetComponentInChildren<Actor_VFX>();
     }
     private void CharacterComponentCheck()
     {
@@ -195,15 +128,52 @@ public class Actor_Base : Hitbox
         }
     }
 
+    protected override void Update()
+    {
+        base.Update();
+
+        if (_player != null)
+        {
+            _player = GameManager.Instance.Player;
+        }
+
+        if (ActorData.ActorType == ActorType.Playable)
+        {
+            if (ActorStates.Talking)
+            {
+                return;
+            }
+            if (ActorStates.Hostile)
+            {
+                TargetCheck();
+            }
+
+            if (GameManager.Instance.Player.gameObject == this.gameObject)
+            {
+                _player.PlayerMove();
+            }
+            else
+            {
+                HandleNPCBehavior();
+            }
+        }
+    }
+
     private void HandleNPCBehavior()
     {
-        if (closestEnemy == null)
+        HandleNPCAction();
+        HandleNPCDirection();
+    }
+
+    public void HandleNPCAction()
+    {
+        if (closestEnemy == null || !ActorData.WithinTriggerRadius(closestEnemy, gameObject))
         {
-            if (WanderData.WanderRegion != null)
+            if (_wanderData.WanderRegion != null)
             {
                 Wander();
             }
-            else if (PatrolData != null)
+            else if (_patrolData.PatrolPoints.Count > 0)
             {
                 Patrol();
             }
@@ -211,53 +181,23 @@ public class Actor_Base : Hitbox
         else
         {
             Chase();
-
-            if (alerted)
-            {
-                // AbilityUse();
-            }
+            // AbilityUse();
         }
     }
 
-    public virtual void Move(Vector3 input)
+
+    public void HandleNPCDirection()
     {
-        if (!dead && !jumping && !attacking)
+        Vector3 direction = _selfAgent.velocity;
+
+        if (direction != Vector3.zero)
         {
-            move = new Vector3(input.x * currentXSpeed, input.y * currentYSpeed, 0);
-            transform.localScale = new Vector3(originalSize.z * Mathf.Sign(move.x), originalSize.y, originalSize.z);
-
-            move += PushDirection;
-
-            PushDirection = Vector3.Lerp(PushDirection, Vector3.zero, ActorData.pushRecoverySpeed);
-
-            hit = Physics2D.BoxCast(transform.position, _actorColl.bounds.size, 0, new Vector2(0, move.y), Mathf.Abs(move.y * Time.deltaTime), LayerMask.GetMask("Blocking"));
-            if (hit.collider == null)
-            {
-                transform.Translate(0, move.y * Time.deltaTime, 0);
-                SetMovementSpeed(move.magnitude);
-            }
-            hit = Physics2D.BoxCast(transform.position, _actorColl.bounds.size, 0, new Vector2(move.x, 0), Mathf.Abs(move.x * Time.deltaTime), LayerMask.GetMask("Blocking"));
-            if (hit.collider == null)
-            {
-                transform.Translate(move.x * Time.deltaTime, 0, 0);
-                SetMovementSpeed(move.magnitude);
-            }
+            transform.localScale = new Vector3(_originalSize.z * Mathf.Sign(direction.x), _originalSize.y, _originalSize.z);
+            ActorScripts.Actor_VFX.transform.localScale = new Vector3(Mathf.Sign(direction.x), 1, 1);
         }
     }
+    
 
-    public virtual void PlayerMove()
-    {
-        if (!dead)
-        {
-            float x = Input.GetAxisRaw("Horizontal");
-            float y = Input.GetAxisRaw("Vertical");
-            var dir = Input.mousePosition - Camera.main.WorldToScreenPoint(transform.position);
-
-            Move(new Vector3(x, y, 0));
-            transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
-            _actor_VFX.transform.localScale = new Vector3(Mathf.Sign(dir.x), 1, 1);
-        }
-    }
     public virtual void TargetCheck()
     {
         float maxTargetDistance = float.MaxValue;
@@ -323,133 +263,118 @@ public class Actor_Base : Hitbox
     }
     public virtual void Chase()
     {
-        if (GetComponent<Player>() == null || berserk)
+        float distanceFromStart = Vector2.Distance(transform.position, startingPosition);
+
+        if (distanceFromStart > ActorData.chaseLength)
         {
-            float distanceFromStart = Vector2.Distance(transform.position, startingPosition);
+            ReturnToStartPosition();
+            ActorStates.Alerted = false;
+        }
 
-            if (distanceFromStart > ActorData.chaseLength)
+        if (ActorData.WithinTriggerRadius(closestEnemy, gameObject))
+        {
+            ActorStates.Alerted = true;
+        }
+
+        // Need to change this for ranged enemies, so they have both a chase radius and a trigger radius.
+
+        if (ActorStates.Alerted)
+        {
+            bool withinAttackRange = CheckWithinAttackRange();
+
+            if (!withinAttackRange)
             {
-                ReturnToStartPosition();
-                alerted = false;
-            }
-
-            if (closestEnemy != null)
-            {
-                float distanceToTarget = Vector2.Distance(closestEnemy.transform.position, transform.position);
-
-                if (distanceToTarget < ActorData.chaseLength)
-                {
-                    if (distanceToTarget < ActorData.triggerLength)
-                    {
-                        alerted = true;
-                    }
-                }
-
-                if (alerted)
-                {
-                    bool withinAttackRange = CheckWithinAttackRange();
-
-                    if (!withinAttackRange)
-                    {
-                        _selfAgent.isStopped = false;
-                        _selfAgent.SetDestination(closestEnemy.transform.position);
-                    }
-                    else
-                    {
-                        _selfAgent.isStopped = true;
-                        SetMovementSpeed(0f);
-
-                        if (!attacking)
-                        {
-                            NPCAttack();
-                        }
-                    }
-                }
-                else
-                {
-                    ReturnToStartPosition();
-                }
+                _selfAgent.isStopped = false;
+                _selfAgent.SetDestination(closestEnemy.transform.position);
             }
             else
             {
-                ReturnToStartPosition();
-                alerted = false;
+                _selfAgent.isStopped = true;
+                SetMovementSpeed(0f);
+
+                if (!ActorStates.Attacking)
+                {
+                    NPCAttack();
+                }
             }
+        }
+        else
+        {
+            ReturnToStartPosition();
         }
     }
 
     public void Patrol()
     {
-        if (PatrolData == null || PatrolData.PatrolPoints.Length == 0) return;
+        if (!_patrolData.IsPatrolling && !_patrolData.IsPatrolWaiting)
+        {
 
-        if (_isPatrolWaiting) return;
+            if (_patrolData.PatrolIndex >= _patrolData.PatrolPoints.Count)
+            {
+                _patrolData.PatrolIndex = 0;
+            }
 
-        Vector2 targetPosition = PatrolData.PatrolPoints[_currentPatrolPoint];
-        Vector2 currentPosition = transform.position;
+            _selfAgent.SetDestination(_patrolData.PatrolPoints[_patrolData.PatrolIndex].position);
+            _selfAgent.speed = _patrolData.PatrolSpeed;
 
-        if (Vector2.Distance(currentPosition, targetPosition) < 0.1f)
+            _patrolData.PatrolTargetPosition = _patrolData.PatrolPoints[_patrolData.PatrolIndex].position;
+
+            _patrolData.IsPatrolling = true;
+        }
+
+        if (Vector3.Distance(transform.position, _patrolData.PatrolTargetPosition) < 0.1f && !_patrolData.IsPatrolWaiting && _patrolData.IsPatrolling)
         {
             StartCoroutine(WaitAtPatrolPoint());
             return;
         }
-
-        Vector2 direction = (targetPosition - currentPosition).normalized;
-        Move(direction * PatrolData.PatrolSpeed);
     }
 
     private IEnumerator WaitAtPatrolPoint()
     {
-        _isPatrolWaiting = true;
-        yield return new WaitForSeconds(PatrolData.WaitTimeAtPoint);
-        _currentPatrolPoint = (_currentPatrolPoint + 1) % PatrolData.PatrolPoints.Length;
-        _isPatrolWaiting = false;
+        _patrolData.IsPatrolling = false;
+        _patrolData.IsPatrolWaiting = true;
+        yield return new WaitForSeconds(_patrolData.PatrolWaitTime);
+        _patrolData.PatrolIndex = (_patrolData.PatrolIndex + 1) % _patrolData.PatrolPoints.Count;
+        _patrolData.IsPatrolWaiting = false;
     }
 
     public void Wander()
     {
-        if (!_isWandering && !_isWanderWaiting)
+        if (!_wanderData.IsWandering && !_wanderData.IsWanderWaiting)
         {
-            Bounds wanderBounds = WanderData.WanderRegion.bounds;
-
-            //float minDistance = 0.5f;
-
-            //float x = transform.position.x + UnityEngine.Random.Range(-minDistance, minDistance);
-            //float y = transform.position.y + UnityEngine.Random.Range(-minDistance, minDistance);
-
-            //x = Mathf.Clamp(x, wanderBounds.min.x, wanderBounds.max.x);
-            //y = Mathf.Clamp(y, wanderBounds.min.y, wanderBounds.max.y);
+            Bounds wanderBounds = _wanderData.WanderRegion.bounds;
 
             float x = UnityEngine.Random.Range(wanderBounds.min.x, wanderBounds.max.x);
             float y = UnityEngine.Random.Range(wanderBounds.min.y, wanderBounds.max.y);
 
-            WanderTargetPosition = new Vector3(x, y, transform.position.z);
+            _wanderData.WanderTargetPosition = new Vector3(x, y, transform.position.z);
 
-            _selfAgent.SetDestination(WanderTargetPosition);
-            _selfAgent.speed = WanderData.WanderSpeed;
+            _selfAgent.SetDestination(_wanderData.WanderTargetPosition);
+            _selfAgent.speed = _wanderData.WanderSpeed;
 
-            _isWandering = true;
+            _wanderData.IsWandering = true;
         }
 
-        if (_isWandering && !_isWanderingCoroutineRunning)
+        if (_wanderData.IsWandering && !_wanderData.IsWanderingCoroutineRunning)
         {
-            _isWanderingCoroutineRunning = true;
+            _wanderData.IsWanderingCoroutineRunning = true;
             StartCoroutine(WanderCoroutine());
         }
     }
 
     private IEnumerator WanderCoroutine()
     {
-        yield return new WaitForSeconds(WanderData.WanderTime);
+        yield return new WaitForSeconds(_wanderData.WanderTime);
         StartCoroutine(WaitAtWanderPoint());
-        _isWanderingCoroutineRunning = false;
+        _wanderData.IsWanderingCoroutineRunning = false;
     }
 
     private IEnumerator WaitAtWanderPoint()
     {
-        _isWandering = false;
-        _isWanderWaiting = true;
-        yield return new WaitForSeconds(WanderData.WanderWaitTime);
-        _isWanderWaiting = false;
+        _wanderData.IsWandering = false;
+        _wanderData.IsWanderWaiting = true;
+        yield return new WaitForSeconds(_wanderData.WanderWaitTime);
+        _wanderData.IsWanderWaiting = false;
     }
 
     public void OnActorDeath(GameObject actor)
@@ -535,7 +460,7 @@ public class Actor_Base : Hitbox
 
     public void PlayerAttack()
     {
-        List<Equipment_Slot> equippedWeapons = equipmentManager.WeaponEquipped();
+        List<Equipment_Slot> equippedWeapons = ActorScripts.EquipmentManager.WeaponEquipped();
 
         if (equippedWeapons.Count > 0)
         {
@@ -548,7 +473,7 @@ public class Actor_Base : Hitbox
     public void NPCAttack()
     {
         // currently only working for closesnt enemy
-        List<Equipment_Slot> equippedWeapons = equipmentManager.WeaponEquipped();
+        List<Equipment_Slot> equippedWeapons = ActorScripts.EquipmentManager.WeaponEquipped();
 
         if (equippedWeapons.Count > 0)
         {
@@ -633,12 +558,12 @@ public class Actor_Base : Hitbox
         //    yield return null;
         //}
 
-        attacking = false;
+        ActorStates.Attacking = false;
         coroutineRunning = false;
     }
     public void ReceiveDamage(Damage damage)
     {
-        StatManager.ReceiveDamage(damage);
+        ActorScripts.StatManager.ReceiveDamage(damage);
     }
     public void AbilityUse(Rigidbody2D self)
     {
@@ -649,7 +574,7 @@ public class Actor_Base : Hitbox
     }
     public virtual void Death()
     {
-        dead = true;
+        ActorStates.Dead = true;
         OnActorDeath(gameObject);
         // replace the sprite with a dead sprite for a set amount of time, and then destroy the body when you load a new level.
         GameManager.Instance.GrantXp(ActorData.xpValue);
@@ -685,23 +610,23 @@ public class Actor_Base : Hitbox
     }
     public void StatusCheck()
     {
-        if (inFire)
+        if (ActorStates.InFire)
         {
             // change movement speed to reduce to 10%.
         }
     }
     public void AddOnFireVFX()
     {
-        if (onFire)
+        if (ActorStates.OnFire)
         {
-            VFX_Manager.instance.AddOnFireVFX(_selfActor, _actor_VFX.transform);
+            VFX_Manager.instance.AddOnFireVFX(_selfActor, ActorScripts.Actor_VFX.transform);
         }
     }
     public void RemoveOnFireVFX()
     { 
-        if (!onFire)
+        if (!ActorStates.OnFire)
         {
-            VFX_Manager.instance.RemoveOnFireVFX(_selfActor, _actor_VFX.transform);
+            VFX_Manager.instance.RemoveOnFireVFX(_selfActor, ActorScripts.Actor_VFX.transform);
         }
     }
 
@@ -714,4 +639,60 @@ public class Actor_Base : Hitbox
     {
         return closestNPC;
     }
+}
+
+[System.Serializable]
+public class ActorScripts
+{
+    public AbilityManager AbilityManager;
+    public Manager_Stats StatManager;
+    public Equipment_Manager EquipmentManager;
+    public Inventory_Manager InventoryManager;
+    public Actor_VFX Actor_VFX;
+}
+
+[System.Serializable]
+public class ActorComponents
+{
+    public BoxCollider2D ActorColl;
+    public Rigidbody2D ActorBody;
+}
+
+[System.Serializable]
+public class ActorStates
+{
+    public bool Dead = false;
+    public bool Hostile = true;
+    public bool Alerted = false;
+    public bool Attacking = false;
+    public bool Jumping = false;
+    public bool Berserk = false;
+    public bool OnFire = false;
+    public bool InFire = false;
+    public bool Talking = false;
+}
+
+[System.Serializable]
+public class WanderData
+{
+    public Vector3 WanderTargetPosition;
+    public BoxCollider2D WanderRegion;
+    public float WanderSpeed;
+    public float WanderTime;
+    public float WanderWaitTime;
+    public bool IsWandering = false;
+    public bool IsWanderingCoroutineRunning = false;
+    public bool IsWanderWaiting = false;
+}
+
+[System.Serializable]
+public class PatrolData
+{
+    public List<Transform> PatrolPoints;
+    public Vector3 PatrolTargetPosition;
+    public float PatrolSpeed = 1.0f;
+    public float PatrolWaitTime = 1.0f;
+    public int PatrolIndex;
+    public bool IsPatrolling = false;
+    public bool IsPatrolWaiting = false;
 }

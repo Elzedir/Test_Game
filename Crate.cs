@@ -21,7 +21,8 @@ public class Crate : Actor_Base
     protected override void Update()
     {
         base.Update();
-        if (dead)
+        // Give it a stats manager, 
+        if (ActorStates.Dead)
         {
             Death();
         }
