@@ -22,15 +22,14 @@ public class Actor_Base : Hitbox
     private Actor_Base _selfActor;
     private NavMeshAgent _selfAgent;
     public Dialogue_Data_SO DialogueData;
-    private Equipment_Slot mainHand;
+    private Equipment_Slot _mainHand;
+    public Equipment_Slot MainHand { get { return _mainHand; } }
     protected override BoxCollider2D Coll => ActorComponents.ActorColl;
 
     // Layers
     public GameObject closestEnemy = null;
     protected GameObject closestNPC = null;
     protected int layerCount = 0;
-    
-    private bool coroutineRunning = false;
 
     // Combat
 
@@ -52,12 +51,11 @@ public class Actor_Base : Hitbox
 
     private SpriteRenderer _spriteRenderer;
     private Animator _actorAnimator;
+    public Animator ActorAnimator { get { return _actorAnimator; } }
     private Player _player;
 
     [SerializeField] private WanderData _wanderData;
     [SerializeField] private PatrolData _patrolData;
-
-    
 
     protected override void Start()
     {
@@ -97,33 +95,46 @@ public class Actor_Base : Hitbox
         foreach (string part in requiredParts)
         {
             Transform childTransform = parentTransform.Find(part);
-            if (childTransform == null)
-            {
-                GameObject newPart = new GameObject(part);
-                newPart.transform.SetParent(parentTransform);
-                Equipment_Slot equipmentSlot = null;
+            GameObject newPart = new GameObject(part);
+            newPart.transform.SetParent(parentTransform);
+            Equipment_Slot equipmentSlot = null;
 
-                switch (part)
-                {
-                    case "Head":
+            switch (part)
+            {
+                case "Head":
+                    if (childTransform == null)
+                    {
                         equipmentSlot = newPart.AddComponent<Equipment_Slot_Armour>();
-                        break;
-                    case "Chest":
+                    }
+                    break;
+                case "Chest":
+                    if (childTransform == null)
+                    {
                         equipmentSlot = newPart.AddComponent<Equipment_Slot_Armour>();
-                        break;
-                    case "MainHand":
+                    }
+                    break;
+                case "MainHand":
+                    if (childTransform == null)
+                    {
                         equipmentSlot = newPart.AddComponent<Equipment_Slot_Weapon>();
-                        break;
-                    case "OffHand":
-                        equipmentSlot = newPart.AddComponent<Equipment_Slot_Weapon>();
-                        break;
-                    case "Legs":
+                    }
+                    else
+                    {
+                        _mainHand = childTransform.GetComponent<Equipment_Slot_Weapon>();
+                    }
+                    break;
+                case "OffHand":
+                    equipmentSlot = newPart.AddComponent<Equipment_Slot_Weapon>();
+                    break;
+                case "Legs":
+                    if (childTransform == null)
+                    {
                         equipmentSlot = newPart.AddComponent<Equipment_Slot_Armour>();
-                        break;
-                    case "VFX":
-                        newPart.AddComponent<Actor_VFX>();
-                        break;
-                }
+                    }
+                    break;
+                case "VFX":
+                    newPart.AddComponent<Actor_VFX>();
+                    break;
             }
         }
     }
@@ -457,22 +468,8 @@ public class Actor_Base : Hitbox
             }
         }
     }
-
-    public void PlayerAttack()
-    {
-        List<Equipment_Slot> equippedWeapons = ActorScripts.EquipmentManager.WeaponEquipped();
-
-        if (equippedWeapons.Count > 0)
-        {
-            foreach (var weapon in equippedWeapons)
-            {
-                weapon.Attack();
-            }
-        }
-    }
     public void NPCAttack()
     {
-        // currently only working for closesnt enemy
         List<Equipment_Slot> equippedWeapons = ActorScripts.EquipmentManager.WeaponEquipped();
 
         if (equippedWeapons.Count > 0)
@@ -484,82 +481,8 @@ public class Actor_Base : Hitbox
         }
         else
         {
-            UnarmedAttack(closestEnemy);
+            _mainHand.UnarmedAttack();
         }
-    }
-    public void UnarmedAttack(GameObject target)
-    {
-        if (!coroutineRunning)
-        {
-            Animator animator = GetComponent<Animator>();
-            GameObject actor = gameObject;
-
-            if (animator != null)
-            {
-                StartCoroutine(UnarmedAttackCoroutine(animator, actor, target));
-            }
-        }
-    }
-
-    private IEnumerator UnarmedAttackCoroutine(Animator animator, GameObject actor, GameObject target)
-    {
-        coroutineRunning = true;
-        animator.SetTrigger("Attack");
-
-        float delayDuration = animator.GetCurrentAnimatorStateInfo(0).length;
-        yield return new WaitForSeconds(delayDuration);
-        animator.ResetTrigger("Attack");
-
-        //int frameRate = 60;
-        //float frameDuration = 1f / frameRate;
-
-        //int frameToStartHop = 30;
-        //int frameHopTime = 10;
-        //float hopHeight = 0.03f;
-
-        //while (animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1f && animator.GetCurrentAnimatorStateInfo(0).IsName("orc_orcling_attack_anim"))
-        //{
-        //    float currentTime = animator.GetCurrentAnimatorStateInfo(0).normalizedTime * animator.GetCurrentAnimatorStateInfo(0).length;
-        //    int currentFrame = Mathf.FloorToInt(currentTime / frameDuration);
-
-        //    if (currentFrame >= frameToStartHop)
-        //    {
-        //        Vector3 originalPosition = actor.transform.position;
-        //        Vector3 hopOffset = new Vector3(0f, hopHeight, 0f);
-        //        Vector3 hopPosition = originalPosition + hopOffset;
-
-        //        float totalHopTime = frameHopTime * frameDuration;
-        //        float elapsedTime = 0f;
-
-        //        while (elapsedTime < totalHopTime)
-        //        {
-        //            float hopUpTime = elapsedTime / totalHopTime;
-        //            actor.transform.position = Vector3.Lerp(originalPosition, hopPosition, hopUpTime);
-        //            elapsedTime += Time.deltaTime;
-        //            yield return null;
-        //        }
-
-        //        actor.transform.position = hopPosition;
-
-        //        elapsedTime = 0f;
-
-        //        while (elapsedTime < totalHopTime)
-        //        {
-        //            float hopReturnTime = elapsedTime / totalHopTime;
-        //            actor.transform.position = Vector3.Lerp(originalPosition, hopPosition, hopReturnTime);
-        //            elapsedTime += Time.deltaTime;
-        //            yield return null;
-        //        }
-
-        //        actor.transform.position = originalPosition;
-
-        //    }
-
-        //    yield return null;
-        //}
-
-        ActorStates.Attacking = false;
-        coroutineRunning = false;
     }
     public void ReceiveDamage(Damage damage)
     {

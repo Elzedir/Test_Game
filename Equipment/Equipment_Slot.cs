@@ -30,14 +30,14 @@ public class Equipment_Slot : MonoBehaviour
     public SlotType slotType;
     protected Equipment_Manager _equipmentManager;
     protected Manager_Stats _statManager;
+    protected Actor_Base _actor;
 
     protected SpriteRenderer _spriteRenderer;
     protected AnimatorController _animatorController;
-    protected Animator _animator;
+    protected Animator _animator; 
     protected BoxCollider2D _boxCollider;
 
     public LayerMask WepCanAttack;
-    public bool Attacking;
 
     public List_Item.ItemStats DisplayItemStats;
     public List_Item Item;
@@ -65,8 +65,8 @@ public class Equipment_Slot : MonoBehaviour
         _equipmentManager = GetComponentInParent<Equipment_Manager>();
         _boxCollider = GetComponent<BoxCollider2D>();
         _statManager = GetComponentInParent<Manager_Stats>();
-        Actor_Base actor = GetComponentInParent<Actor_Base>();
-        WepCanAttack = actor.GetLayer();
+        _actor = GetComponentInParent<Actor_Base>();
+        WepCanAttack = _actor.GetLayer();
         _animator = GetComponent<Animator>();
     }
     
@@ -97,10 +97,6 @@ public class Equipment_Slot : MonoBehaviour
     {
         _animator.enabled = true;
         _animatorController = item.itemAnimatorController;
-        if (_animatorController == null)
-        {
-            _animator.enabled = false;
-        }
     }
     public void Attack()
     {
@@ -111,18 +107,52 @@ public class Equipment_Slot : MonoBehaviour
     }
     private IEnumerator AttackCoroutine(Animator animator)
     {
-        _hitEnemies = new HashSet<Collider2D>();
-        Attacking = true;
+        if (_hitEnemies == null)
+        {
+            _hitEnemies = new HashSet<Collider2D>();
+        }
+        else
+        {
+            _hitEnemies.Clear();
+            _hitEnemies = new HashSet<Collider2D>();
+        }
+
+        _actor.ActorStates.Attacking = true;
         animator.runtimeAnimatorController = _animatorController;
         animator.SetTrigger("Attack");
-        
+
 
         float delayDuration = 0.3f;
         yield return new WaitForSeconds(delayDuration);
-        Attacking = false;
+        _actor.ActorStates.Attacking = false;
 
         animator.ResetTrigger("Attack");
-        
+    }
+
+    public void UnarmedAttack()
+    {
+        StartCoroutine(UnarmedAttackCoroutine());
+    }
+
+    private IEnumerator UnarmedAttackCoroutine()
+    {
+        if (_hitEnemies == null)
+        {
+            _hitEnemies = new HashSet<Collider2D>();
+        }
+        else
+        {
+            _hitEnemies.Clear();
+            _hitEnemies = new HashSet<Collider2D>();
+        }
+
+        _actor.ActorStates.Attacking = true;
+        _actor.ActorAnimator.SetTrigger("Attack");
+
+        float delayDuration = _actor.ActorAnimator.GetCurrentAnimatorStateInfo(0).length;
+        yield return new WaitForSeconds(delayDuration);
+        _actor.ActorAnimator.ResetTrigger("Attack");
+        _actor.ActorStates.Attacking = false;
     }
 
     public void PopulateEquipmentSlots()
@@ -148,7 +178,7 @@ public class Equipment_Slot : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        if (Attacking)
+        if (_actor.ActorStates.Attacking)
         {
             CollideCheck();
         }
@@ -162,6 +192,11 @@ public class Equipment_Slot : MonoBehaviour
 
         foreach (Collider2D hit in hits)
         {
+            if (hit.GetComponent<Equipment_Slot>() != null)
+            {
+                continue;
+            }
+
             if (hit.gameObject.layer == gameObject.layer || !hit.enabled || _hitEnemies.Contains(hit))
                 continue;
 

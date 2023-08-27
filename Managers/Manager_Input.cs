@@ -42,6 +42,7 @@ public class Manager_Input : MonoBehaviour
     {
         keyActions = new Dictionary<KeyCode, Action>
         {
+            { KeyCode.C, HandleCPressed },
             { KeyCode.E, HandleEPressed },
             { KeyCode.Escape, HandleEscapePressed },
             { KeyCode.I, HandleIPressed },
@@ -69,12 +70,12 @@ public class Manager_Input : MonoBehaviour
             return;
         }
 
-        Actor_Base actor = GameManager.Instance.Player.GetComponent<Actor_Base>();
+        GameManager.Instance.Player.PlayerAttack();
+    }
 
-        if (actor != null)
-        {
-            actor.PlayerAttack();
-        }
+    public void HandleCPressed()
+    {
+        Character_Window.Instance.OpenMenu();
     }
 
     public void HandleEPressed()
