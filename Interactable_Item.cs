@@ -34,7 +34,7 @@ public class Interactable_Item : MonoBehaviour
         {
             _item = List_Item.GetItemData(ItemID);
             DisplayItemStats = List_Item.DisplayItemStats(ItemID, StackSize);
-            Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, equippable: _item.equippable);
+            Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, equippable: _item.equippable, inventoryManager: GameManager.Instance.Player.GetComponent<Inventory_Manager>());
         }
     }
 }

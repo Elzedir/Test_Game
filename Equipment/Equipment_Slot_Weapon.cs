@@ -7,6 +7,8 @@ public class Equipment_Slot_Weapon : Equipment_Slot
 {
     public override void SpriteVectors(Equipment_Slot equipSlot, List_Item item)
     {
+        base.SpriteVectors(equipSlot, item);
+
         switch (item.weaponClass)
         {
             case WeaponClass.Axe:

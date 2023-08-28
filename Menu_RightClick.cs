@@ -149,7 +149,14 @@ public class Menu_RightClick : MonoBehaviour
 
     public void EquipButtonPressed()
     {
-        bool equipped = _inventoryManager.OnEquip(pickedUpItem: _item, inventorySlotIndex: _inventorySlot.slotIndex, interactedObject: _thing);
+        int inventorySlotIndex = -1;
+
+        if (_inventorySlot != null)
+        {
+            inventorySlotIndex = _inventorySlot.slotIndex;
+        }
+
+        bool equipped = _inventoryManager.OnEquip(pickedUpItem: _item, inventorySlotIndex: inventorySlotIndex, interactedObject: _thing);
         if (equipped)
         {
             RightClickMenuClose();
@@ -166,7 +173,18 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void PickupButtonPressed()
     {
-        bool pickedUp = _inventoryManager.OnItemPickup(pickedUpItem: _item, inventorySlotIndex: _inventorySlot.slotIndex, interactedObject: _thing);
+        int inventorySlotIndex = -1;
+
+        if (_inventorySlot != null)
+        {
+            inventorySlotIndex = _inventorySlot.slotIndex;
+        }
+        Debug.Log(_item);
+        Debug.Log(inventorySlotIndex);
+        Debug.Log(_thing);
+        Debug.Log(_inventoryManager);
+
+        bool pickedUp = _inventoryManager.OnItemPickup(pickedUpItem: _item, inventorySlotIndex: inventorySlotIndex, interactedObject: _thing);
         
         if (pickedUp && _item != null)
         {
@@ -195,7 +213,7 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void DropXButtonPressed()
     {
-        UI_Slider.instance.OpenSlider();
+        UI_Slider.instance.OpenMenu();
 
         if (_equipmentSlot != null)
         {

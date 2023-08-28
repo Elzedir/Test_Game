@@ -164,17 +164,22 @@ public class Inventory_Window : Menu_UI
             inventoryCreator = InventoryNotEquippableCreator.GetComponent<Inventory_Creator>();
         }
 
-        Inventory_Slot[] inventorySlots = inventoryCreator.GetComponentsInChildren<Inventory_Slot>();
-
-        foreach (Inventory_Slot slot in inventorySlots)
+        if (inventoryCreator != null)
         {
-            Destroy(slot.gameObject);
+            Inventory_Slot[] inventorySlots = inventoryCreator.GetComponentsInChildren<Inventory_Slot>();
+
+            foreach (Inventory_Slot slot in inventorySlots)
+            {
+                Destroy(slot.gameObject);
+            }
+
+            inventoryCreator.IsOpen = false;
+            inventoryCreator.TempInventoryManager.IsOpen = false;
+            inventoryCreator.TempInventoryManager = null;
         }
+
         _isOpen = false;
-        inventoryCreator.IsOpen = false;
         gameObject.SetActive(false);
-        inventoryCreator.TempInventoryManager.IsOpen = false;
-        inventoryCreator.TempInventoryManager = null;
     }
 
     public void RefreshPlayerUI(GameObject interactedObject, Equipment_Manager actorEquipmentManager = null)

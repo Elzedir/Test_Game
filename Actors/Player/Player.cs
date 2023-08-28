@@ -53,6 +53,8 @@ public class Player : MonoBehaviour
             if (!_playerActor.ActorStates.Jumping)
             {
                 Vector3 move = new Vector3(x * currentXSpeed, y * currentYSpeed, 0);
+                float speed = move.magnitude / Time.deltaTime;
+
                 transform.localScale = new Vector3(_playerActor.OriginalSize.z * Mathf.Sign(direction.x), _playerActor.OriginalSize.y, _playerActor.OriginalSize.z);
                 _playerActor.ActorScripts.Actor_VFX.transform.localScale = new Vector3(Mathf.Sign(direction.x), 1, 1);
 
@@ -64,32 +66,35 @@ public class Player : MonoBehaviour
                 if (_hit.collider == null)
                 {
                     transform.Translate(0, move.y * Time.deltaTime, 0);
-                    _playerActor.SetMovementSpeed(move.magnitude);
                 }
                 _hit = Physics2D.BoxCast(transform.position, _playerActor.ActorComponents.ActorColl.bounds.size, 0, new Vector2(move.x, 0), Mathf.Abs(move.x * Time.deltaTime), LayerMask.GetMask("Blocking"));
                 if (_hit.collider == null)
                 {
                     transform.Translate(move.x * Time.deltaTime, 0, 0);
-                    _playerActor.SetMovementSpeed(move.magnitude);
                 }
+
+                _playerActor.ActorAnimator.SetFloat("Speed", speed);
             }
         }
     }
 
     public void PlayerAttack()
     {
-        List<Equipment_Slot> equippedWeapons = _playerActor.ActorScripts.EquipmentManager.WeaponEquipped();
+        if (!_playerActor.ActorStates.Attacking)
+        {
+            List<Equipment_Slot> equippedWeapons = _playerActor.ActorScripts.EquipmentManager.WeaponEquipped();
 
-        if (equippedWeapons.Count > 0)
-        {
-            foreach (var weapon in equippedWeapons)
+            if (equippedWeapons.Count > 0)
             {
-                weapon.Attack();
+                foreach (var weapon in equippedWeapons)
+                {
+                    weapon.Attack(weapon);
+                }
             }
-        }
-        else
-        {
-            _playerActor.MainHand.UnarmedAttack();
+            else
+            {
+                _playerActor.MainHand.Attack();
+            }
         }
     }
 }

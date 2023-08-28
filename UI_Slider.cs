@@ -6,7 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UI_Slider : MonoBehaviour
+public class UI_Slider : Menu_UI
 {
     public static UI_Slider instance;
     public Slider slider;
@@ -40,20 +40,19 @@ public class UI_Slider : MonoBehaviour
         sliderAmount.text = value.ToString("0");
     }
 
-    public void OpenSlider()
+    public override void OpenMenu(GameObject interactedObject = null)
     {
         gameObject.SetActive(true);
         transform.SetAsLastSibling();
+    }
+    public override void CloseMenu()
+    {
+        gameObject.SetActive(false);
     }
 
     public void AcceptButtonPressed()
     {
         Menu_RightClick.Instance.Drop(Mathf.RoundToInt(slider.value), equipmentSlot: equipmentSlot, inventorySlot: inventorySlot, actor: actor);
-        gameObject.SetActive(false);
-    }
-
-    public void ReturnButtonPressed()
-    {
         gameObject.SetActive(false);
     }
 

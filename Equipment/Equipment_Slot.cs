@@ -8,6 +8,7 @@ using UnityEditor.Animations;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.U2D;
 using UnityEngine.UI;
 using static Equipment_Manager;
 using static UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle;
@@ -35,7 +36,6 @@ public class Equipment_Slot : MonoBehaviour
     protected SpriteRenderer _spriteRenderer;
     protected AnimatorController _animatorController;
     protected Animator _animator; 
-    protected BoxCollider2D _boxCollider;
 
     public LayerMask WepCanAttack;
 
@@ -43,18 +43,11 @@ public class Equipment_Slot : MonoBehaviour
     public List_Item Item;
 
     private HashSet<Collider2D> _hitEnemies;
+    private bool _offHandAttack = false;
 
     public void Start()
     {        
         InitialiseComponents();
-
-        if (_animator != null && _animator.runtimeAnimatorController == null)
-        {
-            if (slotType == SlotType.MainHand || slotType == SlotType.OffHand)
-            {
-                _animator.enabled = false;
-            }
-        }
 
         _equipmentManager.OnEquipmentChange += PopulateEquipmentSlots;
     }
@@ -63,13 +56,27 @@ public class Equipment_Slot : MonoBehaviour
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _equipmentManager = GetComponentInParent<Equipment_Manager>();
-        _boxCollider = GetComponent<BoxCollider2D>();
-        _statManager = GetComponentInParent<Manager_Stats>();
         _actor = GetComponentInParent<Actor_Base>();
+        _statManager = GetComponentInParent<Manager_Stats>();
         WepCanAttack = _actor.GetLayer();
         _animator = GetComponent<Animator>();
     }
-    
+
+    public void Update()
+    {
+        if (_actor.ActorStates.Attacking)
+        {
+            if (this.slotType == SlotType.MainHand)
+            {
+                CollideCheck();
+            }
+            else if (this.slotType == SlotType.OffHand && _offHandAttack == true)
+            {
+                CollideCheck();
+            }
+        }
+    }
+
     public void UpdateSprite(Equipment_Slot equipSlot, List_Item item)
     {
         if (item == null)
@@ -98,61 +105,37 @@ public class Equipment_Slot : MonoBehaviour
         _animator.enabled = true;
         _animatorController = item.itemAnimatorController;
     }
-    public void Attack()
+    public void Attack(Equipment_Slot equipmentSlot = null)
     {
-        if (_animator != null)
-        {
-            StartCoroutine(AttackCoroutine(_animator));
-        }
+        StartCoroutine(AttackCoroutine(_animator, equipmentSlot));
     }
-    private IEnumerator AttackCoroutine(Animator animator)
+    private IEnumerator AttackCoroutine(Animator animator, Equipment_Slot equipmentSlot)
     {
         if (_hitEnemies == null)
         {
             _hitEnemies = new HashSet<Collider2D>();
         }
-        else
+
+        if (equipmentSlot == null)
         {
-            _hitEnemies.Clear();
-            _hitEnemies = new HashSet<Collider2D>();
+            animator = _actor.ActorAnimator;
+        }
+
+        if (equipmentSlot != null && equipmentSlot.slotType == SlotType.OffHand)
+        {
+            _offHandAttack = true;
         }
 
         _actor.ActorStates.Attacking = true;
-        animator.runtimeAnimatorController = _animatorController;
         animator.SetTrigger("Attack");
-
 
         float delayDuration = 0.3f;
         yield return new WaitForSeconds(delayDuration);
         _actor.ActorStates.Attacking = false;
+        _offHandAttack = true;
 
         animator.ResetTrigger("Attack");
-    }
-
-    public void UnarmedAttack()
-    {
-        StartCoroutine(UnarmedAttackCoroutine());
-    }
-
-    private IEnumerator UnarmedAttackCoroutine()
-    {
-        if (_hitEnemies == null)
-        {
-            _hitEnemies = new HashSet<Collider2D>();
-        }
-        else
-        {
-            _hitEnemies.Clear();
-            _hitEnemies = new HashSet<Collider2D>();
-        }
-
-        _actor.ActorStates.Attacking = true;
-        _actor.ActorAnimator.SetTrigger("Attack");
-
-        float delayDuration = _actor.ActorAnimator.GetCurrentAnimatorStateInfo(0).length;
-        yield return new WaitForSeconds(delayDuration);
-        _actor.ActorAnimator.ResetTrigger("Attack");
-        _actor.ActorStates.Attacking = false;
+        _hitEnemies.Clear();
     }
 
     public void PopulateEquipmentSlots()
@@ -175,20 +158,38 @@ public class Equipment_Slot : MonoBehaviour
             }
         }
     }
-
-    private void OnTriggerStay2D(Collider2D collision)
-    {
-        if (_actor.ActorStates.Attacking)
-        {
-            CollideCheck();
-        }
-    }
     protected void CollideCheck()
     {
-        Vector2 boxSize = _boxCollider.size;
-        Vector2 boxPosition = _boxCollider.transform.position;
-        float boxAngle = _boxCollider.transform.eulerAngles.z;
-        Collider2D[] hits = Physics2D.OverlapBoxAll(boxPosition, boxSize, boxAngle, WepCanAttack);
+        float colliderRatio = 0.75f;
+
+        SpriteRenderer spriteRenderer = _actor.GetComponent<SpriteRenderer>();
+        float width = spriteRenderer.sprite.rect.width / spriteRenderer.sprite.pixelsPerUnit * colliderRatio;
+        float height = spriteRenderer.sprite.rect.height / spriteRenderer.sprite.pixelsPerUnit * colliderRatio;
+        Vector3 actorPosition = transform.position;
+
+        float radius = (width + height) * 0.5f;
+        float angle = 0f;
+
+        if (_actor.gameObject == GameManager.Instance.Player.gameObject)
+        {
+            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector3 mouseDirection = (mousePosition - actorPosition).normalized;
+            angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
+        }
+        else
+        {
+            if (_actor.closestEnemy != null)
+            {
+                angle = Mathf.Atan2(_actor.closestEnemy.transform.position.y, _actor.closestEnemy.transform.position.x) * Mathf.Rad2Deg;
+            }
+        }
+
+        Vector3 center = actorPosition + new Vector3(radius * Mathf.Cos(angle * Mathf.Deg2Rad), radius * Mathf.Sin(angle * Mathf.Deg2Rad), transform.position.z);
+
+        Vector3 pointA = center + new Vector3(-width / 2, -height / 2);
+        Vector3 pointB = center + new Vector3(width / 2, height / 2);
+
+        Collider2D[] hits = Physics2D.OverlapAreaAll(pointA, pointB);
 
         foreach (Collider2D hit in hits)
         {
@@ -204,12 +205,50 @@ public class Equipment_Slot : MonoBehaviour
             _hitEnemies.Add(hit);
         }
     }
+
+    void OnDrawGizmos()
+    {
+        if (_actor == null) return;
+
+        float colliderRatio = 0.75f;
+
+        SpriteRenderer spriteRenderer = _actor.GetComponent<SpriteRenderer>();
+        float width = spriteRenderer.sprite.rect.width / spriteRenderer.sprite.pixelsPerUnit * colliderRatio;
+        float height = spriteRenderer.sprite.rect.height / spriteRenderer.sprite.pixelsPerUnit * colliderRatio;
+        Vector3 actorPosition = transform.position;
+
+        float radius = (width + height) * 0.5f;
+        float angle = 0f;
+
+        if (_actor.gameObject == GameManager.Instance.Player.gameObject)
+        {
+            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector3 mouseDirection = (mousePosition - actorPosition).normalized;
+            angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
+        }
+        else
+        {
+            if (_actor.closestEnemy != null)
+            {
+                angle = Mathf.Atan2(_actor.closestEnemy.transform.position.y, _actor.closestEnemy.transform.position.x) * Mathf.Rad2Deg;
+            } 
+        }
+
+        Vector3 center = actorPosition + new Vector3(radius * Mathf.Cos(angle * Mathf.Deg2Rad), radius * Mathf.Sin(angle * Mathf.Deg2Rad), transform.position.z);
+
+        Vector3 pointA = center + new Vector3(-width / 2, -height / 2);
+        Vector3 pointB = center + new Vector3(width / 2, height / 2);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(new Vector3(pointA.x, pointA.y, 0), new Vector3(pointA.x, pointB.y, 0));
+        Gizmos.DrawLine(new Vector3(pointA.x, pointB.y, 0), new Vector3(pointB.x, pointB.y, 0));
+        Gizmos.DrawLine(new Vector3(pointB.x, pointB.y, 0), new Vector3(pointB.x, pointA.y, 0));
+        Gizmos.DrawLine(new Vector3(pointB.x, pointA.y, 0), new Vector3(pointA.x, pointA.y, 0));
+    }
+
     private void OnCollide(Collider2D coll)
     {
-        Debug.Log("collided");
-        Actor_Base parent = GetComponentInParent<Actor_Base>();
-
-        if (parent == null)
+        if (_actor == null)
         {
             Debug.LogWarning("No parent found for " + this.name);
             return;
@@ -219,7 +258,6 @@ public class Equipment_Slot : MonoBehaviour
 
         if ((WepCanAttack & targetLayerMask) != 0)
         {
-            Debug.Log("dealt damage");
             Damage damage = _statManager.DealDamage();
 
             coll.SendMessage("ReceiveDamage", damage);

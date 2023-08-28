@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using Unity.Services.CloudSave;
+using Unity.VisualScripting;
 using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -69,6 +70,14 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         Player = FindFirstObjectByType<Player>();
+
+        if (Player == null)
+        {
+            Player_Backup PlayerBackup = FindFirstObjectByType<Player_Backup>();
+            PlayerBackup.AddComponent<Player>();
+            Destroy(PlayerBackup.GetComponent<Player_Backup>());
+            // Put in some way to find the player again. Maybe look in the last save for which character they were playing.
+        }
     }
 
     void InitializeGameData()

@@ -118,11 +118,14 @@ public class Manager_Stats : MonoBehaviour
         float damageReduction = totalDefence / (totalDefence + 100);
         float finalDamage = damage.damageAmount * (1 - damageReduction);
 
-        Player player = GetComponent<Player>();
-        if (player != null)
+        if (GameManager.Instance.Player.gameObject != this.gameObject)
         {
             GameManager.Instance.ShowFloatingText(damage.damageAmount.ToString(), 25, Color.red, transform.position, Vector3.up * 30, 0.5f);
             GameManager.Instance.HUDBarChange();
+        }
+        else
+        {
+            GameManager.Instance.ShowFloatingText(damage.damageAmount.ToString(), 25, Color.green, transform.position, Vector3.up * 30, 0.5f);
         }
         
         currentHealth -= finalDamage;

@@ -18,12 +18,11 @@ public class Actor_Base : Hitbox
     public ActorComponents ActorComponents;
 
     // General
-    private GameObject _selfGameObject;
-    private Actor_Base _selfActor;
-    private NavMeshAgent _selfAgent;
+    private Actor_Base _actor;
+    private NavMeshAgent _agent;
     public Dialogue_Data_SO DialogueData;
-    private Equipment_Slot _mainHand;
-    public Equipment_Slot MainHand { get { return _mainHand; } }
+    private Equipment_Slot _mainHand; public Equipment_Slot MainHand { get { return _mainHand; } }
+
     protected override BoxCollider2D Coll => ActorComponents.ActorColl;
 
     // Layers
@@ -49,10 +48,11 @@ public class Actor_Base : Hitbox
     public GameObject Weapon;
     public Transform SheathedPosition;
 
-    private SpriteRenderer _spriteRenderer;
-    private Animator _actorAnimator;
-    public Animator ActorAnimator { get { return _actorAnimator; } }
+    private SpriteRenderer _spriteRenderer; public SpriteRenderer SpriteRenderer { get { return _spriteRenderer; } }
+    private Animator _actorAnimator; public Animator ActorAnimator { get { return _actorAnimator; } }
+
     private Player _player;
+    private Player _playerBackup;
 
     [SerializeField] private WanderData _wanderData;
     [SerializeField] private PatrolData _patrolData;
@@ -66,16 +66,16 @@ public class Actor_Base : Hitbox
         {
             CharacterComponentCheck();
         }
-        ActorData.SetActorLayer(_selfActor.gameObject);
+        ActorData.SetActorLayer(_actor.gameObject);
     }
 
     private void InitialiseComponents()
     {
         _player = GetComponent<Player>();
-        _selfActor = GetComponent<Actor_Base>();
-        _selfAgent = GetComponent<NavMeshAgent>() != null ? GetComponent<NavMeshAgent>() : gameObject.AddComponent<NavMeshAgent>();
-        _selfAgent.updateRotation = false;
-        _selfAgent.updateUpAxis = false;
+        _actor = GetComponent<Actor_Base>();
+        _agent = GetComponent<NavMeshAgent>() != null ? GetComponent<NavMeshAgent>() : gameObject.AddComponent<NavMeshAgent>();
+        _agent.updateRotation = false;
+        _agent.updateUpAxis = false;
         startingPosition = transform.position;
         ActorScripts.AbilityManager = GetComponent<AbilityManager>();
         ActorScripts.StatManager = GetComponent<Manager_Stats>();
@@ -143,7 +143,7 @@ public class Actor_Base : Hitbox
     {
         base.Update();
 
-        if (_player != null)
+        if (_player == null)
         {
             _player = GameManager.Instance.Player;
         }
@@ -199,7 +199,12 @@ public class Actor_Base : Hitbox
 
     public void HandleNPCDirection()
     {
-        Vector3 direction = _selfAgent.velocity;
+        if (_actorAnimator.runtimeAnimatorController != null)
+        {
+            _actorAnimator.SetFloat("Speed", _agent.velocity.magnitude);
+        }
+
+        Vector3 direction = _agent.velocity;
 
         if (direction != Vector3.zero)
         {
@@ -295,13 +300,12 @@ public class Actor_Base : Hitbox
 
             if (!withinAttackRange)
             {
-                _selfAgent.isStopped = false;
-                _selfAgent.SetDestination(closestEnemy.transform.position);
+                _agent.isStopped = false;
+                _agent.SetDestination(closestEnemy.transform.position);
             }
             else
             {
-                _selfAgent.isStopped = true;
-                SetMovementSpeed(0f);
+                _agent.isStopped = true;
 
                 if (!ActorStates.Attacking)
                 {
@@ -325,8 +329,8 @@ public class Actor_Base : Hitbox
                 _patrolData.PatrolIndex = 0;
             }
 
-            _selfAgent.SetDestination(_patrolData.PatrolPoints[_patrolData.PatrolIndex].position);
-            _selfAgent.speed = _patrolData.PatrolSpeed;
+            _agent.SetDestination(_patrolData.PatrolPoints[_patrolData.PatrolIndex].position);
+            _agent.speed = _patrolData.PatrolSpeed;
 
             _patrolData.PatrolTargetPosition = _patrolData.PatrolPoints[_patrolData.PatrolIndex].position;
 
@@ -360,8 +364,8 @@ public class Actor_Base : Hitbox
 
             _wanderData.WanderTargetPosition = new Vector3(x, y, transform.position.z);
 
-            _selfAgent.SetDestination(_wanderData.WanderTargetPosition);
-            _selfAgent.speed = _wanderData.WanderSpeed;
+            _agent.SetDestination(_wanderData.WanderTargetPosition);
+            _agent.speed = _wanderData.WanderSpeed;
 
             _wanderData.IsWandering = true;
         }
@@ -404,27 +408,18 @@ public class Actor_Base : Hitbox
         }
     }
 
-    public void SetMovementSpeed(float speed)
-    {
-        Animator animator = GetComponent<Animator>();
-
-        if (animator != null)
-        {
-            animator.SetFloat("Speed", speed);
-        }
-    }
     public void ReturnToStartPosition()
     {
         float distanceToStart = Vector2.Distance(transform.position, startingPosition);
         
         if(distanceToStart > 0.01f)
         {
-            _selfAgent.SetDestination(startingPosition);
+            _agent.SetDestination(startingPosition);
         }
         else
         {
             transform.position = startingPosition;
-            SetMovementSpeed((startingPosition - transform.position).magnitude);
+            _agent.isStopped = true;
         }
     }
     public float GetAttackRange()
@@ -464,7 +459,7 @@ public class Actor_Base : Hitbox
             }
             else
             {
-                Menu_RightClick.Instance.RightClickMenu(interactedThing: gameObject, actor: _selfActor, talkable: true) ;
+                Menu_RightClick.Instance.RightClickMenu(interactedThing: gameObject, actor: _actor, talkable: true) ;
             }
         }
     }
@@ -476,12 +471,12 @@ public class Actor_Base : Hitbox
         {
             foreach (var weapon in equippedWeapons)
             {
-                weapon.Attack();
+                weapon.Attack(weapon);
             }
         }
         else
         {
-            _mainHand.UnarmedAttack();
+            _mainHand.Attack();
         }
     }
     public void ReceiveDamage(Damage damage)
@@ -542,14 +537,14 @@ public class Actor_Base : Hitbox
     {
         if (ActorStates.OnFire)
         {
-            VFX_Manager.instance.AddOnFireVFX(_selfActor, ActorScripts.Actor_VFX.transform);
+            VFX_Manager.instance.AddOnFireVFX(_actor, ActorScripts.Actor_VFX.transform);
         }
     }
     public void RemoveOnFireVFX()
     { 
         if (!ActorStates.OnFire)
         {
-            VFX_Manager.instance.RemoveOnFireVFX(_selfActor, ActorScripts.Actor_VFX.transform);
+            VFX_Manager.instance.RemoveOnFireVFX(_actor, ActorScripts.Actor_VFX.transform);
         }
     }
 

@@ -17,7 +17,7 @@ public class Manager_Input : MonoBehaviour
     public static Manager_Input Instance;
     public Menu_RightClick menuRightClickScript;
 
-    public Player player;
+    private Player _player;
     public GameObject interactedCharacter;
 
     private Dictionary<KeyCode, Action> keyActions;
@@ -55,10 +55,20 @@ public class Manager_Input : MonoBehaviour
     {
         foreach (var keyAction in keyActions)
         {
-            if (Input.GetKeyDown(keyAction.Key))
+            if (keyAction.Key == KeyCode.Mouse0)
             {
-                keyAction.Value.Invoke();
-                break;
+                if (Input.GetKey(keyAction.Key))
+                {
+                    keyAction.Value.Invoke();
+                }
+            }
+            else
+            {
+                if (Input.GetKeyDown(keyAction.Key))
+                {
+                    keyAction.Value.Invoke();
+                    break;
+                }
             }
         }
     }
