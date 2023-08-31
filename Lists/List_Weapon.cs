@@ -33,33 +33,44 @@ public class List_Weapon : List_Item
         float itemForce,
         float itemRange)
     {
-        this.itemID = itemID;
-        this.itemType = itemType;
-        this.weaponType = weaponType;
-        this.weaponClass = weaponClass;
-        this.itemName = itemName;
-        this.itemIcon = itemIcon;
-        this.itemPosition = itemPosition;
-        this.itemRotation = itemRotation;
-        this.itemScale = itemScale;
-        this.equippable = equippable;
-        this.itemAnimatorController = itemAnimatorController;
-        this.maxStackSize = maxStackSize;
-        this.itemValue = itemValue;
-        this.itemDamage = itemDamage;
-        this.itemSpeed = itemSpeed;
-        this.itemForce = itemForce;
-        this.itemRange = itemRange;
+        this.ItemStats.CommonStats.ItemID = itemID;
+        this.ItemStats.CommonStats.ItemType = itemType;
+        this.ItemStats.WeaponStats.WeaponType = weaponType;
+        this.ItemStats.WeaponStats.WeaponClass = weaponClass;
+        this.ItemStats.CommonStats.ItemName = itemName;
+        this.ItemStats.CommonStats.ItemIcon = itemIcon;
+        this.ItemStats.CommonStats.ItemPosition = itemPosition;
+        this.ItemStats.CommonStats.ItemRotation = itemRotation;
+        this.ItemStats.CommonStats.ItemScale = itemScale;
+        this.ItemStats.CommonStats.Equippable = equippable;
+        this.ItemStats.CommonStats.ItemAnimatorController = itemAnimatorController;
+        this.ItemStats.CommonStats.MaxStackSize = maxStackSize;
+        this.ItemStats.CommonStats.ItemValue = itemValue;
+        this.ItemStats.WeaponStats.ItemDamage = itemDamage;
+        this.ItemStats.WeaponStats.ItemSpeed = itemSpeed;
+        this.ItemStats.WeaponStats.ItemForce = itemForce;
+        this.ItemStats.WeaponStats.ItemRange = itemRange;
     }
 
     public static void InitializeWeaponData()
     {
-        Shortswords();
+        Shortswords(); //Melee
+        Ranged();
 
         foreach (var weapon in allWeaponData)
         {
             weapon.Start();
         }
+    }
+
+    static void Ranged()
+    {
+        Shortbows();
+    }
+
+    static void Shortbows()
+    {
+
     }
     
     static void Shortswords()
@@ -70,7 +81,7 @@ public class List_Weapon : List_Item
             WeaponType.OneHanded,
             WeaponClass.ShortSword,
             "Wood shortsword",
-            SO_List.Instance.WeaponSprites[0].sprite,
+            SO_List.Instance.WeaponMeleeSprites[0].sprite,
             new Vector3(-0.04f, -0.07f, 0f),
             new Vector3(180, 0, 0),
             new Vector3(0.4f, 0.4f, 0.4f),
@@ -91,18 +102,18 @@ public class List_Weapon : List_Item
     {
         foreach (var weaponData in allWeaponData)
         {
-            if (weaponData.itemID == itemID)
+            if (weaponData.ItemStats.CommonStats.ItemID == ItemStats.CommonStats.ItemID)
             {
-                return "ItemID: " + itemID + 
-                    ", Type: " + weaponType + 
-                    ", Name: " + itemName +
-                    ", Icon: " + (itemIcon != null ? itemIcon.name : "null") +
-                    ", MaxStackSize: " + maxStackSize +
-                    ", Value: " + itemValue +
-                    ", Damage: " + itemDamage + 
-                    ", Speed: " + itemSpeed + 
-                    ", Force: " + itemForce + 
-                    ", Range: " + itemRange;
+                return "ItemID: " + ItemStats.CommonStats.ItemID + 
+                    ", Type: " + ItemStats.WeaponStats.WeaponType + 
+                    ", Name: " + ItemStats.CommonStats.ItemName +
+                    ", Icon: " + (ItemStats.CommonStats.ItemIcon != null ? ItemStats.CommonStats.ItemIcon.name : "null") +
+                    ", MaxStackSize: " + ItemStats.CommonStats.MaxStackSize +
+                    ", Value: " + ItemStats.CommonStats.ItemValue +
+                    ", Damage: " + ItemStats.WeaponStats.ItemDamage + 
+                    ", Speed: " + ItemStats.WeaponStats.ItemSpeed + 
+                    ", Force: " + ItemStats.WeaponStats.ItemForce + 
+                    ", Range: " + ItemStats.WeaponStats.ItemRange;
             }
         }
 

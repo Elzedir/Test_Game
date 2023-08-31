@@ -54,13 +54,13 @@ public class Manager_Stats : MonoBehaviour
 
     public void UpdateStats()
     {
-        currentDamageAmount = actor.ActorData.baseDamage;
-        currentPushForce = actor.ActorData.baseForce;
-        maxHealth = actor.ActorData.baseHealth;
-        maxMana = actor.ActorData.baseMana;
-        maxStamina = actor.ActorData.baseStamina;
-        currentPhysicalDefence = actor.ActorData.basePhysicalDefence;
-        currentMagicalDefence = actor.ActorData.baseMagicalDefence;
+        currentDamageAmount = actor.ActorData.ActorStats.CombatStats.BaseDamage;
+        currentPushForce = actor.ActorData.ActorStats.CombatStats.BasePushForce;
+        maxHealth = actor.ActorData.ActorStats.CombatStats.BaseHealth;
+        maxMana = actor.ActorData.ActorStats.CombatStats.BaseMana;
+        maxStamina = actor.ActorData.ActorStats.CombatStats.BaseStamina;
+        currentPhysicalDefence = actor.ActorData.ActorStats.CombatStats.BasePhysicalDefence;
+        currentMagicalDefence = actor.ActorData.ActorStats.CombatStats.BaseMagicalDefence;
 
         int currentSlot = 0;
 
@@ -77,17 +77,17 @@ public class Manager_Stats : MonoBehaviour
 
                 if (item is List_Weapon weapon)
                 {
-                    currentDamageAmount += weapon.itemDamage;
-                    currentPushForce += weapon.itemForce;
+                    currentDamageAmount += weapon.ItemStats.WeaponStats.ItemDamage;
+                    currentPushForce += weapon.ItemStats.WeaponStats.ItemForce;
                 }
                 else if (item is List_Armour armour)
                 {
-                    maxHealth += armour.itemMaxHealthBonus;
-                    currentPhysicalDefence += armour.itemPhysicalArmour;
-                    currentMagicalDefence += armour.itemMagicalArmour;
+                    maxHealth += armour.ItemStats.ArmourStats.ItemMaxHealthBonus;
+                    currentPhysicalDefence += armour.ItemStats.ArmourStats.ItemPhysicalArmour;
+                    currentMagicalDefence += armour.ItemStats.ArmourStats.ItemMagicalArmour;
                 }
 
-                maxHealth += actor.ActorData.baseHealth;
+                maxHealth += actor.ActorData.ActorStats.CombatStats.BaseHealth;
                 if (currentHealth > maxHealth)
                 {
                     currentHealth = maxHealth;

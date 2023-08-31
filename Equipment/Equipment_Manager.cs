@@ -77,23 +77,23 @@ public class Equipment_Manager : MonoBehaviour
                 switch (child.transform.name)
                 {
                     case "Head":
-                        child.slotType = SlotType.Head;
+                        child.SlotType = SlotType.Head;
                         Head = child;
                         break;
                     case "Chest":
-                        child.slotType = SlotType.Chest;
+                        child.SlotType = SlotType.Chest;
                         Chest = child;
                         break;
                     case "MainHand":
-                        child.slotType = SlotType.MainHand;
+                        child.SlotType = SlotType.MainHand;
                         MainHand = child;
                         break;
                     case "OffHand":
-                        child.slotType = SlotType.OffHand;
+                        child.SlotType = SlotType.OffHand;
                         OffHand = child;
                         break;
                     case "Legs":
-                        child.slotType = SlotType.Legs;
+                        child.SlotType = SlotType.Legs;
                         Legs = child;
                         break;
                 }
@@ -162,7 +162,7 @@ public class Equipment_Manager : MonoBehaviour
 
                 if (!equipped)
                 {
-                    if (currentEquipment[primaryEquipSlot].Item1 != -1 && item.itemID != currentEquipment[primaryEquipSlot].Item1)
+                    if (currentEquipment[primaryEquipSlot].Item1 != -1 && item.ItemStats.CommonStats.ItemID != currentEquipment[primaryEquipSlot].Item1)
                     {
                         Debug.Log("Unequipped itemID " + currentEquipment[primaryEquipSlot].Item1);
                         Unequip(primaryEquipSlot);
@@ -176,7 +176,7 @@ public class Equipment_Manager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Invalid item ID: " + item.itemID);
+            Debug.LogError("Invalid item ID: " + item.ItemStats.CommonStats.ItemID);
             return (equipped, remainingStackSize);
         }
     }
@@ -184,10 +184,10 @@ public class Equipment_Manager : MonoBehaviour
     {
         Equipment_Slot primaryEquipSlot = null;
 
-        switch (item.itemType)
+        switch (item.ItemStats.CommonStats.ItemType)
         {
             case ItemType.Weapon:
-                switch (item.weaponType)
+                switch (item.ItemStats.WeaponStats.WeaponType)
                 {
                     case WeaponType.OneHanded:
                         primaryEquipSlot = MainHand;
@@ -198,7 +198,7 @@ public class Equipment_Manager : MonoBehaviour
                 }
                 break;
             case ItemType.Armour:
-                switch (item.armourType)
+                switch (item.ItemStats.ArmourStats.ArmourType)
                 {
                     case ArmourType.Head:
                         primaryEquipSlot = Head;
@@ -224,7 +224,7 @@ public class Equipment_Manager : MonoBehaviour
     {
         Equipment_Slot[] secondaryEquipSlots;
 
-        switch (item.itemType)
+        switch (item.ItemStats.CommonStats.ItemType)
         {
             case ItemType.Weapon:
                 secondaryEquipSlots = new Equipment_Slot[] { MainHand, OffHand };
@@ -260,7 +260,7 @@ public class Equipment_Manager : MonoBehaviour
                 if (currentStackSize > maxStackSize)
                 {
                     remainingStackSize = currentStackSize - maxStackSize;
-                    currentEquipment[equipSlot] = (item.itemID, maxStackSize, true);
+                    currentEquipment[equipSlot] = (item.ItemStats.CommonStats.ItemID, maxStackSize, true);
                     Debug.Log($"Reached max stack size for existing equip slot {equipSlot}");
                     TriggerChangeEquipment();
                     SaveEquipment(equipmentManager);
@@ -269,7 +269,7 @@ public class Equipment_Manager : MonoBehaviour
                 }
                 else
                 {
-                    currentEquipment[equipSlot] = (item.itemID, currentStackSize, false);
+                    currentEquipment[equipSlot] = (item.ItemStats.CommonStats.ItemID, currentStackSize, false);
                     TriggerChangeEquipment();
                     SaveEquipment(equipmentManager);
                     equipped = true;
@@ -285,13 +285,13 @@ public class Equipment_Manager : MonoBehaviour
                 }
                 else
                 {
-                    int itemId = item.itemID;
+                    int itemId = item.ItemStats.CommonStats.ItemID;
                     int currentStackSize = addedStackSize;
 
                     if (currentStackSize > maxStackSize)
                     {
                         remainingStackSize = currentStackSize - maxStackSize;
-                        currentEquipment[equipSlot] = (item.itemID, maxStackSize, true);
+                        currentEquipment[equipSlot] = (item.ItemStats.CommonStats.ItemID, maxStackSize, true);
                         Debug.Log($"Reached max stack size for empty equip slot {equipSlot}");
                         TriggerChangeEquipment();
                         SaveEquipment(equipmentManager);
@@ -301,7 +301,7 @@ public class Equipment_Manager : MonoBehaviour
                     else
                     {
                         currentEquipment[equipSlot] = (itemId, currentStackSize, false);
-                        Debug.Log("Item" + item.itemName + "added");
+                        Debug.Log("Item" + item.ItemStats.CommonStats.ItemName + "added");
                         TriggerChangeEquipment();
                         SaveEquipment(equipmentManager);
                         equipped = true;

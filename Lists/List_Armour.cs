@@ -36,23 +36,23 @@ public class List_Armour : List_Item
         float itemCoverage,
         float itemWeight)
     {
-        this.itemID = itemID;
-        this.itemType = itemType;
-        this.armourType = armourType;
-        this.itemName = itemName;
-        this.itemIcon = itemIcon;
-        this.itemPosition = itemPosition;
-        this.itemRotation = itemRotation;
-        this.itemScale = itemScale;
-        this.equippable = equippable;
+        this.ItemStats.CommonStats.ItemID = itemID;
+        this.ItemStats.CommonStats.ItemType = itemType;
+        this.ItemStats.ArmourStats.ArmourType = armourType;
+        this.ItemStats.CommonStats.ItemName = itemName;
+        this.ItemStats.CommonStats.ItemIcon = itemIcon;
+        this.ItemStats.CommonStats.ItemPosition = itemPosition;
+        this.ItemStats.CommonStats.ItemRotation = itemRotation;
+        this.ItemStats.CommonStats.ItemScale = itemScale;
+        this.ItemStats.CommonStats.Equippable = equippable;
         //this.itemAnimatorController = itemAnimatorController;
-        this.maxStackSize = maxStackSize;
-        this.itemValue = itemValue;
-        this.itemMaxHealthBonus = itemMaxHealthBonus;
-        this.itemPhysicalArmour = itemPhysicalArmour;
-        this.itemMagicalArmour = itemMagicalArmour;
-        this.itemCoverage = itemCoverage;
-        this.itemWeight = itemWeight;
+        this.ItemStats.CommonStats.MaxStackSize = maxStackSize;
+        this.ItemStats.CommonStats.ItemValue = itemValue;
+        this.ItemStats.ArmourStats.ItemMaxHealthBonus = itemMaxHealthBonus;
+        this.ItemStats.ArmourStats.ItemPhysicalArmour = itemPhysicalArmour;
+        this.ItemStats.ArmourStats.ItemMagicalArmour = itemMagicalArmour;
+        this.ItemStats.ArmourStats.ItemCoverage = itemCoverage;
+        this.ItemStats.CommonStats.ItemWeight = itemWeight;
     }
 
     static void Heavy()

@@ -13,7 +13,6 @@ public class Interactable_Item : MonoBehaviour
     public int ItemID;
     public int StackSize;
     private List_Item _item;
-    public List_Item.ItemStats DisplayItemStats;
 
     public void UpdateItem()
     {
@@ -22,10 +21,10 @@ public class Interactable_Item : MonoBehaviour
         Vector2 spriteSize = SpriteRenderer.sprite.bounds.size;
         _coll.size = spriteSize;
         _item = List_Item.GetItemData(ItemID);
-        SpriteRenderer.sprite = _item.itemIcon;
-        transform.localScale = _item.itemScale;
-        transform.rotation = Quaternion.Euler(_item.itemRotation);
-        gameObject.name = _item.itemName;
+        SpriteRenderer.sprite = _item.ItemStats.CommonStats.ItemIcon;
+        transform.localScale = _item.ItemStats.CommonStats.ItemScale;
+        transform.rotation = Quaternion.Euler(_item.ItemStats.CommonStats.ItemRotation);
+        gameObject.name = _item.ItemStats.CommonStats.ItemName;
     }
 
     public void OnMouseOver()
@@ -33,8 +32,7 @@ public class Interactable_Item : MonoBehaviour
         if (Input.GetMouseButtonUp(1))
         {
             _item = List_Item.GetItemData(ItemID);
-            DisplayItemStats = List_Item.DisplayItemStats(ItemID, StackSize);
-            Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, equippable: _item.equippable, inventoryManager: GameManager.Instance.Player.GetComponent<Inventory_Manager>());
+            Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, equippable: _item.ItemStats.CommonStats.Equippable, inventoryManager: GameManager.Instance.Player.GetComponent<Inventory_Manager>());
         }
     }
 }

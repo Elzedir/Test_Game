@@ -13,12 +13,10 @@ public enum Vocation
 
 public class Actor_Vocation : MonoBehaviour
 {
-    private Actor_Stats _actorStats;
     private Actor_Base _actor;
 
     private void Awake()
     {
-        _actorStats = GetComponent<Actor_Base>().ActorData.ActorStats;
         InitialiseVocations();
         LoadVocations();
     }
@@ -27,9 +25,9 @@ public class Actor_Vocation : MonoBehaviour
     {
         foreach (Vocation vocation in Enum.GetValues(typeof(Vocation)))
         {
-            if (!_actorStats.VocationExperience.Exists(entry => entry.vocation == vocation))
+            if (!_actor.ActorData.ActorStats.VocationExperience.Exists(entry => entry.vocation == vocation))
             {
-                _actorStats.VocationExperience.Add(new Actor_Vocation_Entry { vocation = vocation, experience = 0 });
+                _actor.ActorData.ActorStats.VocationExperience.Add(new Actor_Vocation_Entry { vocation = vocation, experience = 0 });
             }
         }
     }
@@ -46,7 +44,7 @@ public class Actor_Vocation : MonoBehaviour
 
     public void GainVocationExperience(Vocation vocation, int amount)
     {
-        Actor_Vocation_Entry entry = _actorStats.VocationExperience.Find(e => e.vocation == vocation);
+        Actor_Vocation_Entry entry = _actor.ActorData.ActorStats.VocationExperience.Find(e => e.vocation == vocation);
         if (entry != null)
         {
             entry.experience += amount;

@@ -55,6 +55,7 @@ public class GameManager : MonoBehaviour
 
     public GameObject itemPrefab;
     public Transform itemsArea;
+    private Arrow _arrowPrefab; public Arrow ArrowPrefab { get { return _arrowPrefab; } }
 
     private void Awake()
     {
@@ -84,6 +85,9 @@ public class GameManager : MonoBehaviour
     {
         List_Weapon.InitializeWeaponData();
         List_Armour.InitializeArmourData();
+        List_Consumable.InitializeConsumableData();
+        List_Specialisation.InitialiseSpecialisations();
+        _arrowPrefab = FindFirstObjectByType<Arrow>();
     }
 
     public void ChangeState(GameState newState)
@@ -250,7 +254,7 @@ public class GameManager : MonoBehaviour
 
         if (TryGetComponent<SpriteRenderer> (out SpriteRenderer droppedItemSpriteRenderer))
         {
-            droppedItemSpriteRenderer.sprite = List_Item.GetItemData(itemID).itemIcon;
+            droppedItemSpriteRenderer.sprite = List_Item.GetItemData(itemID).ItemStats.CommonStats.ItemIcon;
         }
 
         Interactable_Item droppedItemScript = droppedItem.GetComponent<Interactable_Item>();
@@ -266,5 +270,18 @@ public class GameManager : MonoBehaviour
     public void CreateDeadBody(Actor_Base actor)
     {
         // Instantiate a new game object and give it a dead body script with a certain animation and sprite.
+    }
+
+    public Transform FindDeepChild(Transform parent, string name)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.name == name)
+                return child;
+            Transform result = FindDeepChild(child, name);
+            if (result != null)
+                return result;
+        }
+        return null;
     }
 }

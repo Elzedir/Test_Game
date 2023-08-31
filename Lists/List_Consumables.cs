@@ -33,12 +33,12 @@ public class List_Consumable : List_Item
         Sprite consIcon, 
         int maxStackSize)
     {
-        this.itemID = itemID;
+        this.ItemStats.CommonStats.ItemID = itemID;
         this.consumableType = consumableType;
         this.consName = consName;
         this.consValue = consValue;
         this.consIcon = consIcon;
-        this.maxStackSize = maxStackSize;
+        this.ItemStats.CommonStats.MaxStackSize = maxStackSize;
     }
 
     public static void InitializeConsumableData()
@@ -50,7 +50,7 @@ public class List_Consumable : List_Item
     {
         Sprite test_spr = Resources.Load<Sprite>("Assets/Artwork/Assets/0_Assets/Atlas/at_dungeon_01/obj_wep_m_ss_01");
         List_Consumable potions = new List_Consumable
-            (2, 
+            (3, 
             ConsumableType.HealthPotion, 
             "Health Potion", 
             100, 

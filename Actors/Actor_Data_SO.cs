@@ -64,8 +64,9 @@ public class Actor_Data_SO : ScriptableObject
 
     private Actor_Base _actor;
     private Actor_Skills _actorSkills;
-    private Actor_Stats _actorStats;
-    public Actor_Stats.ActorStats DisplayActorStats;
+    public ActorStats ActorStats;
+    public ActorAbilities ActorAbilities;
+    public Specialisations ActorSpecialisations;
 
     // Trigger Zone
     public float triggerRadius = 3.0f;
@@ -74,39 +75,9 @@ public class Actor_Data_SO : ScriptableObject
     public bool isFlammable;
     public bool IsTalkable;
 
-    public float baseYSpeed;
-    public float baseXSpeed;
 
     public float triggerLength;
     public float chaseLength;
-
-    // Base stats
-
-    public float baseHealth;
-    public float baseMana;
-    public float baseStamina;
-    public float pushRecoverySpeed = 0.2f;
-    public int xpValue;
-    public float baseDamage;
-    public float baseSpeed;
-    public float baseForce;
-    public float baseAtkRange;
-    public float baseSwingTime;
-    protected float cooldown;
-
-    public float basePhysicalDefence;
-    public float baseMagicalDefence;
-
-    public Actor_Stats ActorStats
-    {
-        get { return _actorStats; }
-        set { _actorStats = value; }
-    }
-
-    public void DisplayThisActorStats()
-    {
-        DisplayActorStats = _actorStats.DisplayActorStats(_actor);
-    }
 
     public void SetActorLayer(GameObject actor)
     {
@@ -146,4 +117,61 @@ public class Actor_Data_SO : ScriptableObject
 
         return false;
     }
+}
+
+[System.Serializable]
+public struct ActorAbilities
+{
+    public List<Ability> ActorAbilityList;
+}
+
+[System.Serializable]
+public struct ActorStats
+{
+    public SPECIAL Special;
+    public CombatStats CombatStats;
+
+    public int XpValue;
+    public float baseYSpeed;
+    public float baseXSpeed;
+
+    public List<Actor_Vocation_Entry> VocationExperience;
+}
+
+[System.Serializable]
+public struct CombatStats
+{
+    public float BaseHealth;
+    public float BaseMana;
+    public float BaseStamina;
+    public float BasePushRecovery;
+
+    public float BaseDamage;
+    public float BaseSpeed;
+    public float BaseSwingTime;
+    public float BaseAtkRange;
+    public float BasePushForce;
+    public float BaseCooldown;
+
+    public float BasePhysicalDefence;
+    public float BaseMagicalDefence;
+}
+
+[System.Serializable]
+public struct SPECIAL
+{
+    public int Agility; // Dexterity
+    public int Charisma;
+    public int Endurance; // Constitution
+    public int Intelligence;
+    public int Luck;
+    public int Perception; // Wisdom
+    public int Strength;
+}
+
+[System.Serializable]
+public struct Specialisations
+{
+    public Title ActorTitle;
+    public List<Specialisation> ActorSpecialisations;
 }

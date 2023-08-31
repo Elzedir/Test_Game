@@ -28,7 +28,7 @@ public enum SlotType
 [RequireComponent(typeof(SpriteRenderer))]
 public class Equipment_Slot : MonoBehaviour
 {
-    public SlotType slotType;
+    public SlotType SlotType;
     protected Equipment_Manager _equipmentManager;
     protected Manager_Stats _statManager;
     protected Actor_Base _actor;
@@ -39,11 +39,10 @@ public class Equipment_Slot : MonoBehaviour
 
     public LayerMask WepCanAttack;
 
-    public List_Item.ItemStats DisplayItemStats;
-    public List_Item Item;
+    public ItemStats ItemStats;
 
     private HashSet<Collider2D> _hitEnemies;
-    private bool _offHandAttack = false;
+    protected bool _offHandAttack = false;
 
     public void Start()
     {        
@@ -66,11 +65,11 @@ public class Equipment_Slot : MonoBehaviour
     {
         if (_actor.ActorStates.Attacking)
         {
-            if (this.slotType == SlotType.MainHand)
+            if (this.SlotType == SlotType.MainHand)
             {
                 CollideCheck();
             }
-            else if (this.slotType == SlotType.OffHand && _offHandAttack == true)
+            else if (this.SlotType == SlotType.OffHand && _offHandAttack == true)
             {
                 CollideCheck();
             }
@@ -85,7 +84,7 @@ public class Equipment_Slot : MonoBehaviour
         }
         else
         {
-            _spriteRenderer.sprite = item.itemIcon;
+            _spriteRenderer.sprite = item.ItemStats.CommonStats.ItemIcon;
             SpriteVectors(equipSlot, item);
             SpriteSortingLayers(item);
             SpriteAnimator(item);
@@ -103,13 +102,13 @@ public class Equipment_Slot : MonoBehaviour
     public void SpriteAnimator(List_Item item)
     {
         _animator.enabled = true;
-        _animatorController = item.itemAnimatorController;
+        _animatorController = item.ItemStats.CommonStats.ItemAnimatorController;
     }
-    public void Attack(Equipment_Slot equipmentSlot = null)
+    public virtual void Attack(Equipment_Slot equipmentSlot = null)
     {
         StartCoroutine(AttackCoroutine(_animator, equipmentSlot));
     }
-    private IEnumerator AttackCoroutine(Animator animator, Equipment_Slot equipmentSlot)
+    protected IEnumerator AttackCoroutine(Animator animator, Equipment_Slot equipmentSlot)
     {
         if (_hitEnemies == null)
         {
@@ -121,18 +120,13 @@ public class Equipment_Slot : MonoBehaviour
             animator = _actor.ActorAnimator;
         }
 
-        if (equipmentSlot != null && equipmentSlot.slotType == SlotType.OffHand)
-        {
-            _offHandAttack = true;
-        }
-
         _actor.ActorStates.Attacking = true;
         animator.SetTrigger("Attack");
 
         float delayDuration = 0.3f;
         yield return new WaitForSeconds(delayDuration);
         _actor.ActorStates.Attacking = false;
-        _offHandAttack = true;
+        _offHandAttack = false;
 
         animator.ResetTrigger("Attack");
         _hitEnemies.Clear();
@@ -149,12 +143,9 @@ public class Equipment_Slot : MonoBehaviour
             int itemID = equipmentData.Item1;
             int stackSize = equipmentData.Item2;
 
-            List_Item item = List_Item.GetItemData(itemID);
-            Item = item;
-
-            if (item != null)
+            if (itemID != -1)
             {
-                DisplayItemStats = List_Item.DisplayItemStats(itemID, stackSize);
+                ItemStats = List_Item.GetItemData(itemID).ItemStats;
             }
         }
     }

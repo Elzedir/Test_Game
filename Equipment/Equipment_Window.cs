@@ -67,7 +67,7 @@ public class Equipment_Window : MonoBehaviour
 
             if (equipSlot != null )
             {
-                switch (equipSlot.slotType)
+                switch (equipSlot.SlotType)
                 {
                     case SlotType.Head:
                         actorHead = equipSlot;

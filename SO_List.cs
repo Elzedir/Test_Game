@@ -8,7 +8,8 @@ public class SO_List : MonoBehaviour
 
     public List_Item itemList;
 
-    public List_Sprites[] WeaponSprites;
+    public List_Sprites[] WeaponMeleeSprites;
+    public List_Sprites[] WeaponRangedSprites;
     public List_Sprites[] ArmourSprites;
     public List_Sprites[] UiSprites;
     public List_Sprites[] ChestSprites;

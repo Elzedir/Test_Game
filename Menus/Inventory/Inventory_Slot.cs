@@ -36,7 +36,7 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         else
         {
             List_Item item = List_Item.GetItemData(itemID);
-            Sprite itemSprite = item.itemIcon;
+            Sprite itemSprite = item.ItemStats.CommonStats.ItemIcon;
 
             if (slotIcon == null)
             {

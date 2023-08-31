@@ -16,6 +16,7 @@ public class Actor_Base : Hitbox
     public ActorScripts ActorScripts;
     public ActorStates ActorStates;
     public ActorComponents ActorComponents;
+    public Actor_Data_SO ActorData;
 
     // General
     private Actor_Base _actor;
@@ -42,9 +43,6 @@ public class Actor_Base : Hitbox
     public List<GameObject> attackableTargets = new List<GameObject>();
 
     public bool RightMouseButtonHeld = false;
-
-    public Actor_Data_SO ActorData;
-
     public GameObject Weapon;
     public Transform SheathedPosition;
 
@@ -426,7 +424,7 @@ public class Actor_Base : Hitbox
     {
         float attackRange;
 
-        attackRange = ActorData.baseAtkRange; // Include weapon attack range, do the calculation in Stat manager?
+        attackRange = ActorData.ActorStats.CombatStats.BaseAtkRange; // Include weapon attack range, do the calculation in Stat manager?
 
         return attackRange;
     }
@@ -495,8 +493,8 @@ public class Actor_Base : Hitbox
         ActorStates.Dead = true;
         OnActorDeath(gameObject);
         // replace the sprite with a dead sprite for a set amount of time, and then destroy the body when you load a new level.
-        GameManager.Instance.GrantXp(ActorData.xpValue);
-        GameManager.Instance.ShowFloatingText("+" + ActorData.xpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
+        GameManager.Instance.GrantXp(ActorData.ActorStats.XpValue);
+        GameManager.Instance.ShowFloatingText("+" + ActorData.ActorStats.XpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
         GameManager.Instance.CreateDeadBody(this);
         Destroy(gameObject);
     }

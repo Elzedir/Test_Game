@@ -49,7 +49,7 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
         else
         {
             List_Item item = List_Item.GetItemData(itemID);
-            Sprite itemSprite = item.itemIcon;
+            Sprite itemSprite = item.ItemStats.CommonStats.ItemIcon;
             itemIcon.sprite = itemSprite;
 
             if (stackSizeText != null)
