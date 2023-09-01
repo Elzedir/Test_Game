@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Animations;
 using UnityEngine;
 
-public class List_Armour : List_Item
+public class List_Item_Armour : List_Item
 {
     public static List<List_Item> allArmourData = new();
 
@@ -17,7 +17,7 @@ public class List_Armour : List_Item
         }
     }
 
-    public List_Armour
+    public List_Item_Armour
         (int itemID,
         ItemType itemType,
         ArmourType armourType,
@@ -57,7 +57,7 @@ public class List_Armour : List_Item
 
     static void Heavy()
     {
-        List_Armour bronzeChestplate01 = new List_Armour(
+        List_Item_Armour bronzeChestplate01 = new List_Item_Armour(
             2,
             ItemType.Armour,
             ArmourType.Chest,

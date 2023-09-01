@@ -2,6 +2,7 @@ using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.AI;
@@ -22,7 +23,12 @@ public class Actor_Base : Hitbox
     private Actor_Base _actor;
     private NavMeshAgent _agent;
     public Dialogue_Data_SO DialogueData;
+    
+    private Equipment_Slot _head;
+    private Equipment_Slot _chest;
     private Equipment_Slot _mainHand; public Equipment_Slot MainHand { get { return _mainHand; } }
+    private Equipment_Slot _offHand; public Equipment_Slot OffHand { get { return _offHand; } }
+    private Equipment_Slot _legs;
 
     protected override BoxCollider2D Coll => ActorComponents.ActorColl;
 
@@ -65,6 +71,7 @@ public class Actor_Base : Hitbox
             CharacterComponentCheck();
         }
         ActorData.SetActorLayer(_actor.gameObject);
+        ActorScripts.AbilityManager.ImportAbilitiesFromScriptableObject(ActorData);
     }
 
     private void InitialiseComponents()
@@ -75,7 +82,7 @@ public class Actor_Base : Hitbox
         _agent.updateRotation = false;
         _agent.updateUpAxis = false;
         startingPosition = transform.position;
-        ActorScripts.AbilityManager = GetComponent<AbilityManager>();
+        ActorScripts.AbilityManager = GetComponent<Manager_Abilities>() != null ? GetComponent<Manager_Abilities>() : gameObject.AddComponent<Manager_Abilities>();
         ActorScripts.StatManager = GetComponent<Manager_Stats>();
         ActorScripts.EquipmentManager = GetComponent<Equipment_Manager>();
         ActorScripts.InventoryManager = GetComponent<Inventory_Manager>();
@@ -83,58 +90,71 @@ public class Actor_Base : Hitbox
         ActorComponents.ActorColl = GetComponent<BoxCollider2D>();
         ActorComponents.ActorBody = GetComponent<Rigidbody2D>();
         _actorAnimator = GetComponent<Animator>();
-        ActorScripts.Actor_VFX = GetComponentInChildren<Actor_VFX>();
     }
     private void CharacterComponentCheck()
     {
+        Transform[] allChildren = transform.GetComponentsInChildren<Transform>(true);
         string[] requiredParts = { "Head", "Chest", "MainHand", "OffHand", "Legs", "VFX" };
-        Transform parentTransform = transform;
 
         foreach (string part in requiredParts)
         {
-            Transform childTransform = parentTransform.Find(part);
-            GameObject newPart = new GameObject(part);
-            newPart.transform.SetParent(parentTransform);
-            Equipment_Slot equipmentSlot = null;
+            Transform childTransform = allChildren.FirstOrDefault(t => t.name == part);
+
+            if (childTransform == null)
+            {
+                GameObject newPart = new GameObject(part);
+                newPart.transform.SetParent(transform);
+                childTransform = newPart.transform;
+            }
 
             switch (part)
             {
                 case "Head":
-                    if (childTransform == null)
+                    _head = childTransform.GetComponent<Equipment_Slot>();
+                    if (_head == null)
                     {
-                        equipmentSlot = newPart.AddComponent<Equipment_Slot_Armour>();
+                        _head = childTransform.gameObject.AddComponent<Equipment_Slot_Armour>();
                     }
                     break;
                 case "Chest":
-                    if (childTransform == null)
+                    _chest = childTransform.GetComponent<Equipment_Slot>();
+                    if (_chest == null)
                     {
-                        equipmentSlot = newPart.AddComponent<Equipment_Slot_Armour>();
+                        _chest = childTransform.gameObject.AddComponent<Equipment_Slot_Armour>();
                     }
                     break;
                 case "MainHand":
-                    if (childTransform == null)
+                    _mainHand = childTransform.GetComponent<Equipment_Slot>();
+                    if (_mainHand == null)
                     {
-                        equipmentSlot = newPart.AddComponent<Equipment_Slot_Weapon>();
-                    }
-                    else
-                    {
-                        _mainHand = childTransform.GetComponent<Equipment_Slot_Weapon>();
+                        _mainHand = childTransform.gameObject.AddComponent<Equipment_Slot_Weapon>();
                     }
                     break;
                 case "OffHand":
-                    equipmentSlot = newPart.AddComponent<Equipment_Slot_Weapon>();
+                    _offHand = childTransform.GetComponent<Equipment_Slot>();
+                    if (_offHand == null)
+                    {
+                        _offHand = childTransform.gameObject.AddComponent<Equipment_Slot_Weapon>();
+                    }
                     break;
                 case "Legs":
-                    if (childTransform == null)
+                    _legs = childTransform.GetComponent<Equipment_Slot>();
+                    if (_legs == null)
                     {
-                        equipmentSlot = newPart.AddComponent<Equipment_Slot_Armour>();
+                        _legs = childTransform.gameObject.AddComponent<Equipment_Slot_Armour>();
                     }
                     break;
                 case "VFX":
-                    newPart.AddComponent<Actor_VFX>();
+                    ActorScripts.Actor_VFX = GetComponentInChildren<Actor_VFX>();
+                    if (ActorScripts.Actor_VFX == null)
+                    {
+                        ActorScripts.Actor_VFX = childTransform.gameObject.AddComponent<Actor_VFX>();
+                    }
                     break;
             }
         }
+
+        
     }
 
     protected override void Update()
@@ -481,19 +501,17 @@ public class Actor_Base : Hitbox
     {
         ActorScripts.StatManager.ReceiveDamage(damage);
     }
-    public void AbilityUse(Rigidbody2D self)
+    public void AbilityUse(GameObject target = null)
     {
-        if (closestEnemy != null && self != null)
-        {
-            AbilityManager.instance.Charge(closestEnemy, self);
-        }
+        // bool withinAbilityRange = false;
     }
     public virtual void Death()
     {
         ActorStates.Dead = true;
         OnActorDeath(gameObject);
         // replace the sprite with a dead sprite for a set amount of time, and then destroy the body when you load a new level.
-        GameManager.Instance.GrantXp(ActorData.ActorStats.XpValue);
+        // fix who gets the xp on death to a split between all those who dealt damage.
+        GameManager.Instance.GrantXp(ActorData.ActorStats.XpValue, GameManager.Instance.Player.PlayerActor);
         GameManager.Instance.ShowFloatingText("+" + ActorData.ActorStats.XpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
         GameManager.Instance.CreateDeadBody(this);
         Destroy(gameObject);
@@ -560,7 +578,7 @@ public class Actor_Base : Hitbox
 [System.Serializable]
 public class ActorScripts
 {
-    public AbilityManager AbilityManager;
+    public Manager_Abilities AbilityManager;
     public Manager_Stats StatManager;
     public Equipment_Manager EquipmentManager;
     public Inventory_Manager InventoryManager;

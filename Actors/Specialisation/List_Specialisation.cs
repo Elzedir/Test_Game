@@ -19,7 +19,8 @@ public enum Specialisation
     Sorcery, // Magic
     Swiftblade, // Dual
     Vitalism, // Devotion
-    Witchcraft // Conjury
+    Witchcraft, // Conjury
+    Vocation
 }
 
 public enum Title
@@ -38,6 +39,19 @@ public enum Title
 public class List_Specialisation
 {
     private static Dictionary<string, Title> _titleMappings = new();
+    private static HashSet<Title> _usedTitles = new();
+
+    public static void AddToList(string key, Title title)
+    {
+        if (_usedTitles.Contains(title))
+        {
+            throw new ArgumentException("Item ID " + title + " is already used");
+        }
+
+        _usedTitles.Add(title);
+
+        _titleMappings[key] = title;
+    }
 
     public static void InitialiseSpecialisations()
     {
@@ -60,12 +74,12 @@ public class List_Specialisation
             }
         }
 
-        _titleMappings["Archery,None,None"] = Title.Archer;
-        _titleMappings["Archery,Battlerage,None"] = Title.Wanderer;
-        _titleMappings["Archery,Battlerage,Sorcery"] = Title.Witcher;
-        _titleMappings["Archery,None,Sorcery"] = Title.Brightbow;
-        _titleMappings["Battlerage,None,Sorcery"] = Title.Alchemist;
-        _titleMappings["Battlerage,None,Witchcraft"] = Title.Hexblade;
+        AddToList("Archery,None,None", Title.Archer);
+        AddToList("Archery,Battlerage,None", Title.Wanderer);
+        AddToList("Archery,Battlerage,Sorcery", Title.Witcher);
+        AddToList("Archery,None,Sorcery", Title.Brightbow);
+        AddToList("Battlerage,None,Sorcery", Title.Alchemist);
+        AddToList("Battlerage,None,Witchcraft", Title.Hexblade);
     }
 
     public void SetSpecialisation(Actor_Base actor, Specialisation specialisation)

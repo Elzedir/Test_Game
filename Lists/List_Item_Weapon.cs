@@ -10,11 +10,11 @@ using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class List_Weapon : List_Item
+public class List_Item_Weapon : List_Item
 {
-    public static List<List_Item> allWeaponData = new();
+    public static List<List_Item> AllWeaponData = new();
 
-    public List_Weapon
+    public List_Item_Weapon
         (int itemID,
         ItemType itemType,
         WeaponType weaponType,
@@ -57,7 +57,7 @@ public class List_Weapon : List_Item
         Shortswords(); //Melee
         Ranged();
 
-        foreach (var weapon in allWeaponData)
+        foreach (var weapon in AllWeaponData)
         {
             weapon.Start();
         }
@@ -75,7 +75,7 @@ public class List_Weapon : List_Item
     
     static void Shortswords()
     {        
-        List_Weapon shortSwordData = new List_Weapon(
+        List_Item_Weapon shortSwordData = new List_Item_Weapon(
             1,
             ItemType.Weapon,
             WeaponType.OneHanded,
@@ -95,12 +95,12 @@ public class List_Weapon : List_Item
             2,
             2);
 
-        AddToList(allWeaponData, shortSwordData);
+        AddToList(AllWeaponData, shortSwordData);
     }
 
     public override string ToString()
     {
-        foreach (var weaponData in allWeaponData)
+        foreach (var weaponData in AllWeaponData)
         {
             if (weaponData.ItemStats.CommonStats.ItemID == ItemStats.CommonStats.ItemID)
             {

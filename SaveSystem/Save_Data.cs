@@ -11,10 +11,9 @@ public class Save_Data
     public int level;
     public string levelName;
 
-    public Save_Data(int score, int level, string levelName)
+    public Save_Data(int score, string levelName)
     {
         this.score = score;
-        this.level = level;
         this.levelName = levelName;
     }
 }

@@ -75,12 +75,12 @@ public class Manager_Stats : MonoBehaviour
 
                 List_Item item = List_Item.GetItemData(equipment.Value.Item1);
 
-                if (item is List_Weapon weapon)
+                if (item is List_Item_Weapon weapon)
                 {
                     currentDamageAmount += weapon.ItemStats.WeaponStats.ItemDamage;
                     currentPushForce += weapon.ItemStats.WeaponStats.ItemForce;
                 }
-                else if (item is List_Armour armour)
+                else if (item is List_Item_Armour armour)
                 {
                     maxHealth += armour.ItemStats.ArmourStats.ItemMaxHealthBonus;
                     currentPhysicalDefence += armour.ItemStats.ArmourStats.ItemPhysicalArmour;

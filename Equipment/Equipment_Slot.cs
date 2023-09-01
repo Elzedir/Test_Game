@@ -34,7 +34,6 @@ public class Equipment_Slot : MonoBehaviour
     protected Actor_Base _actor;
 
     protected SpriteRenderer _spriteRenderer;
-    protected AnimatorController _animatorController;
     protected Animator _animator; 
 
     public LayerMask WepCanAttack;
@@ -102,7 +101,7 @@ public class Equipment_Slot : MonoBehaviour
     public void SpriteAnimator(List_Item item)
     {
         _animator.enabled = true;
-        _animatorController = item.ItemStats.CommonStats.ItemAnimatorController;
+        _animator.runtimeAnimatorController = item.ItemStats.CommonStats.ItemAnimatorController;
     }
     public virtual void Attack(Equipment_Slot equipmentSlot = null)
     {

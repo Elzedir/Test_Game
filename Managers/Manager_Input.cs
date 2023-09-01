@@ -17,7 +17,6 @@ public class Manager_Input : MonoBehaviour
     public static Manager_Input Instance;
     public Menu_RightClick menuRightClickScript;
 
-    private Player _player;
     public GameObject interactedCharacter;
 
     private Dictionary<KeyCode, Action> keyActions;
@@ -71,6 +70,15 @@ public class Manager_Input : MonoBehaviour
                 }
             }
         }
+
+        for (int i = 0; i <= 9; i++)
+        {
+            if (Input.GetKeyDown(i.ToString()))
+            {
+                HandleNumberPressed(i);
+                break;
+            }
+        }
     }
 
     public void HandleMouse0Pressed()
@@ -81,6 +89,11 @@ public class Manager_Input : MonoBehaviour
         }
 
         GameManager.Instance.Player.PlayerAttack();
+    }
+
+    public void HandleNumberPressed(int number)
+    {
+        GameManager.Instance.Player.PlayerActor.ActorScripts.AbilityManager.ActivateAbility(number);
     }
 
     public void HandleCPressed()

@@ -65,8 +65,8 @@ public class Actor_Data_SO : ScriptableObject
     private Actor_Base _actor;
     private Actor_Skills _actorSkills;
     public ActorStats ActorStats;
-    public ActorAbilities ActorAbilities;
     public Specialisations ActorSpecialisations;
+    public List<Ability> ActorAbilities;
 
     // Trigger Zone
     public float triggerRadius = 3.0f;
@@ -120,14 +120,11 @@ public class Actor_Data_SO : ScriptableObject
 }
 
 [System.Serializable]
-public struct ActorAbilities
-{
-    public List<Ability> ActorAbilityList;
-}
-
-[System.Serializable]
 public struct ActorStats
 {
+    public int Level;
+    public int TotalExperience;
+    public int CurrentExperience;
     public SPECIAL Special;
     public CombatStats CombatStats;
 

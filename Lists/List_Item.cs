@@ -40,8 +40,7 @@ public enum ArmourType
 }
 public abstract class List_Item
 {
-    private static HashSet<int> usedIDs = new HashSet<int>();
-
+    private static HashSet<int> _usedIDs = new HashSet<int>();
     public ItemStats ItemStats;
 
     public virtual void Start()
@@ -51,12 +50,12 @@ public abstract class List_Item
 
     public static void AddToList(List<List_Item> list, List_Item item)
     {
-        if (usedIDs.Contains(item.ItemStats.CommonStats.ItemID))
+        if (_usedIDs.Contains(item.ItemStats.CommonStats.ItemID))
         {
             throw new ArgumentException("Item ID " + item.ItemStats.CommonStats.ItemID + " is already used");
         }
 
-        usedIDs.Add(item.ItemStats.CommonStats.ItemID);
+        _usedIDs.Add(item.ItemStats.CommonStats.ItemID);
         list.Add(item);
     }
 
@@ -67,13 +66,13 @@ public abstract class List_Item
         switch (itemID)
         {
             case 1:
-                targetList = List_Weapon.allWeaponData;
+                targetList = List_Item_Weapon.AllWeaponData;
                 break;
             case 2:
-                targetList = List_Armour.allArmourData;
+                targetList = List_Item_Armour.allArmourData;
                 break;
             case 3:
-                targetList = List_Consumable.allConsumableData;
+                targetList = List_Item_Consumable.allConsumableData;
                 break;
             default:
                 return null;

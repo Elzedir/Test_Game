@@ -9,7 +9,7 @@ public enum ConsumableType
     StaminaPotion
 }
 
-public class List_Consumable : List_Item
+public class List_Item_Consumable : List_Item
 {
     public static List<List_Item> allConsumableData = new List<List_Item>();
 
@@ -25,7 +25,7 @@ public class List_Consumable : List_Item
         InitializeConsumableData();
     }
 
-    public List_Consumable
+    public List_Item_Consumable
         (int itemID, 
         ConsumableType consumableType, 
         string consName, 
@@ -49,7 +49,7 @@ public class List_Consumable : List_Item
     static void Potions()
     {
         Sprite test_spr = Resources.Load<Sprite>("Assets/Artwork/Assets/0_Assets/Atlas/at_dungeon_01/obj_wep_m_ss_01");
-        List_Consumable potions = new List_Consumable
+        List_Item_Consumable potions = new List_Item_Consumable
             (3, 
             ConsumableType.HealthPotion, 
             "Health Potion", 

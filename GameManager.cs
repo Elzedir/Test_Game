@@ -30,14 +30,13 @@ public class GameManager : MonoBehaviour
     public List<Sprite> playerSprites;
     public List<Sprite> weaponSprites;
     public List<int> upgradePrices;
-    public List<int> xpTable;
+    public List<int> XpTable;
 
     public Player Player;
 
     public FloatingTextManager floatingTextManager;
 
     public int gold;
-    public int totalExperience;
 
     public GameObject eventSystemContainer;
     public GameObject factionManager;
@@ -55,7 +54,6 @@ public class GameManager : MonoBehaviour
 
     public GameObject itemPrefab;
     public Transform itemsArea;
-    private Arrow _arrowPrefab; public Arrow ArrowPrefab { get { return _arrowPrefab; } }
 
     private void Awake()
     {
@@ -83,11 +81,11 @@ public class GameManager : MonoBehaviour
 
     void InitializeGameData()
     {
-        List_Weapon.InitializeWeaponData();
-        List_Armour.InitializeArmourData();
-        List_Consumable.InitializeConsumableData();
+        List_Item_Weapon.InitializeWeaponData();
+        List_Item_Armour.InitializeArmourData();
+        List_Item_Consumable.InitializeConsumableData();
         List_Specialisation.InitialiseSpecialisations();
-        _arrowPrefab = FindFirstObjectByType<Arrow>();
+        List_Ability.InitialiseAbilities();
     }
 
     public void ChangeState(GameState newState)
@@ -169,40 +167,33 @@ public class GameManager : MonoBehaviour
     // Inventory
 
     // Experience
-    public int playerLevel()
+    public void GrantXp(int xp, Actor_Base actor)
     {
-        int playerLevel = 0;
-        int requiredXp = 0;
+        actor.ActorData.ActorStats.CurrentExperience += xp;
+        actor.ActorData.ActorStats.TotalExperience += xp;
+        CheckLevelUp(actor);
+    }
+    public void CheckLevelUp(Actor_Base actor)
+    {
+        int levelCheck = 0;
 
-        while (totalExperience >= requiredXp)
+        while (actor.ActorData.ActorStats.TotalExperience > XpTable[levelCheck])
         {
-            requiredXp += xpTable[playerLevel];
-            playerLevel++;
+            levelCheck++;
 
-            if (playerLevel == xpTable.Count)
-                return playerLevel;
+            if (levelCheck == XpTable.Count)
+            {
+                Debug.Log($"{actor} is at max level");
+                return;
+            }
         }
 
-        return playerLevel;
-    }
-    public int xpReqToLevelUp(int nextlevel)
-    {
-        
-        int playerLevel = 0;
-        int xpGain = 0;
-
-        while (playerLevel < nextlevel)
+        if (actor.ActorData.ActorStats.Level > levelCheck)
         {
-            xpGain += xpTable[playerLevel];
-            playerLevel++;
+            actor.ActorData.ActorStats.Level++;
+            List_LevelUp.LevelUp(actor);
+            CheckLevelUp(actor);
         }
-
-        return xpGain;
-    }
-    public void GrantXp(int xp)
-    {
-        int CurrentLevel = playerLevel();
-        totalExperience += xp;
     }
 
     // Save and Load
@@ -214,7 +205,7 @@ public class GameManager : MonoBehaviour
     public void SaveState(int saveSlot)
     {
         string currentSceneName = SceneManager.GetActiveScene().name;
-        Save_Data saveData = new Save_Data(gold, totalExperience, currentSceneName);
+        Save_Data saveData = new Save_Data(gold, currentSceneName);
         Save_Manager.SaveGame(saveData, saveSlot);
     }
     public void LoadState(int saveSlot)
@@ -224,7 +215,6 @@ public class GameManager : MonoBehaviour
         if (loadedData != null)
         {
             gold = loadedData.score;
-            totalExperience = loadedData.level;
             SceneManager.LoadScene(loadedData.levelName);
             // Actors set level?
         }
