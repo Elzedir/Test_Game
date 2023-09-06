@@ -54,33 +54,49 @@ public class List_Item_Weapon : List_Item
 
     public static void InitializeWeaponData()
     {
-        Shortswords(); //Melee
         Ranged();
-
+        Shortswords(); //Melee
+        
         foreach (var weapon in AllWeaponData)
         {
             weapon.Start();
         }
     }
-
     static void Ranged()
     {
         Shortbows();
     }
-
     static void Shortbows()
     {
+        List_Item_Weapon testBow1 = new List_Item_Weapon(
+            100,
+            ItemType.Weapon,
+            WeaponType.TwoHandedRanged,
+            WeaponClass.Shortbow,
+            "Wooden Shortbow",
+            SO_List.Instance.WeaponRangedSprites[0].sprite,
+            new Vector3(0, 0, 0),
+            new Vector3(0, 0, 0),
+            new Vector3(0, 0, 0),
+            true,
+            SO_List.Instance.animatorControllers[2].animatorController,
+            1,
+            15,
+            1,
+            1,
+            1,
+            3);
 
+        AddToList(AllWeaponData, testBow1);
     }
-    
     static void Shortswords()
     {        
-        List_Item_Weapon shortSwordData = new List_Item_Weapon(
+        List_Item_Weapon woodShortsword1 = new List_Item_Weapon(
             1,
             ItemType.Weapon,
-            WeaponType.OneHanded,
+            WeaponType.OneHandedMelee,
             WeaponClass.ShortSword,
-            "Wood shortsword",
+            "Wood Shortsword",
             SO_List.Instance.WeaponMeleeSprites[0].sprite,
             new Vector3(-0.04f, -0.07f, 0f),
             new Vector3(180, 0, 0),
@@ -95,8 +111,10 @@ public class List_Item_Weapon : List_Item
             2,
             2);
 
-        AddToList(AllWeaponData, shortSwordData);
+        AddToList(AllWeaponData, woodShortsword1);
     }
+
+    
 
     public override string ToString()
     {

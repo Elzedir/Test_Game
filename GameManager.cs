@@ -1,14 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.CompilerServices;
-using Unity.Services.CloudSave;
 using Unity.VisualScripting;
-using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
+
 public enum GameState
 {
     Playing,
@@ -66,6 +61,7 @@ public class GameManager : MonoBehaviour
     {
         InitializeGameData();
     }
+
     private void Update()
     {
         Player = FindFirstObjectByType<Player>();
@@ -175,20 +171,20 @@ public class GameManager : MonoBehaviour
     }
     public void CheckLevelUp(Actor_Base actor)
     {
-        int levelCheck = 0;
+        int actorLevel = 0;
 
-        while (actor.ActorData.ActorStats.TotalExperience > XpTable[levelCheck])
+        while (actor.ActorData.ActorStats.TotalExperience > XpTable[actorLevel])
         {
-            levelCheck++;
+            actorLevel++;
 
-            if (levelCheck == XpTable.Count)
+            if (actorLevel == XpTable.Count)
             {
                 Debug.Log($"{actor} is at max level");
                 return;
             }
         }
 
-        if (actor.ActorData.ActorStats.Level > levelCheck)
+        if (actor.ActorData.ActorStats.Level < actorLevel)
         {
             actor.ActorData.ActorStats.Level++;
             List_LevelUp.LevelUp(actor);
@@ -273,5 +269,15 @@ public class GameManager : MonoBehaviour
                 return result;
         }
         return null;
+    }
+
+    [ContextMenu("Reset Player Levels")]
+    private void ResetPlayerLevels()
+    {
+        Player = FindFirstObjectByType<Player>();
+
+        Player.PlayerActor.ActorData.ActorStats.Level = 0;
+        Player.PlayerActor.ActorData.ActorStats.TotalExperience = 0;
+        Player.PlayerActor.ActorData.ActorStats.CurrentExperience = 0;
     }
 }

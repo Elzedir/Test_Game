@@ -242,7 +242,7 @@ public class Actor_Base : Hitbox
         {
             GameObject target = hits.gameObject;
 
-            if (target != null && !attackableTargets.Contains(target) && target.gameObject.name != "MainHand" && target.gameObject.name != "OffHand")
+            if (target != null && !attackableTargets.Contains(target) && target.GetComponent<Equipment_Slot>() == null && target.GetComponent<Projectile>() == null)
             {
                 BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
 
@@ -254,7 +254,7 @@ public class Actor_Base : Hitbox
             
             if (player != null)
             {
-                if (target != null && !NPCs.Contains(target))
+                if (target != null && target.GetComponent<Actor_Base>() != null && !NPCs.Contains(target))
                 {
                     BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
 
@@ -268,7 +268,6 @@ public class Actor_Base : Hitbox
 
         foreach (GameObject target in attackableTargets)
         {
-            
             if (target != null)
             {
                 float targetDistance = Vector3.Distance(transform.position, target.transform.position);
@@ -537,10 +536,6 @@ public class Actor_Base : Hitbox
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(transform.position, GetAttackRange());
         }
-    }
-    public LayerMask GetLayer()
-    {
-        return ActorData.CanAttack;
     }
     public void StatusCheck()
     {

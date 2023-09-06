@@ -1,3 +1,4 @@
+using NUnit.Framework.Internal.Execution;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,13 +31,10 @@ public class Equipment_Slot : MonoBehaviour
 {
     public SlotType SlotType;
     protected Equipment_Manager _equipmentManager;
-    protected Manager_Stats _statManager;
     protected Actor_Base _actor;
 
     protected SpriteRenderer _spriteRenderer;
     protected Animator _animator; 
-
-    public LayerMask WepCanAttack;
 
     public ItemStats ItemStats;
 
@@ -55,23 +53,38 @@ public class Equipment_Slot : MonoBehaviour
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _equipmentManager = GetComponentInParent<Equipment_Manager>();
         _actor = GetComponentInParent<Actor_Base>();
-        _statManager = GetComponentInParent<Manager_Stats>();
-        WepCanAttack = _actor.GetLayer();
         _animator = GetComponent<Animator>();
     }
 
     public void Update()
     {
+        // Change this later to allow ranged and magic equipment to have a melee attack
+
         if (_actor.ActorStates.Attacking)
         {
-            if (this.SlotType == SlotType.MainHand)
+            if (ItemStats.WeaponStats.WeaponType == WeaponType.OneHandedMelee || ItemStats.WeaponStats.WeaponType == WeaponType.TwoHandedMelee)
             {
-                CollideCheck();
+                if (this.SlotType == SlotType.MainHand)
+                {
+                    MeleeCollideCheck();
+                }
+                else if (this.SlotType == SlotType.OffHand && _offHandAttack == true)
+                {
+                    MeleeCollideCheck();
+                }
             }
-            else if (this.SlotType == SlotType.OffHand && _offHandAttack == true)
+            else if (ItemStats.WeaponStats.WeaponType == WeaponType.OneHandedRanged || ItemStats.WeaponStats.WeaponType == WeaponType.TwoHandedRanged)
             {
-                CollideCheck();
+                if (this.SlotType == SlotType.MainHand)
+                {
+                    //RangedCollideCheck();
+                }
+                else if (this.SlotType == SlotType.OffHand && _offHandAttack == true)
+                {
+                    //RangedCollideCheck();
+                }
             }
+            
         }
     }
 
@@ -124,6 +137,7 @@ public class Equipment_Slot : MonoBehaviour
 
         float delayDuration = 0.3f;
         yield return new WaitForSeconds(delayDuration);
+
         _actor.ActorStates.Attacking = false;
         _offHandAttack = false;
 
@@ -148,7 +162,7 @@ public class Equipment_Slot : MonoBehaviour
             }
         }
     }
-    protected void CollideCheck()
+    protected void MeleeCollideCheck()
     {
         float colliderRatio = 0.75f;
 
@@ -162,8 +176,7 @@ public class Equipment_Slot : MonoBehaviour
 
         if (_actor.gameObject == GameManager.Instance.Player.gameObject)
         {
-            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3 mouseDirection = (mousePosition - actorPosition).normalized;
+            Vector3 mouseDirection = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - actorPosition).normalized;
             angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
         }
         else
@@ -246,9 +259,9 @@ public class Equipment_Slot : MonoBehaviour
 
         int targetLayerMask = 1 << coll.gameObject.layer;
 
-        if ((WepCanAttack & targetLayerMask) != 0)
+        if ((_actor.ActorData.CanAttack & targetLayerMask) != 0)
         {
-            Damage damage = _statManager.DealDamage();
+            Damage damage = _actor.ActorScripts.StatManager.DealDamage();
 
             coll.SendMessage("ReceiveDamage", damage);
         }

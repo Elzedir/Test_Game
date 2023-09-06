@@ -2,6 +2,7 @@ using NUnit.Framework.Constraints;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Unity.VisualScripting;
 using UnityEditor.Animations;
 using UnityEngine;
 
@@ -17,8 +18,12 @@ public enum ItemType
 public enum WeaponType
 {
     None,
-    OneHanded,
-    TwoHanded
+    OneHandedMelee,
+    TwoHandedMelee,
+    OneHandedRanged,
+    TwoHandedRanged,
+    OneHandedMagic,
+    TwoHandedMagic
 }
 
 public enum WeaponClass
@@ -61,24 +66,22 @@ public abstract class List_Item
 
     public static List_Item GetItemData(int itemID)
     {
-        List<List_Item> targetList;
-
-        switch (itemID)
+        List<List_Item>[] allLists = new List<List_Item>[]
         {
-            case 1:
-                targetList = List_Item_Weapon.AllWeaponData;
-                break;
-            case 2:
-                targetList = List_Item_Armour.allArmourData;
-                break;
-            case 3:
-                targetList = List_Item_Consumable.allConsumableData;
-                break;
-            default:
-                return null;
-        }
+        List_Item_Weapon.AllWeaponData,
+        List_Item_Armour.allArmourData,
+        List_Item_Consumable.allConsumableData
+        };
 
-        return SearchItemInList(itemID, targetList);
+        foreach (var list in allLists)
+        {
+            List_Item foundItem = SearchItemInList(itemID, list);
+            if (foundItem != null)
+            {
+                return foundItem;
+            }
+        }
+        return null;
     }
 
     private static List_Item SearchItemInList(int itemID, List<List_Item> list)
@@ -110,6 +113,28 @@ public abstract class List_Item
         }
 
         return null;
+    }
+
+    public void AttachWeaponScript(List_Item item, Equipment_Slot equipmentSlot)
+    {
+        switch(item.ItemStats.WeaponStats.WeaponType)
+        {
+            case WeaponType.OneHandedMelee:
+            case WeaponType.TwoHandedMelee:
+                // Can do another switch statement here to separate by weapon classes.
+                //equipmentSlot.AddComponent<Weapon_Sword>();
+                break;
+            case WeaponType.OneHandedRanged:
+            case WeaponType.TwoHandedRanged:
+                // Can do another switch statement here to separate by weapon classes.
+                equipmentSlot.AddComponent<Weapon_Bow>();
+                break;
+            case WeaponType.OneHandedMagic:
+            case WeaponType.TwoHandedMagic:
+                // Can do another switch statement here to separate by weapon classes.
+                //equipmentSlot.AddComponent<Weapon_Magic>();
+                break;
+        }
     }
 }
 

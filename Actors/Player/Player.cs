@@ -91,7 +91,7 @@ public class Player : MonoBehaviour
                     weapon.Attack(weapon);
                 }
             }
-            else
+            else if (equippedWeapons.Count == 0)
             {
                 _playerActor.MainHand.Attack();
             }

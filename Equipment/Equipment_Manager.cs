@@ -156,6 +156,7 @@ public class Equipment_Manager : MonoBehaviour
 
                     if (equipped)
                     {
+                        item.AttachWeaponScript(item, secondaryEquipSlot);
                         break;
                     }
                 }
@@ -166,10 +167,24 @@ public class Equipment_Manager : MonoBehaviour
                     {
                         Debug.Log("Unequipped itemID " + currentEquipment[primaryEquipSlot].Item1);
                         Unequip(primaryEquipSlot);
+
+                        if (TryGetComponent<Weapon> (out Weapon weapon))
+                        {
+                            Destroy(weapon);
+                        }
                     }
 
                     (equipped, remainingStackSize) = AttemptEquip(primaryEquipSlot, item, addedStackSize);
+
+                    if(equipped)
+                    {
+                        item.AttachWeaponScript(item, primaryEquipSlot);
+                    }
                 }
+            }
+            else
+            {
+                item.AttachWeaponScript(item, primaryEquipSlot);
             }
 
             return (equipped, remainingStackSize);
@@ -189,12 +204,15 @@ public class Equipment_Manager : MonoBehaviour
             case ItemType.Weapon:
                 switch (item.ItemStats.WeaponStats.WeaponType)
                 {
-                    case WeaponType.OneHanded:
+                    case WeaponType.OneHandedMelee:
+                    case WeaponType.TwoHandedMelee:
+                    case WeaponType.OneHandedRanged:
+                    case WeaponType.TwoHandedRanged:
+                    case WeaponType.OneHandedMagic:
+                    case WeaponType.TwoHandedMagic:
                         primaryEquipSlot = MainHand;
                         break;
-                    case WeaponType.TwoHanded:
-                        primaryEquipSlot = MainHand;
-                        break;
+
                 }
                 break;
             case ItemType.Armour:
@@ -227,7 +245,22 @@ public class Equipment_Manager : MonoBehaviour
         switch (item.ItemStats.CommonStats.ItemType)
         {
             case ItemType.Weapon:
-                secondaryEquipSlots = new Equipment_Slot[] { MainHand, OffHand };
+                switch (item.ItemStats.WeaponStats.WeaponType)
+                {
+                    case WeaponType.OneHandedMelee:
+                    case WeaponType.OneHandedRanged:
+                    case WeaponType.OneHandedMagic:
+                        secondaryEquipSlots = new Equipment_Slot[] { MainHand, OffHand };
+                        break;
+                    case WeaponType.TwoHandedMelee:
+                    case WeaponType.TwoHandedRanged:
+                    case WeaponType.TwoHandedMagic:
+                        secondaryEquipSlots = new Equipment_Slot[] { MainHand };
+                        break;
+                    default:
+                        secondaryEquipSlots = new Equipment_Slot[] { null };
+                        break;
+                }
                 break;
             case ItemType.Armour:
                 secondaryEquipSlots = new Equipment_Slot[] { Head, Chest, Legs };
