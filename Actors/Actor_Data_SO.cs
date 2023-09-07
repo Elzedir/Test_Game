@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.Rendering;
 using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public enum ActorType
@@ -152,6 +153,8 @@ public struct CombatStats
 
     public float BasePhysicalDefence;
     public float BaseMagicalDefence;
+
+    public float BaseDodgeCooldown;
 }
 
 [System.Serializable]

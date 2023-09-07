@@ -31,7 +31,8 @@ public class List_Item_Weapon : List_Item
         float itemDamage,
         float itemSpeed,
         float itemForce,
-        float itemRange)
+        float itemRange,
+        float maxChargeTime)
     {
         this.ItemStats.CommonStats.ItemID = itemID;
         this.ItemStats.CommonStats.ItemType = itemType;
@@ -50,6 +51,7 @@ public class List_Item_Weapon : List_Item
         this.ItemStats.WeaponStats.ItemSpeed = itemSpeed;
         this.ItemStats.WeaponStats.ItemForce = itemForce;
         this.ItemStats.WeaponStats.ItemRange = itemRange;
+        this.ItemStats.WeaponStats.MaxChargeTime = maxChargeTime;
     }
 
     public static void InitializeWeaponData()
@@ -83,8 +85,9 @@ public class List_Item_Weapon : List_Item
             1,
             15,
             1,
+            2,
             1,
-            1,
+            3,
             3);
 
         AddToList(AllWeaponData, testBow1);
@@ -106,6 +109,7 @@ public class List_Item_Weapon : List_Item
             3,
             10,
             //GameManager.Randomise(1, 2),
+            2,
             2,
             2,
             2,

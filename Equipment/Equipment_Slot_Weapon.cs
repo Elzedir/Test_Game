@@ -42,7 +42,7 @@ public class Equipment_Slot_Weapon : Equipment_Slot
         _spriteRenderer.sortingOrder = 4;
     }
 
-    public override void Attack(Equipment_Slot equipmentSlot = null)
+    public override void Attack(Equipment_Slot equipmentSlot = null, float chargeTime = 0f)
     {
         if (this.SlotType == SlotType.MainHand || equipmentSlot == null)
         {

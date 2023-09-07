@@ -102,9 +102,9 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
 
         if (equipSlot != null)
         {
-            if (equipmentWindow.actorEquipmentManager.currentEquipment.ContainsKey(equipSlot))
+            if (equipmentWindow.actorEquipmentManager.CurrentEquipment.ContainsKey(equipSlot))
             {
-                if (equipmentWindow.actorEquipmentManager.currentEquipment[equipSlot].Item1 != -1)
+                if (equipmentWindow.actorEquipmentManager.CurrentEquipment[equipSlot].Item1 != -1)
                 {
                     itemEquipped = true;
                     droppable = true;

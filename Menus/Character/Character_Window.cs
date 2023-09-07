@@ -137,9 +137,9 @@ public class Character_Window : Menu_UI
         }
 
         _levelNumber.text = actor.ActorData.ActorStats.Level.ToString();
-        _healthNumber.text = $"{actor.ActorScripts.StatManager.currentHealth} / {actor.ActorScripts.StatManager.maxHealth}";
-        _manaNumber.text = $"{actor.ActorScripts.StatManager.currentMana} / {actor.ActorScripts.StatManager.maxMana}";
-        _staminaNumber.text = $"{actor.ActorScripts.StatManager.currentStamina} / {actor.ActorScripts.StatManager.maxStamina}";
+        _healthNumber.text = $"{actor.ActorScripts.StatManager.CurrentHealth} / {actor.ActorScripts.StatManager.MaxHealth}";
+        _manaNumber.text = $"{actor.ActorScripts.StatManager.CurrentMana} / {actor.ActorScripts.StatManager.MaxMana}";
+        _staminaNumber.text = $"{actor.ActorScripts.StatManager.CurrentStamina} / {actor.ActorScripts.StatManager.MaxStamina}";
     }
 
     public void SetCharacterStats(GameObject interactedObject)

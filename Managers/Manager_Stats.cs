@@ -9,66 +9,96 @@ using static UnityEditor.Progress;
 public class Manager_Stats : MonoBehaviour
 {
     // General
-    private Equipment_Manager equipmentManager;
-    private Actor_Base actor;
+    private Actor_Base _actor;
+
+    public float CurrentSpeed;
 
     // Damager
-    public float currentDamageAmount;
-    public float currentPushForce;
-    public Vector3 currentPushDirection;
+    public float CurrentDamageAmount;
+    public float CurrentPushForce;
+    public Vector3 CurrentPushDirection;
 
     //Defence
-    public float currentHealth;
-    public float maxHealth;
-    public float currentMana;
-    public float maxMana;
-    public float currentStamina;
-    public float maxStamina;
-    public float currentPhysicalDefence;
-    public float currentMagicalDefence;
-
+    public float CurrentHealth;
+    public float MaxHealth;
+    public float CurrentMana;
+    public float MaxMana;
+    public float CurrentStamina;
+    public float MaxStamina;
+    public float CurrentPhysicalDefence;
+    public float CurrentMagicalDefence;
+    public float CurrentDodgeMitigation;
 
     private void Start()
     {
-        equipmentManager = GetComponent<Equipment_Manager>();
-        actor = GetComponent<Actor_Base>();
-        UpdateStats();
+        _actor = GetComponent<Actor_Base>();
+        StartCoroutine(DelayedUpdateStats());
         InitialiseStats();
+    }
+
+    private IEnumerator DelayedUpdateStats()
+    {
+        float timeout = 0.1f;
+        float timer = 0.0f;
+
+        while (_actor.ActorScripts.EquipmentManager == null || _actor.ActorScripts.EquipmentManager.CurrentEquipment == null)
+        {
+            if (timer > timeout)
+            {
+                Debug.LogWarning("Timed out waiting for EquipmentManager to initialize.");
+                yield break;
+            }
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        UpdateStats();
     }
 
     public void InitialiseStats()
     {
-        if (currentHealth == 0)
+        if (CurrentHealth == 0)
         {
-            currentHealth = maxHealth;
+            CurrentHealth = MaxHealth;
         }
-        if (currentMana == 0)
+        if (CurrentMana == 0)
         {
-            currentMana = maxMana;
+            CurrentMana = MaxMana;
         }
-        if (currentStamina == 0) 
+        if (CurrentStamina == 0) 
         { 
-            currentStamina = maxStamina;
+            CurrentStamina = MaxStamina;
         }
     }
 
+
+
     public void UpdateStats()
     {
-        currentDamageAmount = actor.ActorData.ActorStats.CombatStats.BaseDamage;
-        currentPushForce = actor.ActorData.ActorStats.CombatStats.BasePushForce;
-        maxHealth = actor.ActorData.ActorStats.CombatStats.BaseHealth;
-        maxMana = actor.ActorData.ActorStats.CombatStats.BaseMana;
-        maxStamina = actor.ActorData.ActorStats.CombatStats.BaseStamina;
-        currentPhysicalDefence = actor.ActorData.ActorStats.CombatStats.BasePhysicalDefence;
-        currentMagicalDefence = actor.ActorData.ActorStats.CombatStats.BaseMagicalDefence;
+        CurrentDamageAmount = _actor.ActorData.ActorStats.CombatStats.BaseDamage;
+        CurrentPushForce = _actor.ActorData.ActorStats.CombatStats.BasePushForce;
+        MaxHealth = _actor.ActorData.ActorStats.CombatStats.BaseHealth;
+        MaxMana = _actor.ActorData.ActorStats.CombatStats.BaseMana;
+        MaxStamina = _actor.ActorData.ActorStats.CombatStats.BaseStamina;
+        CurrentPhysicalDefence = _actor.ActorData.ActorStats.CombatStats.BasePhysicalDefence;
+        CurrentMagicalDefence = _actor.ActorData.ActorStats.CombatStats.BaseMagicalDefence;
+        CurrentSpeed = _actor.ActorData.ActorStats.CombatStats.BaseSpeed; // Add modifiers later
 
         int currentSlot = 0;
 
-        foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> equipment in equipmentManager.currentEquipment)
+        Equipment_Manager equipmentManager = _actor.ActorScripts.EquipmentManager;
+
+        if (equipmentManager == null)
+        {
+            GetComponent<Equipment_Manager>();
+        }
+
+        foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> equipment in equipmentManager.CurrentEquipment)
         {
             if (equipment.Value.Item1 != -1)
             {
-                if (currentSlot >= equipmentManager.currentEquipment.Count)
+                if (currentSlot >= _actor.ActorScripts.EquipmentManager.CurrentEquipment.Count)
                 {
                     break;
                 }
@@ -77,20 +107,20 @@ public class Manager_Stats : MonoBehaviour
 
                 if (item is List_Item_Weapon weapon)
                 {
-                    currentDamageAmount += weapon.ItemStats.WeaponStats.ItemDamage;
-                    currentPushForce += weapon.ItemStats.WeaponStats.ItemForce;
+                    CurrentDamageAmount += weapon.ItemStats.WeaponStats.ItemDamage;
+                    CurrentPushForce += weapon.ItemStats.WeaponStats.ItemForce;
                 }
                 else if (item is List_Item_Armour armour)
                 {
-                    maxHealth += armour.ItemStats.ArmourStats.ItemMaxHealthBonus;
-                    currentPhysicalDefence += armour.ItemStats.ArmourStats.ItemPhysicalArmour;
-                    currentMagicalDefence += armour.ItemStats.ArmourStats.ItemMagicalArmour;
+                    MaxHealth += armour.ItemStats.ArmourStats.ItemMaxHealthBonus;
+                    CurrentPhysicalDefence += armour.ItemStats.ArmourStats.ItemPhysicalArmour;
+                    CurrentMagicalDefence += armour.ItemStats.ArmourStats.ItemMagicalArmour;
                 }
 
-                maxHealth += actor.ActorData.ActorStats.CombatStats.BaseHealth;
-                if (currentHealth > maxHealth)
+                MaxHealth += _actor.ActorData.ActorStats.CombatStats.BaseHealth;
+                if (CurrentHealth > MaxHealth)
                 {
-                    currentHealth = maxHealth;
+                    CurrentHealth = MaxHealth;
                 }
 
                 currentSlot++;
@@ -101,22 +131,33 @@ public class Manager_Stats : MonoBehaviour
             }
         }
     }
-    public Damage DealDamage()
+    public Damage DealDamage(float chargeTime)
     {
         Damage damage = new Damage
         {
-            origin = actor.transform.position,
-            damageAmount = currentDamageAmount,
-            pushForce = currentPushForce
+            origin = _actor.transform.position,
+            damageAmount = CurrentDamageAmount * (1 + (chargeTime * 0.25f)),
+            pushForce = CurrentPushForce
         };
 
         return damage;
     }
     public void ReceiveDamage(Damage damage)
     {
-        float totalDefence = currentPhysicalDefence + currentMagicalDefence;
-        float damageReduction = totalDefence / (totalDefence + 100);
-        float finalDamage = damage.damageAmount * (1 - damageReduction);
+        // Later, be able to tell between physical and magical damage types.
+
+        float damageReduction = CurrentPhysicalDefence + CurrentMagicalDefence;
+        if (_actor.ActorStates.Dodging)
+        {
+            damageReduction += CurrentDodgeMitigation;
+        }
+        
+        float finalDamage = damage.damageAmount - damageReduction;
+
+        if (finalDamage < 1)
+        {
+            finalDamage = 1;
+        }
 
         if (GameManager.Instance.Player.gameObject != this.gameObject)
         {
@@ -128,24 +169,24 @@ public class Manager_Stats : MonoBehaviour
             GameManager.Instance.ShowFloatingText(damage.damageAmount.ToString(), 25, Color.green, transform.position, Vector3.up * 30, 0.5f);
         }
         
-        currentHealth -= finalDamage;
+        CurrentHealth -= finalDamage;
 
-        if (currentHealth <= 0)
+        if (CurrentHealth <= 0)
         {
-            actor.Death();
+            _actor.Death();
             return;
         }
 
-        currentPushDirection = (transform.position - damage.origin).normalized * damage.pushForce;
+        CurrentPushDirection = (transform.position - damage.origin).normalized * damage.pushForce;
     }
 
     public void RestoreHealth(float amount)
     {
-        currentHealth += amount;
+        CurrentHealth += amount;
 
-        if (currentHealth > maxHealth)
+        if (CurrentHealth > MaxHealth)
         {
-            currentHealth = maxHealth;
+            CurrentHealth = MaxHealth;
             return;
         }
 
@@ -156,8 +197,8 @@ public class Manager_Stats : MonoBehaviour
     public void UpdateStatsOnLevelUp()
     {
         UpdateStats();
-        currentHealth = maxHealth;
-        currentMana = maxMana;
-        currentStamina = maxStamina;
+        CurrentHealth = MaxHealth;
+        CurrentMana = MaxMana;
+        CurrentStamina = MaxStamina;
     }
 }

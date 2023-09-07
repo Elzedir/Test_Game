@@ -12,8 +12,6 @@ public class Player : MonoBehaviour
     private Actor_Base _playerActor;
     public Actor_Base PlayerActor { get { return _playerActor; } }
 
-    public float currentYSpeed = 1.0f;
-    public float currentXSpeed = 1.0f;
     private RaycastHit2D _hit;
 
     private void FixedUpdate()
@@ -32,7 +30,7 @@ public class Player : MonoBehaviour
     public void PlayerRespawn()
     {
         GameManager.Instance.PlayerDead = false;
-        _playerActor.ActorScripts.StatManager.RestoreHealth(_playerActor.ActorScripts.StatManager.maxHealth);
+        _playerActor.ActorScripts.StatManager.RestoreHealth(_playerActor.ActorScripts.StatManager.MaxHealth);
         _playerActor.PushDirection = Vector3.zero;
     }
 
@@ -52,7 +50,7 @@ public class Player : MonoBehaviour
 
             if (!_playerActor.ActorStates.Jumping)
             {
-                Vector3 move = new Vector3(x * currentXSpeed, y * currentYSpeed, 0);
+                Vector3 move = new Vector3(x * _playerActor.ActorScripts.StatManager.CurrentSpeed, y * _playerActor.ActorScripts.StatManager.CurrentSpeed, 0);
                 float speed = move.magnitude / Time.deltaTime;
 
                 transform.localScale = new Vector3(_playerActor.OriginalSize.z * Mathf.Sign(direction.x), _playerActor.OriginalSize.y, _playerActor.OriginalSize.z);
@@ -78,7 +76,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void PlayerAttack()
+    public void ExecutePlayerAttack(float chargeTime)
     {
         if (!_playerActor.ActorStates.Attacking)
         {
@@ -88,7 +86,7 @@ public class Player : MonoBehaviour
             {
                 foreach (var weapon in equippedWeapons)
                 {
-                    weapon.Attack(weapon);
+                    weapon.Attack(weapon, chargeTime);
                 }
             }
             else if (equippedWeapons.Count == 0)
@@ -96,5 +94,10 @@ public class Player : MonoBehaviour
                 _playerActor.MainHand.Attack();
             }
         }
+    }
+
+    public void PlayerDodge()
+    {
+        _playerActor.Dodge();
     }
 }

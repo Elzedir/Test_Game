@@ -41,6 +41,8 @@ public class Equipment_Slot : MonoBehaviour
     private HashSet<Collider2D> _hitEnemies;
     protected bool _offHandAttack = false;
 
+    private float _chargeTime = 0f; public float ChargeTime { get { return _chargeTime; } }
+
     public void Start()
     {        
         InitialiseComponents();
@@ -116,12 +118,20 @@ public class Equipment_Slot : MonoBehaviour
         _animator.enabled = true;
         _animator.runtimeAnimatorController = item.ItemStats.CommonStats.ItemAnimatorController;
     }
-    public virtual void Attack(Equipment_Slot equipmentSlot = null)
+    public virtual void Attack(Equipment_Slot equipmentSlot = null, float chargeTime = 0f)
     {
+        if (chargeTime > ItemStats.WeaponStats.MaxChargeTime)
+        {
+            chargeTime = ItemStats.WeaponStats.MaxChargeTime;
+        }
+
+        _chargeTime = chargeTime;
         StartCoroutine(AttackCoroutine(_animator, equipmentSlot));
     }
     protected IEnumerator AttackCoroutine(Animator animator, Equipment_Slot equipmentSlot)
     {
+        // Change the animation of the charge time is high enough.
+
         if (_hitEnemies == null)
         {
             _hitEnemies = new HashSet<Collider2D>();
@@ -149,7 +159,7 @@ public class Equipment_Slot : MonoBehaviour
     {
         Equipment_Manager equipmentManager = GetComponentInParent<Equipment_Manager>();
 
-        foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> equipment in equipmentManager.currentEquipment)
+        foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> equipment in equipmentManager.CurrentEquipment)
         {
             (int, int, bool) equipmentData = equipment.Value;
 
@@ -261,9 +271,9 @@ public class Equipment_Slot : MonoBehaviour
 
         if ((_actor.ActorData.CanAttack & targetLayerMask) != 0)
         {
-            Damage damage = _actor.ActorScripts.StatManager.DealDamage();
-
+            Damage damage = _actor.ActorScripts.StatManager.DealDamage(_chargeTime);
             coll.SendMessage("ReceiveDamage", damage);
+            _chargeTime = 0f;
         }
     }
 }

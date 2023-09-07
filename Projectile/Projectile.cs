@@ -11,6 +11,7 @@ public abstract class Projectile : MonoBehaviour
     public Vector3 Origin;
     public float Speed;
     public float Range;
+    public float ChargeTime;
     protected bool _hasLanded = false;
     protected HashSet<Collider2D> _hitEnemies;
     protected bool _hitEnemy = false;
@@ -38,6 +39,13 @@ public abstract class Projectile : MonoBehaviour
         {
             Collider2D[] results = new Collider2D[42];
             ContactFilter2D filter = new ContactFilter2D();
+
+            LayerMask attackableLayers = Actor.ActorData.CanAttack;
+            attackableLayers |= LayerMask.GetMask("Blocking");
+
+            filter.layerMask = attackableLayers;
+            filter.useLayerMask = true;
+
             int numColliders = Physics2D.OverlapCollider(_collider, filter, results);
 
             for (int i = 0; i < numColliders; i++)
@@ -72,7 +80,7 @@ public abstract class Projectile : MonoBehaviour
 
                         if ((Actor.ActorData.CanAttack & targetLayerMask) != 0)
                         {
-                            Damage damage = Actor.ActorScripts.StatManager.DealDamage();
+                            Damage damage = Actor.ActorScripts.StatManager.DealDamage(ChargeTime);
                             hit.SendMessage("ReceiveDamage", damage);
                             _hitEnemy = true;
                         }

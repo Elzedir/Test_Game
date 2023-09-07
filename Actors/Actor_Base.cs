@@ -319,6 +319,7 @@ public class Actor_Base : Hitbox
             {
                 _agent.isStopped = false;
                 _agent.SetDestination(closestEnemy.transform.position);
+                _agent.speed = ActorScripts.StatManager.CurrentSpeed;
             }
             else
             {
@@ -432,6 +433,7 @@ public class Actor_Base : Hitbox
         if(distanceToStart > 0.01f)
         {
             _agent.SetDestination(startingPosition);
+            _agent.speed = ActorScripts.StatManager.CurrentSpeed;
         }
         else
         {
@@ -568,6 +570,37 @@ public class Actor_Base : Hitbox
     {
         return closestNPC;
     }
+
+    public void Dodge()
+    {
+        if (ActorStates.DodgeAvailable)
+        {
+            StartCoroutine(DodgeCoroutine(_actorAnimator));
+        }
+    }
+
+    protected IEnumerator DodgeCoroutine(Animator animator)
+    {
+        _actor.ActorStates.Dodging = true;
+        _actor.ActorStates.DodgeAvailable = false;
+        _actor.ActorScripts.StatManager.CurrentSpeed = _actor.ActorScripts.StatManager.CurrentSpeed * 2;
+        animator.SetTrigger("Dodge");
+
+        yield return new WaitForSeconds(animator.GetCurrentAnimatorClipInfo(0)[0].clip.length);
+
+        _actor.ActorScripts.StatManager.CurrentSpeed = _actor.ActorScripts.StatManager.CurrentSpeed / 2;
+        _actor.ActorStates.Dodging = false;
+
+        animator.ResetTrigger("Dodge");
+
+        StartCoroutine(DodgeCooldown());
+    }
+
+    protected IEnumerator DodgeCooldown()
+    {
+        yield return new WaitForSeconds(_actor.ActorData.ActorStats.CombatStats.BaseDodgeCooldown);
+        _actor.ActorStates.DodgeAvailable = true;
+    }
 }
 
 [System.Serializable]
@@ -599,6 +632,10 @@ public class ActorStates
     public bool OnFire = false;
     public bool InFire = false;
     public bool Talking = false;
+    public bool DodgeAvailable = true;
+    public bool Dodging = false;
+    private float _lastTimeDodged;
+    public bool Blocking = false;
 }
 
 [System.Serializable]
@@ -624,4 +661,10 @@ public class PatrolData
     public int PatrolIndex;
     public bool IsPatrolling = false;
     public bool IsPatrolWaiting = false;
+}
+
+[System.Serializable]
+public class Actions
+{
+    public bool canDodge;
 }

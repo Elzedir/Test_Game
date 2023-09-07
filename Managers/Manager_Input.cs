@@ -21,10 +21,13 @@ public class Manager_Input : MonoBehaviour
 
     private Dictionary<KeyCode, Action> keyActions;
 
-    private bool keyHeld = false;
-    private float keyHoldStart = 0f;
-
-    private const float escapeHoldTime = 1.5f;
+    private bool _mouse0Held = false;
+    private float _mouse0HeldTime;
+    private bool _mouse1Held = false;
+    private float _mouse1HeldTime;
+    private bool _cancelledAttack = false;
+    private bool _keyHeld = false;
+    private float _keyHoldStart = 0f;
 
     private void Awake()
     {
@@ -46,28 +49,20 @@ public class Manager_Input : MonoBehaviour
             { KeyCode.Escape, HandleEscapePressed },
             { KeyCode.I, HandleIPressed },
             { KeyCode.J, HandleJPressed },
-            { KeyCode.Mouse0, HandleMouse0Pressed }
+            { KeyCode.Space, HandleSpacePressed }
         };
     }
 
     public void Update()
     {
+        HandleMouse();
+        
         foreach (var keyAction in keyActions)
         {
-            if (keyAction.Key == KeyCode.Mouse0)
+            if (Input.GetKeyDown(keyAction.Key))
             {
-                if (Input.GetKey(keyAction.Key))
-                {
-                    keyAction.Value.Invoke();
-                }
-            }
-            else
-            {
-                if (Input.GetKeyDown(keyAction.Key))
-                {
-                    keyAction.Value.Invoke();
-                    break;
-                }
+                keyAction.Value.Invoke();
+                break;
             }
         }
 
@@ -81,14 +76,66 @@ public class Manager_Input : MonoBehaviour
         }
     }
 
-    public void HandleMouse0Pressed()
+    public void HandleMouse()
     {
         if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
         {
             return;
         }
 
-        GameManager.Instance.Player.PlayerAttack();
+        if (Input.GetMouseButtonDown(0))
+        {
+            _mouse0Held = true;
+            _mouse0HeldTime = 0f;
+        }
+
+        else if (Input.GetMouseButtonUp(0))
+        {
+            if (!_cancelledAttack)
+            {
+                GameManager.Instance.Player.ExecutePlayerAttack(_mouse0HeldTime);
+            }
+
+            _mouse0Held = false;
+            _mouse0HeldTime = 0f;
+            _cancelledAttack = false;
+        }
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            if (_mouse0Held && _mouse0HeldTime > 0)
+            {
+                _mouse0Held = false;
+                _mouse0HeldTime = 0;
+                _cancelledAttack = true;
+            }
+
+            _mouse1Held = true;
+            _mouse1HeldTime = 0f;
+        }
+
+        else if (Input.GetMouseButtonUp(1))
+        {
+            _mouse1Held = false;
+            _mouse1HeldTime = 0f;
+        }
+
+        if (_mouse0Held)
+        {
+            _mouse0HeldTime += Time.deltaTime;
+            // Change the animation of the attack as enough time passes.
+        }
+        
+        if (_mouse1Held)
+        {
+            //if (player has shield)
+            //{
+            //     Block
+            //     Change the animation of the blocking, if there's any magic abilities or anything.
+            //}
+
+            _mouse1HeldTime += Time.deltaTime;
+        }
     }
 
     public void HandleNumberPressed(int number)
@@ -130,6 +177,11 @@ public class Manager_Input : MonoBehaviour
         Manager_Menu.Instance.OpenMenu(Manager_Menu.Instance.JournalMenu);
     }
 
+    public void HandleSpacePressed()
+    {
+        GameManager.Instance.Player.PlayerDodge();
+    }
+
     public void Interact()
     {
         // Call interact at the Interactable manager?
@@ -156,21 +208,21 @@ public class Manager_Input : MonoBehaviour
 
         if (Input.GetKeyDown(key))
         {
-            keyHeld = true;
-            keyHoldStart = 0f;
+            _keyHeld = true;
+            _keyHoldStart = 0f;
         }
 
         if (Input.GetKeyUp(key))
         {
-            keyHeld = false;
-            keyHoldStart = 0f;
+            _keyHeld = false;
+            _keyHoldStart = 0f;
         }
 
-        if (keyHeld)
+        if (_keyHeld)
         {
-            keyHoldStart += Time.deltaTime;
+            _keyHoldStart += Time.deltaTime;
 
-            if (keyHoldStart >= keyHoldTime)
+            if (_keyHoldStart >= keyHoldTime)
             {
                 canExecute = true;
             }

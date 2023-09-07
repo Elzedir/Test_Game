@@ -20,7 +20,7 @@ public class Equipment_Window : MonoBehaviour
 
     public void UpdateEquipmentUI(Equipment_Manager equipmentManager)
     {
-        Dictionary<Equipment_Slot, (int, int, bool)> equippedItems = equipmentManager.currentEquipment;
+        Dictionary<Equipment_Slot, (int, int, bool)> equippedItems = equipmentManager.CurrentEquipment;
         actor = equipmentManager.GetComponentInParent<Actor_Base>();
         actorEquipmentManager = equipmentManager;
         SetActorEquipmentSlots();

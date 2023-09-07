@@ -173,6 +173,7 @@ public struct WeaponStats
     public float ItemSpeed;
     public float ItemForce;
     public float ItemRange;
+    public float MaxChargeTime;
 }
 
 [Serializable]

@@ -4,11 +4,6 @@ using UnityEngine;
 
 public class Weapon_Bow : Weapon
 {
-    public float bowRange = 3;
-    public float bowSpeed = 2;
-
-    // Just placeholders for now, will be determined later by the weapon itself.
-
     public override void WeaponAttack()
     {
         Shoot();
@@ -17,6 +12,7 @@ public class Weapon_Bow : Weapon
     private void Shoot()
     {
         Actor_Base actor = GetComponentInParent<Actor_Base>();
+        Equipment_Slot equipmentSlot = GetComponent<Equipment_Slot>();
 
         Vector2 attackDirection;
 
@@ -34,12 +30,12 @@ public class Weapon_Bow : Weapon
 
         var arrowGO = Instantiate(List_InGamePrefabs.GetPrefab(Prefab.Arrow), transform.position, arrowRotation);
         arrowGO.SetActive(true);
-        arrowGO.layer = actor.gameObject.layer;
 
         Projectile_Arrow arrow = arrowGO.GetComponent<Projectile_Arrow>();
         arrow.Actor = actor;
+        arrow.ChargeTime = equipmentSlot.ChargeTime;
         arrow.Direction = attackDirection.normalized;
-        arrow.Speed = bowSpeed;
-        arrow.Range = bowRange;
+        arrow.Range = equipmentSlot.ItemStats.WeaponStats.ItemRange;
+        arrow.Speed = equipmentSlot.ItemStats.WeaponStats.ItemSpeed;
     }
 }

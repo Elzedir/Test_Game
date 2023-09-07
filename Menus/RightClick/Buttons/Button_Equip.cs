@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityEditor.Progress;
 
-public class Button_Equip : MonoBehaviour
+public class Button_Equip : RightClickOption
 {
-    public void OnButtonPress()
+    public override void OnButtonPress()
     {
         Debug.Log($"Equip Item button pressed");
         Menu_RightClick.Instance.EquipButtonPressed();

@@ -29,6 +29,7 @@ public class List_Ability_ChargedShot : List_Ability
     public override void UseAbility()
     {
         // Play a certain animation.
+
         // Shoot a specific arrow
         // Play a specific sound
     }

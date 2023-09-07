@@ -51,22 +51,45 @@ public class Menu_RightClick : MonoBehaviour
     private void Start()
     {
         gameObject.SetActive(false);
+
         _buttonEquip = GetComponentInChildren<Button_Equip>();
-        _buttonEquip.gameObject.SetActive(false);
         _buttonPickup = GetComponentInChildren<Button_PickupItem>();
-        _buttonPickup.gameObject.SetActive(false);
         _buttonTalk = GetComponentInChildren<Button_Talk>();
-        _buttonTalk.gameObject.SetActive(false);
         _buttonUnequip = GetComponentInChildren<Button_Unequip>();
-        _buttonUnequip.gameObject.SetActive(false);
         _buttonDropOne = GetComponentInChildren<Button_Drop_One>();
-        _buttonDropOne.gameObject.SetActive(false);
         _buttonDropX = GetComponentInChildren<Button_Drop_X>();
-        _buttonDropX.gameObject.SetActive(false);
         _buttonDropAll = GetComponentInChildren<Button_Drop_All>();
-        _buttonDropAll.gameObject.SetActive(false);
         _buttonOpen = GetComponentInChildren<Button_Open>();
-        _buttonOpen.gameObject.SetActive(false);
+
+        CloseRightClickButtons(gameObject, true);
+    }
+
+
+
+    public void CloseRightClickButtons(GameObject obj, bool initialising = false)
+    {
+        if (obj == null)
+        {
+            return;
+        }
+
+        foreach (Transform child in obj.transform)
+        {
+            if (child != null)
+            {
+               CloseRightClickButtons(child.gameObject);
+            }
+
+            if (child.GetComponent<RightClickOption>())
+            {
+                child.gameObject.SetActive(false);
+            }
+
+            if (child.TryGetComponent<Button_Expand>(out Button_Expand buttonExpand))
+            {
+                buttonExpand.ExpandPanel.gameObject.SetActive(false);
+            }
+        }
     }
 
     public void RightClickMenuOpen()
@@ -86,14 +109,7 @@ public class Menu_RightClick : MonoBehaviour
         _actor = null;
         _inventoryManager = null;
         _item = null;
-        _buttonEquip.gameObject.SetActive(false);
-        _buttonPickup.gameObject.SetActive(false);
-        _buttonTalk.gameObject.SetActive(false);
-        _buttonUnequip.gameObject.SetActive(false);
-        _buttonDropOne.gameObject.SetActive(false);
-        _buttonDropX.gameObject.SetActive(false);
-        _buttonDropAll.gameObject.SetActive(false);
-        _buttonOpen.gameObject.SetActive(false);
+        CloseRightClickButtons(gameObject);
     }
 
     public void ActiveButtonsCheck(GameObject interactedThing = null,
@@ -218,7 +234,7 @@ public class Menu_RightClick : MonoBehaviour
         if (_equipmentSlot != null)
         {
             Equipment_Manager equipmentManager = _actor.GetComponent<Equipment_Manager>();
-            UI_Slider.instance.DropItemSlider(equipmentManager.currentEquipment[_equipmentSlot].Item2, dropXEquipmentSlot: _equipmentSlot, dropXActor: _actor);
+            UI_Slider.instance.DropItemSlider(equipmentManager.CurrentEquipment[_equipmentSlot].Item2, dropXEquipmentSlot: _equipmentSlot, dropXActor: _actor);
             RightClickMenuClose();
 
         }
