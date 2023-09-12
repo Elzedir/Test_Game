@@ -15,11 +15,11 @@ using static UnityEditor.Progress;
 public class Manager_Input : MonoBehaviour
 {
     public static Manager_Input Instance;
-    public Menu_RightClick menuRightClickScript;
+    public KeyBindings KeyBindings;
+    private Dictionary<ActionKey, Action> _keyActions;
+    public Menu_RightClick MenuRightClickScript;
 
-    public GameObject interactedCharacter;
-
-    private Dictionary<KeyCode, Action> keyActions;
+    public GameObject InteractedCharacter;
 
     private bool _mouse0Held = false;
     private float _mouse0HeldTime;
@@ -39,30 +39,41 @@ public class Manager_Input : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        KeyBindings = new KeyBindings();
+        KeyBindings.LoadBindings();
+        InitialiseKeyActions();
     }
-    public void Start()
+
+    public void InitialiseKeyActions()
     {
-        keyActions = new Dictionary<KeyCode, Action>
+        _keyActions = new Dictionary<ActionKey, Action>
         {
-            { KeyCode.C, HandleCPressed },
-            { KeyCode.E, HandleEPressed },
-            { KeyCode.Escape, HandleEscapePressed },
-            { KeyCode.I, HandleIPressed },
-            { KeyCode.J, HandleJPressed },
-            { KeyCode.Space, HandleSpacePressed }
+            { ActionKey.MoveUp, HandleWPressed },
+            { ActionKey.MoveDown, HandleAPressed },
+            { ActionKey.S, HandleSPressed },
+            { ActionKey.D, HandleDPressed },
+
+            { ActionKey.C, HandleCPressed },
+            { ActionKey.E, HandleEPressed },
+            { ActionKey.Escape, HandleEscapePressed },
+            { ActionKey.I, HandleIPressed },
+            { ActionKey.J, HandleJPressed },
+            { ActionKey.Space, HandleSpacePressed },
         };
     }
 
     public void Update()
     {
         HandleMouse();
-        
-        foreach (var keyAction in keyActions)
+
+        foreach (var actionKey in Enum.GetValues(typeof(ActionKey)).Cast<ActionKey>())
         {
-            if (Input.GetKeyDown(keyAction.Key))
+            if (actionKey == ActionKey.Mouse0 || actionKey == ActionKey.Mouse1) continue;
+
+            if (Input.GetKeyDown(KeyBindings.Keys[actionKey]))
             {
-                keyAction.Value.Invoke();
-                break;
+                _keyActions[actionKey].Invoke();
             }
         }
 
@@ -140,7 +151,25 @@ public class Manager_Input : MonoBehaviour
 
     public void HandleNumberPressed(int number)
     {
-        GameManager.Instance.Player.PlayerActor.ActorScripts.AbilityManager.ActivateAbility(number);
+        Manager_Abilities.ActivateAbility(number - 1, GameManager.Instance.Player.PlayerActor);
+    }
+
+    public void HandleWPressed()
+    {
+        
+    }
+
+    public void HandleAPressed()
+    {
+        
+    }
+    public void HandleSPressed()
+    {
+        
+    }
+    public void HandleDPressed()
+    {
+        
     }
 
     public void HandleCPressed()
@@ -229,5 +258,69 @@ public class Manager_Input : MonoBehaviour
         }
 
         return canExecute;
+    }
+}
+
+public enum ActionKey
+{
+    MoveUp, MoveDown, S, D,
+    Mouse0, Mouse1,
+    C, E, Escape, I, J, Space
+}
+
+[Serializable]
+public class KeyBindings
+{
+    public Dictionary<ActionKey, KeyCode> Keys = new();
+
+    public KeyBindings()
+    {
+        Keys.Add(ActionKey.MoveUp, KeyCode.W);
+        Keys.Add(ActionKey.MoveDown, KeyCode.A);
+        Keys.Add(ActionKey.S, KeyCode.S);
+        Keys.Add(ActionKey.D, KeyCode.D);
+
+        Keys.Add(ActionKey.Mouse0, KeyCode.Mouse0);
+        Keys.Add(ActionKey.Mouse1, KeyCode.Mouse1);
+
+        Keys.Add(ActionKey.C, KeyCode.C);
+        Keys.Add(ActionKey.E, KeyCode.E);
+        Keys.Add(ActionKey.Escape, KeyCode.Escape);
+        Keys.Add(ActionKey.I, KeyCode.I);
+        Keys.Add(ActionKey.J, KeyCode.J);
+        Keys.Add(ActionKey.Space, KeyCode.Space);
+    }
+
+    public void RebindKey(ActionKey action, KeyCode newKey)
+    {
+        if (Keys.ContainsKey(action))
+        {
+            Keys[action] = newKey;
+        }
+
+        SaveBindings();
+    }
+
+    public void SaveBindings()
+    {
+        foreach (var key in Keys)
+        {
+            PlayerPrefs.SetInt(key.Key.ToString(), (int)key.Value);
+        }
+
+        PlayerPrefs.Save();
+    }
+
+    public void LoadBindings()
+    {
+        foreach (ActionKey key in Enum.GetValues(typeof(ActionKey)))
+        {
+            string keyString = key.ToString();
+
+            if (PlayerPrefs.HasKey(keyString))
+            {
+                Keys[key] = (KeyCode)PlayerPrefs.GetInt(keyString);
+            }
+        }
     }
 }

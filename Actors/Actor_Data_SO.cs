@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -28,8 +30,6 @@ public enum NonPlayableType
 [CreateAssetMenu(fileName = "New Character", menuName = "Character/Character Data")]
 public class Actor_Data_SO : ScriptableObject
 {
-    // Static Data
-
     public string CharacterName;
     public ActorType ActorType;
     public FactionManager.Faction _faction;
@@ -63,11 +63,13 @@ public class Actor_Data_SO : ScriptableObject
         }
     }
 
-    private Actor_Base _actor;
+    public Actor_Base Actor;
     private Actor_Skills _actorSkills;
     public ActorStats ActorStats;
     public Specialisations ActorSpecialisations;
-    public List<Ability> ActorAbilities;
+    public ActorInventory ActorInventory;
+
+    public Abilities ActorAbilities;
 
     // Trigger Zone
     public float triggerRadius = 3.0f;
@@ -80,13 +82,33 @@ public class Actor_Data_SO : ScriptableObject
     public float triggerLength;
     public float chaseLength;
 
-    public void SetActorLayer(GameObject actor)
+    public void Initialise(Actor_Base actor)
     {
+        SetActorLayer(actor);
+        GameManager.Instance.RunCoroutine(DelayedInitialiseAbilityCooldowns());
+    }
+
+    private IEnumerator DelayedInitialiseAbilityCooldowns()
+    {
+        yield return new WaitForSeconds(Manager_Initialiser.InitialiseAbilityDelay);
+
+        foreach (List_Ability ability in List_Ability.AllAbilityData)
+        {
+            if (ability != null)
+            {
+                ActorAbilities.AbilityCooldowns[ability] = Time.time;
+            }
+        }
+    }
+
+    public void SetActorLayer(Actor_Base actor)
+    {
+        Actor = actor;
         FactionManager factionManager = FactionManager.instance;
         string layerName = factionManager.GetLayerNameFromFaction(_faction);
         int layerIndex = LayerMask.NameToLayer(layerName);
-        actor.layer = layerIndex;
-        SetActorChildLayerRecursively(actor, layerIndex);
+        actor.gameObject.layer = layerIndex;
+        SetActorChildLayerRecursively(actor.gameObject, layerIndex);
     }
 
     public void SetActorChildLayerRecursively(GameObject obj, int newLayer)
@@ -174,4 +196,37 @@ public struct Specialisations
 {
     public Title ActorTitle;
     public List<Specialisation> ActorSpecialisations;
+}
+
+[System.Serializable]
+public class Abilities
+{
+    public List<Ability> AbilityList = new();
+    public Dictionary<List_Ability, float> AbilityCooldowns = new();
+}
+
+public enum InventoryType
+{
+    InventoryNotEquippable,
+    InventoryEquippable
+}
+
+[Serializable]
+public class ActorInventory
+{
+    private int _baseInventorySize; public int BaseInventorySize { get { return _baseInventorySize; } }
+
+    [SerializeField] public List<InventoryItem> InventoryItems = new();
+}
+
+public struct InventoryItem
+{
+    public int ItemID;
+    public int CurrentStackSize;
+
+    public void ClearItem()
+    {
+        ItemID = -1;
+        CurrentStackSize = 0;
+    }
 }

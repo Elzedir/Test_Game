@@ -2,31 +2,28 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-using static Equipment_Manager;
 
-public class Manager_Abilities : MonoBehaviour
+public class Manager_Abilities
 {
-    [SerializeField] public List<List_Ability> UnlockedAbilities = new(); // change this to active abilities and then create a new list of unlocked abilities afterwards.
-    public Dictionary<List_Ability, float> AbilityCooldowns = new();
-
-    private Actor_Base _actor;
-    
-    public void Start()
+    public static void ActivateAbility(int abilityIndex, Actor_Base actor)
     {
-        _actor = GetComponent<Actor_Base>();
-    }
-
-    public void ActivateAbility(int abilityIndex)
-    {
-        UnlockedAbilities[abilityIndex].UseAbility();
-    }
-
-    public void ImportAbilitiesFromScriptableObject(Actor_Data_SO actorData)
-    {
-        UnlockedAbilities.Clear();
-        foreach (Ability ability in actorData.ActorAbilities)
+        List_Ability ability = List_Ability.GetAbility(actor.ActorData.ActorAbilities.AbilityList[abilityIndex]);
+        
+        if (ability != null && GetRemainingCooldownTime(ability, actor) > 0)
         {
-            List_Ability.UnlockAbility(UnlockedAbilities, ability);
+            Debug.Log(GetRemainingCooldownTime(ability, actor));
+            return;
         }
+
+        ability.UseAbility(actor);
+
+        actor.ActorData.ActorAbilities.AbilityCooldowns[ability] = Time.time;
+
+    }
+
+    public static float GetRemainingCooldownTime(List_Ability ability, Actor_Base actor)
+    {
+        float remainingTime = actor.ActorData.ActorAbilities.AbilityCooldowns[ability] + ability.AbilityCooldown - Time.time;
+        return Mathf.Max(remainingTime, 0f);
     }
 }

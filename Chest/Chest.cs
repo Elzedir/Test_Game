@@ -4,23 +4,12 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Chest : MonoBehaviour
+public class Chest : MonoBehaviour, IInventory<Chest>
 {
     private SpriteRenderer _spriteRenderer;
-    private Inventory_NotEquippable _inventoryNotEquippable;
-    private Chest_Items _chestItems;
-
-    public Inventory_NotEquippable Inventory_NotEquippable
-    {
-        get { return _inventoryNotEquippable; }
-    }
+    public Chest_Data_SO ChestData;
 
     // Put in a way for the chest to go back to normal after it closes.
-
-    public void Awake()
-    {
-        _inventoryNotEquippable = GetComponent<Inventory_NotEquippable>();
-    }
 
     public void Start()
     {
@@ -34,7 +23,7 @@ public class Chest : MonoBehaviour
     {
         if (Input.GetMouseButtonUp(1))
         {
-            Chest_Items chestItems = Chest_Manager.Instance.GetChestData(this);
+            ChestData = Chest_Manager.Instance.GetChestData(this);
 
             if (chestItems != null)
             {
@@ -49,21 +38,16 @@ public class Chest : MonoBehaviour
 
     public void OpenChestInventory(Inventory_NotEquippable inventoryManager)
     {
-        RefreshInventoryIDs();
         Inventory_Window.Instance.OpenMenu(this.gameObject);
     }
 
-    public void RefreshInventoryIDs()
+    public Chest LootableObject()
     {
-        _chestItems = GetComponent<Chest_Items>();
+        return this;
+    }
 
-        _inventoryNotEquippable.InventoryItemIDs.Clear();
-        _inventoryNotEquippable.InitialiseInventory();
-
-        foreach (var chestItem in _chestItems.items)
-        {
-            List_Item item = List_Item.GetItemData(chestItem.itemID);
-            _inventoryNotEquippable.AddItem(item, chestItem.stackSize);
-        }
+    public InventoryItem GetInventoryItem(int itemIndex)
+    {
+        return ChestData.ChestItems[itemIndex];
     }
 }

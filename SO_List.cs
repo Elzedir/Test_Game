@@ -13,6 +13,7 @@ public class SO_List : MonoBehaviour
     public List_Sprites[] ArmourSprites;
     public List_Sprites[] UiSprites;
     public List_Sprites[] ChestSprites;
+    public GameObject[] Prefabs;
 
     public List_AnimatorControllers[] animatorControllers;
 

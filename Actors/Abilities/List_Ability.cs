@@ -8,6 +8,7 @@ using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public enum Ability
 {
+    None,
     Charge,
     ChargedShot,
     Invulnerability
@@ -28,6 +29,7 @@ public class List_Ability
     public float AbilityRange;
     public float AbilitySpeed;
     public float AbilityChargeTime;
+    public float AbilityCooldown;
     // public Requiredweapon
 
     public void Start()
@@ -61,7 +63,8 @@ public class List_Ability
             2,
             3,
             1.5f,
-            0,
+            3f,
+            5f,
             SO_List.Instance.WeaponMeleeSprites[0].sprite);
         AddToList(AllAbilityData, chargedShot);
     }
@@ -77,7 +80,7 @@ public class List_Ability
         }
     }
 
-    public virtual void UseAbility()
+    public virtual void UseAbility(Actor_Base actor)
     {
         throw new ArgumentException("Ability " + this.AbilityName + " does not have a UseAbility");
     }
@@ -131,4 +134,16 @@ public class List_Ability
     //        }
     //    }
     //}
+
+    public static List_Ability GetAbility(Ability abilityName)
+    {
+        foreach (List_Ability ability in AllAbilityData)
+        {
+            if (ability.AbilityName == abilityName)
+            {
+                return ability;
+            }
+        }
+        return null;
+    }
 }

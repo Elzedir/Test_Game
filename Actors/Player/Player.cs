@@ -44,8 +44,14 @@ public class Player : MonoBehaviour
     {
         if (!_playerActor.ActorStates.Dead)
         {
-            float x = Input.GetAxisRaw("Horizontal");
-            float y = Input.GetAxisRaw("Vertical");
+            float x = 0;
+            float y = 0;
+
+            if (Input.GetKey(Manager_Input.Instance.KeyBindings.Keys[ActionKey.MoveUp])) y = 1;
+            if (Input.GetKey(Manager_Input.Instance.KeyBindings.Keys[ActionKey.MoveDown])) x = -1;
+            if (Input.GetKey(Manager_Input.Instance.KeyBindings.Keys[ActionKey.S])) y = -1;
+            if (Input.GetKey(Manager_Input.Instance.KeyBindings.Keys[ActionKey.D])) x = 1;
+
             var direction = Input.mousePosition - Camera.main.WorldToScreenPoint(transform.position);
 
             if (!_playerActor.ActorStates.Jumping)

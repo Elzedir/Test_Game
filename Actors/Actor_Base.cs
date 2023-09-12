@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using NUnit.Framework.Interfaces;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using UnityEngine.UIElements.Experimental;
 using static FactionManager;
 using static UnityEngine.GraphicsBuffer;
 
-public class Actor_Base : Hitbox
+public class Actor_Base : Hitbox, IInventory<Actor_Base>
 {
     public ActorScripts ActorScripts;
     public ActorStates ActorStates;
@@ -23,7 +24,7 @@ public class Actor_Base : Hitbox
     private Actor_Base _actor;
     private NavMeshAgent _agent;
     public Dialogue_Data_SO DialogueData;
-    
+
     private Equipment_Slot _head;
     private Equipment_Slot _chest;
     private Equipment_Slot _mainHand; public Equipment_Slot MainHand { get { return _mainHand; } }
@@ -42,7 +43,7 @@ public class Actor_Base : Hitbox
     protected Vector3 startingPosition;
 
     public Vector3 PushDirection;
-    
+
     protected float lastAttack;
 
     public List<GameObject> NPCs = new List<GameObject>();
@@ -70,8 +71,8 @@ public class Actor_Base : Hitbox
         {
             CharacterComponentCheck();
         }
-        ActorData.SetActorLayer(_actor.gameObject);
-        ActorScripts.AbilityManager.ImportAbilitiesFromScriptableObject(ActorData);
+        ActorData.Initialise(_actor);
+        
     }
 
     private void InitialiseComponents()
@@ -82,7 +83,6 @@ public class Actor_Base : Hitbox
         _agent.updateRotation = false;
         _agent.updateUpAxis = false;
         startingPosition = transform.position;
-        ActorScripts.AbilityManager = GetComponent<Manager_Abilities>() != null ? GetComponent<Manager_Abilities>() : gameObject.AddComponent<Manager_Abilities>();
         ActorScripts.StatManager = GetComponent<Manager_Stats>();
         ActorScripts.EquipmentManager = GetComponent<Equipment_Manager>();
         ActorScripts.InventoryManager = GetComponent<Inventory_Manager>();
@@ -154,9 +154,8 @@ public class Actor_Base : Hitbox
             }
         }
 
-        
-    }
 
+    }
     protected override void Update()
     {
         base.Update();
@@ -600,6 +599,16 @@ public class Actor_Base : Hitbox
     {
         yield return new WaitForSeconds(_actor.ActorData.ActorStats.CombatStats.BaseDodgeCooldown);
         _actor.ActorStates.DodgeAvailable = true;
+    }
+
+    public Actor_Base LootableObject()
+    {
+        return this;
+    }
+
+    public InventoryItem GetInventoryItem(int itemIndex)
+    {
+        return ActorData.ActorInventory.InventoryItems[itemIndex];
     }
 }
 

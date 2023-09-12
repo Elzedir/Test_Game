@@ -65,7 +65,7 @@ public class Equipment_Manager : MonoBehaviour
 
     public IEnumerator DelayedInitialiseEquipment()
     {
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(Manager_Initialiser.InitialiseEquipmentDelay);
 
         InitialiseEquipment();
     }

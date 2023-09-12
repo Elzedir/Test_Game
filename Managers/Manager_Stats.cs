@@ -29,6 +29,8 @@ public class Manager_Stats : MonoBehaviour
     public float CurrentMagicalDefence;
     public float CurrentDodgeMitigation;
 
+    public int currentInventorySize;
+
     private void Start()
     {
         _actor = GetComponent<Actor_Base>();

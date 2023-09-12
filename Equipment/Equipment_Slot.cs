@@ -42,6 +42,7 @@ public class Equipment_Slot : MonoBehaviour
     protected bool _offHandAttack = false;
 
     private float _chargeTime = 0f; public float ChargeTime { get { return _chargeTime; } }
+    private bool _currentlyAttacking = false;
 
     public void Start()
     {        
@@ -126,7 +127,11 @@ public class Equipment_Slot : MonoBehaviour
         }
 
         _chargeTime = chargeTime;
-        StartCoroutine(AttackCoroutine(_animator, equipmentSlot));
+
+        if (!_currentlyAttacking)
+        {
+            StartCoroutine(AttackCoroutine(_animator, equipmentSlot));
+        }
     }
     protected IEnumerator AttackCoroutine(Animator animator, Equipment_Slot equipmentSlot)
     {
@@ -143,12 +148,13 @@ public class Equipment_Slot : MonoBehaviour
         }
 
         _actor.ActorStates.Attacking = true;
+        _currentlyAttacking = true;
         animator.SetTrigger("Attack");
 
-        float delayDuration = 0.3f;
-        yield return new WaitForSeconds(delayDuration);
+        yield return new WaitForSeconds(animator.GetCurrentAnimatorClipInfo(0)[0].clip.length);
 
         _actor.ActorStates.Attacking = false;
+        _currentlyAttacking = false;
         _offHandAttack = false;
 
         animator.ResetTrigger("Attack");

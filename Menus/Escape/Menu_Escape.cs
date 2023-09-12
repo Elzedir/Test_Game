@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class Menu_Escape : Menu_UI
@@ -36,11 +37,24 @@ public class Menu_Escape : Menu_UI
         GameManager.Instance.ChangeState(GameState.Playing);
     }
 
-    public void SwitchCharacterButtonPressed()
+    public void CharacterSelectButtonPressed()
     {
         if (GameManager.Instance.CurrentState != GameState.InCombat)
         {
             Menu_CharacterSelect.Instance.OpenMenu();
+            CloseMenu();
+        }
+        else
+        {
+            Debug.Log("Player is in combat");
+        }
+    }
+
+    public void SettingsButtonPressed()
+    {
+        if (GameManager.Instance.CurrentState != GameState.InCombat)
+        {
+            Menu_Settings.Instance.OpenMenu();
             CloseMenu();
         }
         else

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -258,13 +259,13 @@ public class GameManager : MonoBehaviour
         // Instantiate a new game object and give it a dead body script with a certain animation and sprite.
     }
 
-    public Transform FindDeepChild(Transform parent, string name)
+    public Transform FindTransformRecursively(Transform parent, string name)
     {
         foreach (Transform child in parent)
         {
             if (child.name == name)
                 return child;
-            Transform result = FindDeepChild(child, name);
+            Transform result = FindTransformRecursively(child, name);
             if (result != null)
                 return result;
         }
@@ -279,5 +280,10 @@ public class GameManager : MonoBehaviour
         Player.PlayerActor.ActorData.ActorStats.Level = 0;
         Player.PlayerActor.ActorData.ActorStats.TotalExperience = 0;
         Player.PlayerActor.ActorData.ActorStats.CurrentExperience = 0;
+    }
+
+    public void RunCoroutine(IEnumerator routine)
+    {
+        StartCoroutine(routine);
     }
 }

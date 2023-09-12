@@ -7,6 +7,6 @@ public class Button_SwitchCharacter : MonoBehaviour
     public void OnButtonPress()
     {
         Debug.Log($"Switch Character button pressed");
-        Menu_Escape.Instance.SwitchCharacterButtonPressed();
+        Menu_Escape.Instance.CharacterSelectButtonPressed();
     }
 }

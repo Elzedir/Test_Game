@@ -26,7 +26,7 @@ public class List_Ability_Charge : List_Ability
         this.AbilityIcon = icon;
     }
 
-    public override void UseAbility()
+    public override void UseAbility(Actor_Base actor)
     {
         
     }

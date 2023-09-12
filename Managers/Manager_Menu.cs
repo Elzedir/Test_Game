@@ -52,7 +52,7 @@ public class Manager_Menu : MonoBehaviour
                 GameObject lastOpenWindow = openUIWindows.LastOrDefault();
                 SetWindowToBack(lastOpenWindow);
 
-                if (lastOpenWindow.TryGetComponent<Menu_UI>(out Menu_UI lastOpenMenuMenu))
+                if (OtherWindowOpen() && lastOpenWindow.TryGetComponent<Menu_UI>(out Menu_UI lastOpenMenuMenu))
                 {
                     HandleEscapePressed(lastOpenMenuMenu);
                 }
@@ -62,6 +62,16 @@ public class Manager_Menu : MonoBehaviour
                 Menu_Escape.Instance.OpenMenu();
             }
         }
+    }
+
+    public bool OtherWindowOpen()
+    {
+        if (Menu_Settings_Rebind.Instance.IsOpen)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public void OpenMenu(Menu_UI menu, GameObject interactedObject = null)

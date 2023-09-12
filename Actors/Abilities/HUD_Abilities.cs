@@ -39,14 +39,15 @@ public class HUD_Abilities : MonoBehaviour
 
     public void UpdateAbilityIcons()
     {
-        List<List_Ability> activePlayerAbilities = GameManager.Instance.Player.PlayerActor.ActorScripts.AbilityManager.UnlockedAbilities;
+        List<Ability> activePlayerAbilities = GameManager.Instance.Player.PlayerActor.ActorData.ActorAbilities.AbilityList;
 
         for (int i = 0; i < activePlayerAbilities.Count; i++)
         {
-            if (activePlayerAbilities[i] != null)
+            if (activePlayerAbilities[i] != Ability.None)
             {
+                List_Ability ability = List_Ability.GetAbility(activePlayerAbilities[i]);
                 Image abilityIcon = _abilityIcons[i].GetComponent<Image>();
-                abilityIcon.sprite = activePlayerAbilities[i].AbilityIcon;
+                abilityIcon.sprite = ability.AbilityIcon;
             }
         }
     }
