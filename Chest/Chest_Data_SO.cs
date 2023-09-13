@@ -6,5 +6,5 @@ using UnityEngine;
 
 public class Chest_Data_SO : ScriptableObject
 {
-    public List<InventoryItem> ChestItems = new();
+    public Inventory ChestInventory;
 }

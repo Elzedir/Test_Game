@@ -22,13 +22,15 @@ public enum SlotType
     Chest,
     MainHand,
     OffHand,
-    Legs
+    Legs,
+    Consumable
 }
 
 [System.Serializable]
 [RequireComponent(typeof(SpriteRenderer))]
 public class Equipment_Slot : MonoBehaviour
 {
+    public int SlotIndex;
     public SlotType SlotType;
     protected Equipment_Manager _equipmentManager;
     protected Actor_Base _actor;

@@ -1,7 +1,5 @@
-using NUnit.Framework.Constraints;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Unity.VisualScripting;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -97,11 +95,6 @@ public abstract class List_Item
         return null;
     }
 
-    public int GetMaxStackSize()
-    {
-        return ItemStats.CommonStats.MaxStackSize;
-    }
-
     public static Sprite GetItemSprite(int itemID, List<List_Item> list)
     {
         foreach (var data in list)
@@ -117,7 +110,9 @@ public abstract class List_Item
 
     public void AttachWeaponScript(List_Item item, Equipment_Slot equipmentSlot)
     {
-        switch(item.ItemStats.WeaponStats.WeaponType)
+        GameManager.Destroy(equipmentSlot.GetComponent<Weapon>());
+
+        switch (item.ItemStats.WeaponStats.WeaponType)
         {
             case WeaponType.OneHandedMelee:
             case WeaponType.TwoHandedMelee:

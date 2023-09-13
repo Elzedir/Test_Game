@@ -1,10 +1,15 @@
-using System.Collections.Generic;
-using UnityEngine;
 using System;
-using static UnityEngine.EventSystems.EventTrigger;
-using static UnityEditor.Progress;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
 
-public delegate void InventoryChangeEvent();
+public enum InventoryType
+{
+    None,
+    Actor,
+    Chest,
+    Crate
+}
 
 public class Inventory_Manager : MonoBehaviour
 {
@@ -31,75 +36,47 @@ public class Inventory_Manager : MonoBehaviour
     //    }
     //}
 
-    public static bool AddItem<T>(List_Item item, int stackSize, IInventory<T> inventoryObject) where T : MonoBehaviour
+    public static bool AddItem<T>(IInventory<T> itemDestination, List_Item item, int stackSize) where T : MonoBehaviour
     {
-        if (item == null)
+        if (item == null || stackSize <= 0 || itemDestination == null)
         {
             return false;
         }
 
-        for (int i = 0; i < actor.ActorData.ActorInventory.InventoryItems.Count; i++)
+        List<InventoryItem> inventoryList = itemDestination.GetInventoryData().InventoryItems;
+        int maxStackSize = item.ItemStats.CommonStats.MaxStackSize;
+
+        for (int i = 0; i < inventoryList.Count; i++)
         {
-            InventoryItem inventoryItem = actor.ActorData.ActorInventory.InventoryItems[i];
+            InventoryItem inventoryItem = inventoryList[i];
+            int totalStackSize = inventoryItem.CurrentStackSize + stackSize;
+            int remainingStackSize = totalStackSize - maxStackSize;
 
-            if (inventoryItem.ItemID == item.ItemStats.CommonStats.ItemID && inventoryItem.CurrentStackSize < item.ItemStats.CommonStats.MaxStackSize)
-            {
-                if (inventoryItem.CurrentStackSize + stackSize > item.ItemStats.CommonStats.MaxStackSize)
-                {
-                    int remainingStackSize = inventoryItem.CurrentStackSize + stackSize - item.ItemStats.CommonStats.MaxStackSize;
-                    inventoryItem.CurrentStackSize = item.ItemStats.CommonStats.MaxStackSize;
-
-                    if (remainingStackSize > 0)
-                    {
-                        AddItem(item, remainingStackSize, actor);
-                    }
-
-                    return true;
-                }
-                else
-                {
-                    inventoryItem.CurrentStackSize += stackSize;
-
-                    return true;
-                }
-            }
-            else if (inventoryItem.ItemID == -1)
+            if (inventoryItem.ItemID == item.ItemStats.CommonStats.ItemID || inventoryItem.ItemID == -1)
             {
                 inventoryItem.ItemID = item.ItemStats.CommonStats.ItemID;
+                inventoryItem.CurrentStackSize = Math.Min(totalStackSize, maxStackSize);
 
-                if (stackSize > item.ItemStats.CommonStats.MaxStackSize)
+                if (remainingStackSize > 0)
                 {
-                    int remainingStackSize = stackSize - item.ItemStats.CommonStats.MaxStackSize;
-                    inventoryItem.CurrentStackSize = item.ItemStats.CommonStats.MaxStackSize;
-
-                    if (remainingStackSize > 0)
-                    {
-                        AddItem(item, remainingStackSize, actor);
-                    }
-
-                    return true;
+                    IInventory<T> inventoryDestination = itemDestination.GetIInventoryBaseClass().GetComponent<IInventory<T>>();
+                    AddItem(item, remainingStackSize, inventoryDestination);
                 }
 
-                else
-                {
-                    inventoryItem.CurrentStackSize = stackSize;
-
-                    return true;
-                }
-            }
-            else
-            {
-                Debug.Log("No empty slot found");
-
-                return false;
+                return true;
             }
         }
 
         return false;
     }
-    public static void RemoveItem(int itemIndex, int removeStackSize, Actor_Base actor)
+    public static void RemoveItem<T>(
+        int itemIndex, 
+        int removeStackSize, 
+        IInventory<T> itemSource) where T : MonoBehaviour
     {
-        InventoryItem inventoryItem = actor.ActorData.ActorInventory.InventoryItems[itemIndex];
+        List<InventoryItem> inventoryList = itemSource.GetInventoryData().InventoryItems;
+
+        InventoryItem inventoryItem = inventoryList[itemIndex];
 
         int leftoverStackSize =  inventoryItem.CurrentStackSize - removeStackSize;
 
@@ -112,9 +89,14 @@ public class Inventory_Manager : MonoBehaviour
             inventoryItem.CurrentStackSize = leftoverStackSize;
         }
     }
-    public static void DropItem(int itemIndex, int dropAmount, Actor_Base actor)
+    public static void DropItem<T>(
+        int itemIndex, 
+        int dropAmount, 
+        IInventory<T> itemSource) where T : MonoBehaviour
     {
-        InventoryItem inventoryItem = actor.ActorData.ActorInventory.InventoryItems[itemIndex];
+        List<InventoryItem> inventoryList = itemSource.GetInventoryData().InventoryItems;
+
+        InventoryItem inventoryItem = inventoryList[itemIndex];
 
         if (dropAmount == -1)
         {
@@ -134,222 +116,136 @@ public class Inventory_Manager : MonoBehaviour
             inventoryItem.CurrentStackSize = leftoverStackSize;
         }
     }
-
-    public bool OnItemPickup<T>(IInventory<T> inventoryObject = null, Interactable_Item pickedUpItem = null, int inventorySlotIndex = -1) where T : MonoBehaviour
+    public bool OnItemPickup<T>(
+        IInventory<T> itemDestination,
+        IInventory<T> itemSource,
+        Interactable_Item pickedUpItem = null, 
+        int inventorySlotIndex = -1) where T : MonoBehaviour
     {
-        List_Item item = List_Item.GetItemData(pickedUpItem != null ? pickedUpItem.ItemID : inventoryObject.GetInventoryItem(inventorySlotIndex).ItemID);
-        int stackSize = pickedUpItem != null ? pickedUpItem.StackSize : inventoryObject.GetInventoryItem(inventorySlotIndex).CurrentStackSize;
+        List_Item itemToPickup = List_Item.GetItemData(pickedUpItem != null 
+            ? pickedUpItem.ItemID 
+            : itemSource.GetInventoryItem(inventorySlotIndex).ItemID);
 
-        if (item == null)
+        int stackSize = pickedUpItem != null 
+            ? pickedUpItem.StackSize 
+            : itemDestination.GetInventoryItem(inventorySlotIndex).CurrentStackSize;
+
+        if (itemToPickup == null || stackSize <= 0) { Debug.Log($"ItemToPickup: {itemToPickup} is null or stacksize: {stackSize} is 0 or less"); return false; }
+
+        if (AddItem(itemToPickup, stackSize, itemDestination))
         {
-            Debug.Log("Item is null");
-            return false;
-        }
-
-        AddItem(item, stackSize, GameManager.Instance.Player.PlayerActor);
-
-        if (inventorySlotIndex != -1)
-        {
-            RemoveItem(inventorySlotIndex, stackSize, GameManager.Instance.Player.PlayerActor);
-
-            if (inventoryObject.LootableObject)
+            if (inventorySlotIndex != -1 && itemSource != null)
             {
-                List<Chest_ItemData> updatedItems = new List<Chest_ItemData>();
-
-                foreach (var entry in InventoryItemIDs)
-                {
-                    if (entry.Value.Item1 != -1)
-                    {
-                        Chest_ItemData itemData = new Chest_ItemData
-                        {
-                            ItemID = entry.Value.Item1,
-                            CurrentStackSize = entry.Value.Item2
-                        };
-                        updatedItems.Add(itemData);
-                    }
-                }
-
-                chestItems.items = updatedItems.ToArray();
+                RemoveItem(inventorySlotIndex, stackSize, itemSource);
             }
-        }
-        else
-        {
-            Destroy(pickedUpItem.gameObject);
-        }
-
-        if (Manager_Menu.Instance.InventoryMenu != null)
-        {
-            Manager_Menu.Instance.InventoryMenu.RefreshPlayerUI(gameObject);
-        }
-        else
-        {
-            Debug.Log("No open UI window");
+            else if (pickedUpItem != null)
+            {
+                Destroy(pickedUpItem.gameObject);
+            }
+            else { Debug.Log($"Either InventorySlotIndex: {inventorySlotIndex}, ItemSource: {itemSource}, or PickedUpItem: {pickedUpItem} have a problem."); return false; }
         }
 
-        Inventory_Creator slotCreator = Manager_Menu.Instance.InventoryMenu.GetComponentInChildren<Inventory_Creator>();
-        slotCreator.UpdateInventoryUI(this);
+        if inventory window is open, refresh it
 
         return true;
     }
-
-    public bool OnEquip(Interactable_Item pickedUpItem = null, int inventorySlotIndex = -1, GameObject interactedObject = null)
+    public bool OnEquip<T>(
+        IInventory<T> itemDestination,
+        IInventory<T> itemSource,
+        Interactable_Item pickedUpItem = null, 
+        int inventorySlotIndex = -1) where T : MonoBehaviour
     {
-        Dictionary<int, (int, int, bool)> inventoryItems = InventoryItemIDs;
+        List_Item itemToEquip = List_Item.GetItemData(pickedUpItem != null 
+            ? pickedUpItem.ItemID 
+            : itemSource.GetInventoryItem(inventorySlotIndex).ItemID);
 
-        List_Item item = (pickedUpItem == null)
-        ? List_Item.GetItemData(inventoryItems[inventorySlotIndex].Item1)
-        : List_Item.GetItemData(pickedUpItem.ItemID);
+        int stackSize = pickedUpItem != null
+            ? pickedUpItem.StackSize
+            : itemDestination.GetInventoryItem(inventorySlotIndex).CurrentStackSize;
 
-        if (item == null)
-        {
-            Debug.Log($"Inventory does not have itemID");
-            return false;
-        }
+        if (itemToEquip == null || stackSize <= 0) { Debug.Log($"ItemToEquip: {itemToEquip} is null or stacksize: {stackSize} is 0 or less"); return false; }
 
-        Equipment_Manager playerEquipmentManager = GameManager.Instance.Player.GetComponent<Equipment_Manager>();
+        Equipment_Manager equipmentManager = itemDestination.GetIInventoryBaseClass().GetComponent<Equipment_Manager>();
 
-        if (playerEquipmentManager == null)
+        if (equipmentManager == null)
         {
             Debug.Log("Player does not have equipment manager");
             return false;
         }
 
-        int stackSize = (inventorySlotIndex != -1)
-            ? inventoryItems[inventorySlotIndex].Item2
-            : pickedUpItem.StackSize;
+        (bool equipped, int remainingStackSize) = equipmentManager.Equip(itemToEquip, stackSize);
 
-        (bool equipped, int remainingStackSize) = playerEquipmentManager.Equip(item, stackSize);
+        if (!equipped) { Debug.Log("Item was not equipped"); return false;}
 
-        if (!equipped)
+        if (inventorySlotIndex != -1 && itemSource != null)
         {
-            Debug.Log("Item was not equipped");
-            return false;
+            RemoveItem(inventorySlotIndex, stackSize, itemSource);
         }
-
-        if (inventorySlotIndex != -1)
-        {
-            RemoveItem(inventorySlotIndex, item, stackSize);
-
-            if (TryGetComponent<Chest_Items>(out Chest_Items chestItems))
-            {
-                List<Chest_ItemData> updatedItems = new List<Chest_ItemData>();
-
-                foreach (var entry in InventoryItemIDs)
-                {
-                    if (entry.Value.Item1 != -1)
-                    {
-                        Chest_ItemData itemData = new Chest_ItemData
-                        {
-                            ItemID = entry.Value.Item1,
-                            CurrentStackSize = entry.Value.Item2
-                        };
-                        updatedItems.Add(itemData);
-                    }
-                }
-
-                chestItems.items = updatedItems.ToArray();
-            }
-        }
-        else
+        else if (pickedUpItem != null)
         {
             Destroy(pickedUpItem.gameObject);
         }
+        else { Debug.Log($"Either InventorySlotIndex: {inventorySlotIndex}, ItemSource: {itemSource}, or PickedUpItem: {pickedUpItem} have a problem."); return false; }
 
         if (remainingStackSize > 0)
         {
-            AddItem(item, remainingStackSize);
+            if (itemSource != null)
+            {
+                AddItem(itemToEquip, remainingStackSize, itemSource);
+            }
+            else
+            {
+                GameManager.Instance.CreateNewItem(itemToEquip.ItemStats.CommonStats.ItemID, remainingStackSize);
+            }
         }
 
-        if (Manager_Menu.Instance.InventoryMenu != null)
-        {
-            Manager_Menu.Instance.InventoryMenu.RefreshPlayerUI(gameObject, playerEquipmentManager);
-        }
-        else
-        {
-            Debug.Log("No open UI window");
-        }
+        RefreshPlayerUI();
 
         return true;
     }
 
-
-    #region Inventory Windows
-    public virtual void OpenInventory()
+    public static void RefreshPlayerUI()
     {
-
-    }
-    public int GetInventorySize()
-    {
-        return inventorySize;
-    }
-    public static Inventory_Manager InventoryType(GameObject interactedObject)
-    {
-        Inventory_Manager inventoryType = null;
-        Inventory_Equippable equippableInventory = interactedObject.GetComponent<Inventory_Equippable>();
-
-        if (equippableInventory != null)
+        if (GameManager.Instance.Player.PlayerActor)
         {
-            inventoryType = equippableInventory;
-        }
-
-        else
-        {
-            Inventory_NotEquippable notEquippableInventory = interactedObject.GetComponent<Inventory_NotEquippable>();
-
-            if (notEquippableInventory != null)
+            if (Manager_Menu.Instance.InventoryMenu != null)
             {
-                inventoryType = notEquippableInventory;
+                Manager_Menu.Instance.InventoryMenu.RefreshPlayerUI(gameObject);
             }
+            else { Debug.Log("No open UI window"); }
 
-            else
-            {
-                Debug.Log("Does not have an inventory");
-            }
-        }
-
-        return inventoryType;
-
-    }
-    #endregion
-
-    
-    
-    public List<InventoryItem> displayInventoryList = new List<InventoryItem>();
-
-    public void PopulateInventory()
-    {
-        foreach (var item in InventoryItemIDs)
-        {
-            int itemID = item.Value.Item1;
-            int stackSize = item.Value.Item2;
-            Sprite itemIcon = null;
-
-            InventoryItem inventoryItem = new InventoryItem()
-            {
-                itemID = itemID,
-                stackSize = stackSize,
-                itemIcon = itemIcon
-            };
-
-            displayInventoryList.Add(inventoryItem);
+            Inventory_Creator slotCreator = Manager_Menu.Instance.InventoryMenu.GetComponentInChildren<Inventory_Creator>();
+            slotCreator.UpdateInventoryUI(GameManager.Instance.Player.PlayerActor);
         }
     }
-    public void DeleteList()
-    {
-        displayInventoryList.Clear();
-    }
+}
 
-    private void OnDisable()
-    {
-        Inventory_Manager inventoryManager = GetComponent<Inventory_Manager>();
-        inventoryManager.OnInventoryChange -= DeleteList;
-        inventoryManager.OnInventoryChange -= PopulateInventory;
-    }
+[Serializable]
+public class Inventory
+{
+    public int BaseInventorySize;
+    public bool Equippable = true;
+    [SerializeField] public List<InventoryItem> InventoryItems = new();
+}
 
-    private void OnDestroy()
+public class InventoryItem
+{
+    public int ItemID;
+    public int CurrentStackSize;
+
+    public void ClearItem()
     {
-        Inventory_Manager inventoryManager = GetComponent<Inventory_Manager>();
-        inventoryManager.OnInventoryChange -= DeleteList;
-        inventoryManager.OnInventoryChange -= PopulateInventory;
+        ItemID = -1;
+        CurrentStackSize = 0;
     }
+}
+
+public interface IInventory<T> where T : MonoBehaviour
+{
+    public bool InventoryisOpen { get; set; }
+    public InventoryType InventoryType { get; }
+    public T GetIInventoryBaseClass();
+    public Inventory GetInventoryData();
+    public InventoryItem GetInventoryItem(int itemIndex);
+    public int GetInventorySize();
 }

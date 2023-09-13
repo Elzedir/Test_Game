@@ -13,23 +13,29 @@ using UnityEngine.UIElements.Experimental;
 using static FactionManager;
 using static UnityEngine.GraphicsBuffer;
 
-public class Actor_Base : Hitbox, IInventory<Actor_Base>
+public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
 {
     public ActorScripts ActorScripts;
     public ActorStates ActorStates;
     public ActorComponents ActorComponents;
     public Actor_Data_SO ActorData;
 
+    public InventoryType InventoryType => InventoryType.Actor;
+    public bool InventoryIsOpen;
+    public bool InventoryisOpen => InventoryIsOpen;
+
     // General
     private Actor_Base _actor;
     private NavMeshAgent _agent;
     public Dialogue_Data_SO DialogueData;
 
-    private Equipment_Slot _head;
-    private Equipment_Slot _chest;
-    private Equipment_Slot _mainHand; public Equipment_Slot MainHand { get { return _mainHand; } }
-    private Equipment_Slot _offHand; public Equipment_Slot OffHand { get { return _offHand; } }
-    private Equipment_Slot _legs;
+    public Equipment_Slot Head { get; set; }
+    public Equipment_Slot Chest { get; set; }
+    public Equipment_Slot MainHand { get; set; }
+    public Equipment_Slot OffHand { get; set; }
+    public Equipment_Slot Legs { get; set; }
+    public bool EquipmentisOpen { get; set; }
+    public EquipmentType EquipmentType { get; }
 
     protected override BoxCollider2D Coll => ActorComponents.ActorColl;
 
@@ -72,7 +78,7 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>
             CharacterComponentCheck();
         }
         ActorData.Initialise(_actor);
-        
+        ActorData.ActorEquipment.SetEquipmentTypes(this);
     }
 
     private void InitialiseComponents()
@@ -84,8 +90,6 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>
         _agent.updateUpAxis = false;
         startingPosition = transform.position;
         ActorScripts.StatManager = GetComponent<Manager_Stats>();
-        ActorScripts.EquipmentManager = GetComponent<Equipment_Manager>();
-        ActorScripts.InventoryManager = GetComponent<Inventory_Manager>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         ActorComponents.ActorColl = GetComponent<BoxCollider2D>();
         ActorComponents.ActorBody = GetComponent<Rigidbody2D>();
@@ -110,38 +114,38 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>
             switch (part)
             {
                 case "Head":
-                    _head = childTransform.GetComponent<Equipment_Slot>();
-                    if (_head == null)
+                    Head = childTransform.GetComponent<Equipment_Slot>();
+                    if (Head == null)
                     {
-                        _head = childTransform.gameObject.AddComponent<Equipment_Slot_Armour>();
+                        Head = childTransform.gameObject.AddComponent<Equipment_Slot_Armour>();
                     }
                     break;
                 case "Chest":
-                    _chest = childTransform.GetComponent<Equipment_Slot>();
-                    if (_chest == null)
+                    Chest = childTransform.GetComponent<Equipment_Slot>();
+                    if (Chest == null)
                     {
-                        _chest = childTransform.gameObject.AddComponent<Equipment_Slot_Armour>();
+                        Chest = childTransform.gameObject.AddComponent<Equipment_Slot_Armour>();
                     }
                     break;
                 case "MainHand":
-                    _mainHand = childTransform.GetComponent<Equipment_Slot>();
-                    if (_mainHand == null)
+                    MainHand = childTransform.GetComponent<Equipment_Slot>();
+                    if (MainHand == null)
                     {
-                        _mainHand = childTransform.gameObject.AddComponent<Equipment_Slot_Weapon>();
+                        MainHand = childTransform.gameObject.AddComponent<Equipment_Slot_Weapon>();
                     }
                     break;
                 case "OffHand":
-                    _offHand = childTransform.GetComponent<Equipment_Slot>();
-                    if (_offHand == null)
+                    OffHand = childTransform.GetComponent<Equipment_Slot>();
+                    if (OffHand == null)
                     {
-                        _offHand = childTransform.gameObject.AddComponent<Equipment_Slot_Weapon>();
+                        OffHand = childTransform.gameObject.AddComponent<Equipment_Slot_Weapon>();
                     }
                     break;
                 case "Legs":
-                    _legs = childTransform.GetComponent<Equipment_Slot>();
-                    if (_legs == null)
+                    Legs = childTransform.GetComponent<Equipment_Slot>();
+                    if (Legs == null)
                     {
-                        _legs = childTransform.gameObject.AddComponent<Equipment_Slot_Armour>();
+                        Legs = childTransform.gameObject.AddComponent<Equipment_Slot_Armour>();
                     }
                     break;
                 case "VFX":
@@ -444,7 +448,7 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>
     {
         float attackRange;
 
-        attackRange = ActorData.ActorStats.CombatStats.BaseAtkRange; // Include weapon attack range, do the calculation in Stat manager?
+        attackRange = ActorData.ActorStats.CombatStats.AttackRange; // Include weapon attack range, do the calculation in Stat manager?
 
         return attackRange;
     }
@@ -494,7 +498,7 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>
         }
         else
         {
-            _mainHand.Attack();
+            MainHand.Attack();
         }
     }
     public void ReceiveDamage(Damage damage)
@@ -597,18 +601,48 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>
 
     protected IEnumerator DodgeCooldown()
     {
-        yield return new WaitForSeconds(_actor.ActorData.ActorStats.CombatStats.BaseDodgeCooldown);
+        yield return new WaitForSeconds(_actor.ActorData.ActorStats.CombatStats.DodgeCooldown);
         _actor.ActorStates.DodgeAvailable = true;
     }
 
-    public Actor_Base LootableObject()
+    public Actor_Base GetIInventoryBaseClass()
     {
         return this;
     }
-
+    public Inventory GetInventoryData()
+    {
+        return ActorData.ActorInventory;
+    }
     public InventoryItem GetInventoryItem(int itemIndex)
     {
         return ActorData.ActorInventory.InventoryItems[itemIndex];
+    }
+    public int GetInventorySize()
+    {
+        return ActorScripts.StatManager.CurrentInventorySize;
+    }
+
+    public bool EquipmentisOpen { get; set; }
+    public EquipmentType EquipmentType { get; }
+    public Actor_Base GetIEquipmentBaseClass()
+    {
+        return this;
+    }
+    public Equipment GetEquipmentData()
+    {
+        return ActorData.ActorEquipment;
+    }
+    public EquipmentItem GetEquipmentItem(EquipmentItem equipmentItem)
+    {
+        foreach (EquipmentItem equipment in ActorData.ActorEquipment.EquipmentItems)
+        {
+            if (equipmentItem.SlotType == equipment.SlotType)
+            {
+                return equipment;
+            }
+        }
+
+        return EquipmentItem.None;
     }
 }
 
@@ -617,8 +651,6 @@ public class ActorScripts
 {
     public Manager_Abilities AbilityManager;
     public Manager_Stats StatManager;
-    public Equipment_Manager EquipmentManager;
-    public Inventory_Manager InventoryManager;
     public Actor_VFX Actor_VFX;
 }
 

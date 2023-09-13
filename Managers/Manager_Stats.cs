@@ -9,31 +9,18 @@ using static UnityEditor.Progress;
 public class Manager_Stats : MonoBehaviour
 {
     // General
-    private Actor_Base _actor;
-
+    private Actor_Data_SO _actorData;
     public float CurrentSpeed;
 
     // Damager
-    public float CurrentDamageAmount;
-    public float CurrentPushForce;
-    public Vector3 CurrentPushDirection;
 
-    //Defence
-    public float CurrentHealth;
-    public float MaxHealth;
-    public float CurrentMana;
-    public float MaxMana;
-    public float CurrentStamina;
-    public float MaxStamina;
-    public float CurrentPhysicalDefence;
-    public float CurrentMagicalDefence;
-    public float CurrentDodgeMitigation;
-
-    public int currentInventorySize;
+    public CombatStats CurrentCombatStats;
+    
+    public int CurrentInventorySize;
 
     private void Start()
     {
-        _actor = GetComponent<Actor_Base>();
+        _actorData = GetComponent<Actor_Base>().ActorData;
         StartCoroutine(DelayedUpdateStats());
         InitialiseStats();
     }
@@ -60,17 +47,17 @@ public class Manager_Stats : MonoBehaviour
 
     public void InitialiseStats()
     {
-        if (CurrentHealth == 0)
+        if (CurrentCombatStats.Health == 0)
         {
-            CurrentHealth = MaxHealth;
+            CurrentCombatStats.Health = _actorData.ActorStats.CombatStats.Health;
         }
-        if (CurrentMana == 0)
+        if (CurrentCombatStats.Mana == 0)
         {
-            CurrentMana = MaxMana;
+            CurrentCombatStats.Mana = _actorData.ActorStats.CombatStats.Mana;
         }
-        if (CurrentStamina == 0) 
-        { 
-            CurrentStamina = MaxStamina;
+        if (CurrentCombatStats.Stamina == 0) 
+        {
+            CurrentCombatStats.Stamina = _actorData.ActorStats.CombatStats.Stamina;
         }
     }
 
@@ -78,14 +65,8 @@ public class Manager_Stats : MonoBehaviour
 
     public void UpdateStats()
     {
-        CurrentDamageAmount = _actor.ActorData.ActorStats.CombatStats.BaseDamage;
-        CurrentPushForce = _actor.ActorData.ActorStats.CombatStats.BasePushForce;
-        MaxHealth = _actor.ActorData.ActorStats.CombatStats.BaseHealth;
-        MaxMana = _actor.ActorData.ActorStats.CombatStats.BaseMana;
-        MaxStamina = _actor.ActorData.ActorStats.CombatStats.BaseStamina;
-        CurrentPhysicalDefence = _actor.ActorData.ActorStats.CombatStats.BasePhysicalDefence;
-        CurrentMagicalDefence = _actor.ActorData.ActorStats.CombatStats.BaseMagicalDefence;
-        CurrentSpeed = _actor.ActorData.ActorStats.CombatStats.BaseSpeed; // Add modifiers later
+        CurrentCombatStats = _actorData.ActorStats.CombatStats;
+        CurrentInventorySize = _actorData.ActorInventory.BaseInventorySize;
 
         int currentSlot = 0;
 
@@ -119,7 +100,7 @@ public class Manager_Stats : MonoBehaviour
                     CurrentMagicalDefence += armour.ItemStats.ArmourStats.ItemMagicalArmour;
                 }
 
-                MaxHealth += _actor.ActorData.ActorStats.CombatStats.BaseHealth;
+                MaxHealth += _actor.ActorData.ActorStats.CombatStats.Health;
                 if (CurrentHealth > MaxHealth)
                 {
                     CurrentHealth = MaxHealth;

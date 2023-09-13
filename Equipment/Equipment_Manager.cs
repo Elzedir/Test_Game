@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Threading;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -9,196 +10,82 @@ using UnityEngine.UIElements;
 using static Equipment_Manager;
 using static UnityEditor.Progress;
 
-public delegate void EquipmentChangeEvent();
+public enum EquipmentType
+{
+    None,
+    Head,
+    Chest,
+    MainHand,
+    OffHand,
+    Legs,
+    Consumable
+}
+
+public enum EquipmentSize
+{
+    Small,
+    Standard,
+    Large,
+    Giant
+}
 
 [System.Serializable]
 public class Equipment_Manager : MonoBehaviour
 {
-    public Dictionary<Equipment_Slot, (int, int, bool)> CurrentEquipment = new();
-    private Equipment_Slot _head, _chest, _mainHand, _offHand, _legs, _consumable;
-
-    private bool _equipmentIsInitialised = false; public bool EquipmentIsInitialised { get { return  _equipmentIsInitialised; } }
-
-    public event EquipmentChangeEvent OnEquipmentChange;
-
-    // Check
-
-    public delegate void AttackAnimationDelegate(Animator animator);
-
-    public AttackAnimationDelegate AttackAnimation;
-
-    public Animator weaponAnimator;
-    public Equipment_Manager[] statModifiers;
-    public int allowedWeaponType;
-    protected string weaponName;
-
-    public BoxCollider2D WepCollider;
-
-    void Start()
+    public (bool equipped, int remainingStackSize) Equip<T>(IEquipment<T> equipDestination, List_Item item, int stackSize) where T : MonoBehaviour
     {
-        weaponAnimator = GetComponent<Animator>();
-        WepCollider = GetComponent<BoxCollider2D>();
-
-        OnEquipmentChange += DeleteList;
-        OnEquipmentChange += PopulateEquipment;
-
-        if (!_equipmentIsInitialised)
-        {
-            StartCoroutine(DelayedInitialiseEquipment());
-            LoadEquipment();
-        }
-    }
-    
-    public virtual void Attack()
-    {
-        Debug.Log(this.name + " attacked");
-
-        AttackAnimation?.Invoke(weaponAnimator);
-    }
-    public void TriggerChangeEquipment()
-    {
-        if (OnEquipmentChange != null)
-        {
-            OnEquipmentChange();
-        }
-    }
-
-    public IEnumerator DelayedInitialiseEquipment()
-    {
-        yield return new WaitForSeconds(Manager_Initialiser.InitialiseEquipmentDelay);
-
-        InitialiseEquipment();
-    }
-    public void InitialiseEquipment()
-    {
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            Equipment_Slot child = transform.GetChild(i).GetComponent<Equipment_Slot>();
-
-            if (child != null)
-            {
-                switch (child.transform.name)
-                {
-                    case "Head":
-                        child.SlotType = SlotType.Head;
-                        _head = child;
-                        break;
-                    case "Chest":
-                        child.SlotType = SlotType.Chest;
-                        _chest = child;
-                        break;
-                    case "MainHand":
-                        child.SlotType = SlotType.MainHand;
-                        _mainHand = child;
-                        break;
-                    case "OffHand":
-                        child.SlotType = SlotType.OffHand;
-                        _offHand = child;
-                        break;
-                    case "Legs":
-                        child.SlotType = SlotType.Legs;
-                        _legs = child;
-                        break;
-                }
-
-                if (!CurrentEquipment.ContainsKey(child))
-                {
-                    CurrentEquipment[child] = (-1, 0, false);
-                }
-                else if (CurrentEquipment[child].Item1 == 0 && CurrentEquipment[child].Item2 == 0)
-                {
-                    CurrentEquipment[child] = (-1, 0, false);
-                }
-            }
-        }
-        _equipmentIsInitialised = true;
-        LoadEquipment();
-    }
-    protected void SaveEquipment(Equipment_Manager equipmentManager)
-    {
-        string equipmentData = JsonUtility.ToJson(CurrentEquipment);
-        PlayerPrefs.SetString("EquipmentIDs", equipmentData);
-        //Debug.Log(equipmentData); // Equipment isn't saving and loading still
-        PlayerPrefs.Save();
-    }
-    protected void LoadEquipment()
-    {
-        string equipmentData = PlayerPrefs.GetString("EquipmentIDs", "");
-        // Debug.Log("equipmentData: " + equipmentData); // Equipment still isn't saving and loading
-
-        if (string.IsNullOrEmpty(equipmentData) || equipmentData.Equals("{}"))
-        {
-            Debug.Log("No saved equipment found");
-        }
-        else
-        {
-            Debug.Log("Equipment loaded");
-            CurrentEquipment = JsonUtility.FromJson<Dictionary<Equipment_Slot, (int, int, bool)>>(equipmentData);
-        }
-
-    }
-    public (bool equipped, int remainingStackSize) Equip(List_Item item, int addedStackSize)
-    {
-        LoadEquipment();
-        
         bool equipped = false;
         int remainingStackSize = 0;
 
-        if (item != null)
-        {
-            Equipment_Slot primaryEquipSlot = PrimaryEquipSlot(item);
-            Equipment_Slot[] secondaryEquipSlots = SecondaryEquipSlots(item);
+        if (item == null) { Debug.LogError("Invalid item ID: " + item.ItemStats.CommonStats.ItemID); return (equipped, remainingStackSize); }
 
-            (equipped, remainingStackSize) = AttemptEquip(primaryEquipSlot, item, addedStackSize);
+        Equipment_Slot primaryEquipSlot = PrimaryEquipSlot(equipDestination, item);
+        Equipment_Slot[] secondaryEquipSlots = SecondaryEquipSlots(equipDestination, item);
+
+        (equipped, remainingStackSize) = AttemptEquip(equipDestination, primaryEquipSlot, item, stackSize);
+
+        if (!equipped)
+        {
+            foreach (Equipment_Slot secondaryEquipSlot in secondaryEquipSlots)
+            {
+                (equipped, remainingStackSize) = AttemptEquip(equipDestination, secondaryEquipSlot, item, stackSize);
+
+                if (equipped)
+                {
+                    item.AttachWeaponScript(item, secondaryEquipSlot);
+                    break;
+                }
+            }
 
             if (!equipped)
             {
-                foreach (Equipment_Slot secondaryEquipSlot in secondaryEquipSlots)
+                if (equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID != -1 && item.ItemStats.CommonStats.ItemID != equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID)
                 {
-                    (equipped, remainingStackSize) = AttemptEquip(secondaryEquipSlot, item, addedStackSize);
-
-                    if (equipped)
-                    {
-                        item.AttachWeaponScript(item, secondaryEquipSlot);
-                        break;
-                    }
+                    Debug.Log("Unequipped itemID " + equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID);
+                    UnequipEquipment(equipDestination, primaryEquipSlot);
                 }
 
-                if (!equipped)
+                (equipped, remainingStackSize) = AttemptEquip(equipDestination, primaryEquipSlot, item, stackSize);
+
+                if (equipped)
                 {
-                    if (CurrentEquipment[primaryEquipSlot].Item1 != -1 && item.ItemStats.CommonStats.ItemID != CurrentEquipment[primaryEquipSlot].Item1)
-                    {
-                        Debug.Log("Unequipped itemID " + CurrentEquipment[primaryEquipSlot].Item1);
-                        Unequip(primaryEquipSlot);
-
-                        if (TryGetComponent<Weapon> (out Weapon weapon))
-                        {
-                            Destroy(weapon);
-                        }
-                    }
-
-                    (equipped, remainingStackSize) = AttemptEquip(primaryEquipSlot, item, addedStackSize);
-
-                    if(equipped)
-                    {
-                        item.AttachWeaponScript(item, primaryEquipSlot);
-                    }
+                    item.AttachWeaponScript(item, primaryEquipSlot);
                 }
             }
-            else
-            {
-                item.AttachWeaponScript(item, primaryEquipSlot);
-            }
-
-            return (equipped, remainingStackSize);
         }
         else
         {
-            Debug.LogError("Invalid item ID: " + item.ItemStats.CommonStats.ItemID);
-            return (equipped, remainingStackSize);
+            item.AttachWeaponScript(item, primaryEquipSlot);
         }
+
+        if (Inventory_Window.Instance.IsOpen)
+        {
+            Inventory_Manager.RefreshPlayerUI();
+        }
+
+        return (equipped, remainingStackSize);
     }
-    public Equipment_Slot PrimaryEquipSlot(List_Item item)
+    public Equipment_Slot PrimaryEquipSlot<T>(IEquipment<T> slotSource, List_Item item) where T : MonoBehaviour
     {
         Equipment_Slot primaryEquipSlot = null;
 
@@ -213,7 +100,7 @@ public class Equipment_Manager : MonoBehaviour
                     case WeaponType.TwoHandedRanged:
                     case WeaponType.OneHandedMagic:
                     case WeaponType.TwoHandedMagic:
-                        primaryEquipSlot = _mainHand;
+                        primaryEquipSlot = slotSource.MainHand;
                         break;
                 }
                 break;
@@ -221,18 +108,18 @@ public class Equipment_Manager : MonoBehaviour
                 switch (item.ItemStats.ArmourStats.ArmourType)
                 {
                     case ArmourType.Head:
-                        primaryEquipSlot = _head;
+                        primaryEquipSlot = slotSource.Head;
                         break;
                     case ArmourType.Chest:
-                        primaryEquipSlot = _chest;
+                        primaryEquipSlot = slotSource.Chest;
                         break;
                     case ArmourType.Legs:
-                        primaryEquipSlot = _legs;
+                        primaryEquipSlot = slotSource.Legs;
                         break;
                 }
                 break;
             case ItemType.Consumable:
-                primaryEquipSlot = _consumable;
+                primaryEquipSlot = slotSource.Consumable;
                 break;
             default:
                 break;
@@ -240,7 +127,7 @@ public class Equipment_Manager : MonoBehaviour
 
         return primaryEquipSlot;
     }
-    public Equipment_Slot[] SecondaryEquipSlots(List_Item item)
+    public Equipment_Slot[] SecondaryEquipSlots<T>(IEquipment<T> slotSource, List_Item item) where T : MonoBehaviour
     {
         Equipment_Slot[] secondaryEquipSlots;
 
@@ -252,12 +139,12 @@ public class Equipment_Manager : MonoBehaviour
                     case WeaponType.OneHandedMelee:
                     case WeaponType.OneHandedRanged:
                     case WeaponType.OneHandedMagic:
-                        secondaryEquipSlots = new Equipment_Slot[] { _mainHand, _offHand };
+                        secondaryEquipSlots = new Equipment_Slot[] { slotSource.MainHand, slotSource.OffHand };
                         break;
                     case WeaponType.TwoHandedMelee:
                     case WeaponType.TwoHandedRanged:
                     case WeaponType.TwoHandedMagic:
-                        secondaryEquipSlots = new Equipment_Slot[] { _mainHand };
+                        secondaryEquipSlots = new Equipment_Slot[] { slotSource.MainHand };
                         break;
                     default:
                         secondaryEquipSlots = new Equipment_Slot[] { null };
@@ -265,10 +152,10 @@ public class Equipment_Manager : MonoBehaviour
                 }
                 break;
             case ItemType.Armour:
-                secondaryEquipSlots = new Equipment_Slot[] { _head, _chest, _legs };
+                secondaryEquipSlots = new Equipment_Slot[] { slotSource.Head, slotSource.Chest, slotSource.Legs };
                 break;
             case ItemType.Consumable:
-                secondaryEquipSlots = new Equipment_Slot[] { _consumable };
+                secondaryEquipSlots = new Equipment_Slot[] { slotSource.Consumable };
                 break;
             default:
                 secondaryEquipSlots = new Equipment_Slot[] { null };
@@ -277,218 +164,196 @@ public class Equipment_Manager : MonoBehaviour
 
         return secondaryEquipSlots;
     }
-    public (bool equipped, int remainingStackSize) AttemptEquip(Equipment_Slot equipSlot, List_Item item, int addedStackSize)
+    public (bool equipped, int remainingStackSize) AttemptEquip<T>(IEquipment<T> equipDestination, Equipment_Slot equipSlot, List_Item item, int stackSize) where T : MonoBehaviour
     {
-        bool equipped = false;
-        int remainingStackSize = 0;
-
-        Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
-
-        int maxStackSize = item.GetMaxStackSize();
-
-        if (CurrentEquipment[equipSlot].Item2 < maxStackSize)
+        if (item == null || stackSize <= 0 || equipDestination == null)
         {
-            if (CurrentEquipment[equipSlot].Item2 > 0)
-            {
-                int currentStackSize = CurrentEquipment[equipSlot].Item2 + addedStackSize;
+            return (false, stackSize);
+        }
 
-                if (currentStackSize > maxStackSize)
-                {
-                    remainingStackSize = currentStackSize - maxStackSize;
-                    CurrentEquipment[equipSlot] = (item.ItemStats.CommonStats.ItemID, maxStackSize, true);
-                    Debug.Log($"Reached max stack size for existing equip slot {equipSlot}");
-                    TriggerChangeEquipment();
-                    SaveEquipment(equipmentManager);
-                    equipped = true;
-                    return (equipped, remainingStackSize);
-                }
-                else
-                {
-                    CurrentEquipment[equipSlot] = (item.ItemStats.CommonStats.ItemID, currentStackSize, false);
-                    TriggerChangeEquipment();
-                    SaveEquipment(equipmentManager);
-                    equipped = true;
-                    return (equipped, remainingStackSize);
-                }
-            }
-            else
-            {
-                if (equipSlot == null)
-                {
-                    Debug.Log("No empty equipment slot found");
-                    return (equipped, remainingStackSize);
-                }
-                else
-                {
-                    int itemId = item.ItemStats.CommonStats.ItemID;
-                    int currentStackSize = addedStackSize;
+        List<EquipmentItem> equipmentItems = equipDestination.GetEquipmentData().EquipmentItems;
+        int maxStackSize = item.ItemStats.CommonStats.MaxStackSize;
+        int totalStackSize = equipmentItems[equipSlot.SlotIndex].CurrentStackSize + stackSize;
+        int remainingStackSize = totalStackSize - maxStackSize;
 
-                    if (currentStackSize > maxStackSize)
-                    {
-                        remainingStackSize = currentStackSize - maxStackSize;
-                        CurrentEquipment[equipSlot] = (item.ItemStats.CommonStats.ItemID, maxStackSize, true);
-                        Debug.Log($"Reached max stack size for empty equip slot {equipSlot}");
-                        TriggerChangeEquipment();
-                        SaveEquipment(equipmentManager);
-                        equipped = true;
-                        return (equipped, remainingStackSize);
-                    }
-                    else
-                    {
-                        CurrentEquipment[equipSlot] = (itemId, currentStackSize, false);
-                        Debug.Log("Item" + item.ItemStats.CommonStats.ItemName + "added");
-                        TriggerChangeEquipment();
-                        SaveEquipment(equipmentManager);
-                        equipped = true;
-                        return (equipped, remainingStackSize);
-                    }
-                }
+        EquipmentItem itemToEquip = equipmentItems[equipSlot.SlotIndex];
+        itemToEquip.ItemID = item.ItemStats.CommonStats.ItemID;
+        itemToEquip.CurrentStackSize = Math.Min(totalStackSize, maxStackSize);
+
+        return (true, totalStackSize > maxStackSize ? remainingStackSize : 0);
+    }
+    public void UnequipEquipment<T>(IEquipment<T> equipmentSource, Equipment_Slot equipSlot) where T : MonoBehaviour
+    {
+        List_Item previousEquipment = List_Item.GetItemData(equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex].ItemID);
+
+        int stackSize = equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex].CurrentStackSize;
+
+        IInventory<T> inventoryDestination = equipmentSource.GetIEquipmentBaseClass().GetComponent<IInventory<T>>();
+
+        bool itemReturnedToInventory = Inventory_Manager.AddItem(inventoryDestination, previousEquipment, stackSize);
+
+        if (itemReturnedToInventory)
+        {
+            equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex].ItemID = -1;
+            equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex].CurrentStackSize = 0;
+        }
+        else { Debug.Log("Item failed to go home to inventory"); }
+
+        if (Inventory_Window.Instance.IsOpen)
+        { 
+            Inventory_Manager.RefreshPlayerUI(); 
+        }
+    }
+    public void UnequipAll<T>(IEquipment<T> itemSource) where T : MonoBehaviour
+    {
+        foreach (EquipmentItem equipmentItem in itemSource.GetEquipmentData().EquipmentItems)
+        {
+            if (equipmentItem.ItemID != -1)
+            {
+                UnequipEquipment(itemSource, equipmentItem.Slot);
             }
+        }
+    }
+    public void DropEquipment<T>(IEquipment<T> equipmentSource, Equipment_Slot equipSlot, int dropAmount) where T : MonoBehaviour
+    {
+        EquipmentItem equipmentItem = equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex];
+        GameManager.Instance.CreateNewItem(equipmentItem.ItemID, dropAmount);
+
+        dropAmount = dropAmount == -1 ? equipmentItem.CurrentStackSize : dropAmount;
+        int remainingStackSize = equipmentItem.CurrentStackSize - dropAmount;
+
+        if (remainingStackSize <= 0)
+        {
+            equipmentItem.ItemID = -1;
+            equipmentItem.CurrentStackSize = 0;
         }
         else
         {
-            Debug.Log("All slots at max stack size");
-            return (equipped, remainingStackSize);
+            equipmentItem.CurrentStackSize = remainingStackSize;
+        }
+
+        if (Inventory_Window.Instance.IsOpen)
+        {
+            Inventory_Manager.RefreshPlayerUI();
         }
     }
-    public void Unequip (Equipment_Slot equipSlot)
+    public void UpdateSprites<T>(IEquipment<T> equipmentSource) where T : MonoBehaviour
     {
-        if (CurrentEquipment.ContainsKey(equipSlot))
+        foreach (EquipmentItem equipmentItem in equipmentSource.GetEquipmentData().EquipmentItems)
         {
-            List_Item previousEquipment = List_Item.GetItemData(CurrentEquipment[equipSlot].Item1);
-            Inventory_Manager inventoryManager = gameObject.GetComponent<Inventory_Manager>();
-            Actor_Base inventoryActor = GetComponent<Actor_Base>();
-            Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
-            int stackSize = CurrentEquipment[equipSlot].Item2;
-
-            bool itemReturnedToInventory = inventoryManager.AddItem(previousEquipment, stackSize);
-
-            if (itemReturnedToInventory)
-            {
-                CurrentEquipment[equipSlot] = (-1, 0, false);
-                Debug.Log(CurrentEquipment[equipSlot]);
-            }
-            else
-            {
-                Debug.Log("Item failed to go home to inventory");
-            }
-            
-            SaveEquipment(this);
-            TriggerChangeEquipment();
-            Manager_Menu.Instance.InventoryMenu.RefreshPlayerUI(inventoryActor.gameObject, equipmentManager);
-        }
-        else
-        {
-            Debug.LogWarning("Tried to unequip invalid equipment slot: " + equipSlot);
-        }
-    }
-    public void DropItem(Equipment_Slot equipSlot, int dropAmount)
-    {
-        if (CurrentEquipment.ContainsKey(equipSlot))
-        {
-            Actor_Base inventoryActor = GetComponent<Actor_Base>();
-            Equipment_Manager equipmentManager = GetComponent<Equipment_Manager>();
-            int tempItemID = CurrentEquipment[equipSlot].Item1;
-
-            if (dropAmount == -1)
-            {
-                dropAmount = CurrentEquipment[equipSlot].Item2;
-            }
-
-            int currentStackSize = CurrentEquipment[equipSlot].Item2 - dropAmount;
-
-            if (currentStackSize <= 0)
-            {
-                CurrentEquipment[equipSlot] = (-1, 0, false);
-            }
-            else
-            {
-                CurrentEquipment[equipSlot] = (CurrentEquipment[equipSlot].Item1, currentStackSize, false);
-            }
-
-            SaveEquipment(this);
-            TriggerChangeEquipment();
-            Manager_Menu.Instance.InventoryMenu.RefreshPlayerUI(inventoryActor.gameObject, equipmentManager);
-
-            GameManager.Instance.CreateNewItem(tempItemID, dropAmount);
-        }
-        else
-        {
-            Debug.LogWarning("Tried to drop from invalid equipment slot: " + equipSlot);
-        }
-    }
-    public void UnequipAll()
-    {
-        foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> equipment in CurrentEquipment)
-        {
-            Equipment_Slot equipmentSlot = equipment.Key;
-            (int, int, bool) equipmentData = equipment.Value;
-
-            if (equipmentData.Item1 != -1)
-            {
-                Unequip(equipmentSlot);
-                CurrentEquipment[equipment.Key] = (-1, 0, false);
-            }
-        } 
-    }
-    public void UpdateSprites()
-    {
-        foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> equipment in CurrentEquipment)
-        {
-            Equipment_Slot equipmentSlot = equipment.Key;
-            (int, int, bool) equipmentData = equipment.Value;
-
-            List_Item item = List_Item.GetItemData(equipmentData.Item1);
-            equipmentSlot.UpdateSprite(equipmentSlot, item);
+            equipmentItem.Slot.UpdateSprite(equipmentItem.Slot, List_Item.GetItemData(equipmentItem.ItemID));
         }
     }
 
-    public List<Equipment_Slot> WeaponEquipped()
+    public List<Equipment_Slot> WeaponEquipped<T>(IEquipment<T> equipmentSource) where T : MonoBehaviour
     {
         List<Equipment_Slot> equippedWeapons = new List<Equipment_Slot>();
 
-        if (CurrentEquipment[_mainHand].Item1 != -1)
+        if (equipmentSource.GetEquipmentData().EquipmentItems[2].ItemID != -1)
         {
-            equippedWeapons.Add(_mainHand);
+            equippedWeapons.Add(equipmentSource.GetEquipmentData().EquipmentItems[2].Slot);
         }
 
-        if (CurrentEquipment[_offHand].Item1 != -1)
+        if (equipmentSource.GetEquipmentData().EquipmentItems[3].ItemID != -1)
         {
-            equippedWeapons.Add(_offHand);
+            equippedWeapons.Add(equipmentSource.GetEquipmentData().EquipmentItems[3].Slot);
         }
 
         return equippedWeapons;
     }
+}
 
-    [Serializable]
-    public struct EquipmentItem
-    {
-        public int itemID;
-        public int stackSize;
-        public Sprite itemIcon;
-    }
+[Serializable]
+public class Equipment
+{
+    [SerializeField] private int _numberOfEquipmentPieces = 6;
 
-    public List<EquipmentItem> displayEquipmentList = new List<EquipmentItem>();
-    public void PopulateEquipment()
+    [SerializeField] public List<EquipmentItem> EquipmentItems = new();
+
+    public void SetEquipmentTypes<T>(IEquipment<T> objectToEquip) where T : MonoBehaviour
     {
-        foreach (var item in CurrentEquipment)
+        List<EquipmentItem> equipmentItems = new List<EquipmentItem>
         {
-            int itemID = item.Value.Item1;
-            int stackSize = item.Value.Item2;
-            Sprite itemIcon = null;
+        EquipmentItem.None,
+        EquipmentItem.None,
+        EquipmentItem.None,
+        EquipmentItem.None,
+        EquipmentItem.None,
+        EquipmentItem.None
+        };
 
-            EquipmentItem equipmentItem = new EquipmentItem()
+        for (int i = 1; i < _numberOfEquipmentPieces; i++)
+        {
+            Equipment_Slot child = objectToEquip.GetIEquipmentBaseClass().transform.GetChild(i).GetComponent<Equipment_Slot>();
+
+            if (child != null)
             {
-                itemID = itemID,
-                stackSize = stackSize,
-                itemIcon = itemIcon
-            };
+                switch (child.SlotType)
+                {
+                    case SlotType.Head:
+                        child.SlotIndex = 0;
+                        break;
+                    case SlotType.Chest:
+                        child.SlotIndex = 1;
+                        break;
+                    case SlotType.MainHand:
+                        child.SlotIndex = 2;
+                        break;
+                    case SlotType.OffHand:
+                        child.SlotIndex = 3;
+                        break;
+                    case SlotType.Legs:
+                        child.SlotIndex = 4;
+                        break;
+                    case SlotType.Consumable:
+                        child.SlotIndex = 5;
+                        break;
+                }
 
-            displayEquipmentList.Add(equipmentItem);
+                EquipmentItem newEquipmentItem = new EquipmentItem
+                {
+                    Slot = child,
+                    SlotType = child.SlotType,
+                    ItemID = -1,
+                    CurrentStackSize = 0
+                };
+
+                equipmentItems[child.SlotIndex] = newEquipmentItem;
+
+            }
         }
+
+        objectToEquip.GetEquipmentData().EquipmentItems = equipmentItems;
     }
-    public void DeleteList()
+}
+
+public class EquipmentItem
+{
+    public Equipment_Slot Slot;
+    public SlotType SlotType;
+    public int ItemID;
+    public int CurrentStackSize;
+
+    public static readonly EquipmentItem None = new EquipmentItem { SlotType = SlotType.None, ItemID = -1, CurrentStackSize = 0 };
+
+    public void ClearItem()
     {
-        displayEquipmentList.Clear();
+        ItemID = -1;
+        CurrentStackSize = 0;
     }
+}
+
+public interface IEquipment<T> where T : MonoBehaviour
+{
+    public Equipment_Slot Head { get; set; }
+    public Equipment_Slot Chest { get; set; }
+    public Equipment_Slot MainHand { get; set; }
+    public Equipment_Slot OffHand { get; set; }
+    public Equipment_Slot Legs { get; set; }
+    public Equipment_Slot Consumable { get; set; }
+    public bool EquipmentisOpen { get; set; }
+    public EquipmentType EquipmentType { get; }
+    public T GetIEquipmentBaseClass();
+    public Equipment GetEquipmentData();
+    public EquipmentItem GetEquipmentItem(EquipmentType equipmentType);
 }

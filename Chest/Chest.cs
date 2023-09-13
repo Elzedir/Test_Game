@@ -9,6 +9,10 @@ public class Chest : MonoBehaviour, IInventory<Chest>
     private SpriteRenderer _spriteRenderer;
     public Chest_Data_SO ChestData;
 
+    public InventoryType InventoryType => InventoryType.Chest;
+    public bool InventoryIsOpen;
+    public bool InventoryisOpen => InventoryIsOpen;
+
     // Put in a way for the chest to go back to normal after it closes.
 
     public void Start()
@@ -23,14 +27,9 @@ public class Chest : MonoBehaviour, IInventory<Chest>
     {
         if (Input.GetMouseButtonUp(1))
         {
-            ChestData = Chest_Manager.Instance.GetChestData(this);
-
-            if (chestItems != null)
-            {
-                _spriteRenderer.sprite = (chestItems.items.Length > 0)
+            _spriteRenderer.sprite = (ChestData.ChestInventory.InventoryItems.Count > 0)
                     ? SO_List.Instance.ChestSprites[1].sprite
                     : SO_List.Instance.ChestSprites[2].sprite;
-            }
 
             Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, openable: true);
         }
@@ -41,13 +40,20 @@ public class Chest : MonoBehaviour, IInventory<Chest>
         Inventory_Window.Instance.OpenMenu(this.gameObject);
     }
 
-    public Chest LootableObject()
+    public Chest GetIInventoryBaseClass()
     {
         return this;
     }
-
+    public Inventory GetInventoryData()
+    {
+        return ChestData.ChestInventory;
+    }
     public InventoryItem GetInventoryItem(int itemIndex)
     {
-        return ChestData.ChestItems[itemIndex];
+        return ChestData.ChestInventory.InventoryItems[itemIndex];
+    }
+    public int GetInventorySize()
+    {
+        return ChestData.ChestInventory.BaseInventorySize;
     }
 }

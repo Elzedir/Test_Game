@@ -64,7 +64,7 @@ public class Player : MonoBehaviour
 
                 move += _playerActor.PushDirection;
 
-                _playerActor.PushDirection = Vector3.Lerp(_playerActor.PushDirection, Vector3.zero, _playerActor.ActorData.ActorStats.CombatStats.BasePushRecovery);
+                _playerActor.PushDirection = Vector3.Lerp(_playerActor.PushDirection, Vector3.zero, _playerActor.ActorData.ActorStats.CombatStats.PushRecovery);
 
                 _hit = Physics2D.BoxCast(transform.position, _playerActor.ActorComponents.ActorColl.bounds.size, 0, new Vector2(0, move.y), Mathf.Abs(move.y * Time.deltaTime), LayerMask.GetMask("Blocking"));
                 if (_hit.collider == null)

@@ -9,9 +9,8 @@ using UnityEngine.UI;
 
 public class Inventory_Slot : MonoBehaviour, IDropHandler
 {
+    private IInventory<T> inventorySource;
     public int slotIndex;
-    private Actor_Base inventoryActor;
-    private Chest inventoryChest;
     public TextMeshProUGUI stackSizeText;
     public Image slotIcon;
     public Button inventoryEquipButton;
@@ -23,10 +22,8 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
 
-    public virtual void UpdateSlotUI(int itemID, int stackSize, Actor_Base actor = null, Chest chest = null)
+    public virtual void UpdateSlotUI<T>(IInventory<T> inventorySource, int itemID, int stackSize) where T : MonoBehaviour
     {
-        inventoryActor = actor;
-        inventoryChest = chest;
 
         if (itemID == -1 || stackSize == 0)
         {

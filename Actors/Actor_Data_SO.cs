@@ -67,8 +67,8 @@ public class Actor_Data_SO : ScriptableObject
     private Actor_Skills _actorSkills;
     public ActorStats ActorStats;
     public Specialisations ActorSpecialisations;
-    public ActorInventory ActorInventory;
-
+    public Inventory ActorInventory;
+    public Equipment ActorEquipment;
     public Abilities ActorAbilities;
 
     // Trigger Zone
@@ -161,22 +161,22 @@ public struct ActorStats
 [System.Serializable]
 public struct CombatStats
 {
-    public float BaseHealth;
-    public float BaseMana;
-    public float BaseStamina;
-    public float BasePushRecovery;
+    public float Health;
+    public float Mana;
+    public float Stamina;
+    public float PushRecovery;
 
-    public float BaseDamage;
-    public float BaseSpeed;
-    public float BaseSwingTime;
-    public float BaseAtkRange;
-    public float BasePushForce;
-    public float BaseCooldown;
+    public float AttackDamage;
+    public float AttackSpeed;
+    public float AttackSwingTime;
+    public float AttackRange;
+    public float AttackPushForce;
+    public float AttackCooldown;
 
-    public float BasePhysicalDefence;
-    public float BaseMagicalDefence;
+    public float PhysicalDefence;
+    public float MagicalDefence;
 
-    public float BaseDodgeCooldown;
+    public float DodgeCooldown;
 }
 
 [System.Serializable]
@@ -203,30 +203,4 @@ public class Abilities
 {
     public List<Ability> AbilityList = new();
     public Dictionary<List_Ability, float> AbilityCooldowns = new();
-}
-
-public enum InventoryType
-{
-    InventoryNotEquippable,
-    InventoryEquippable
-}
-
-[Serializable]
-public class ActorInventory
-{
-    private int _baseInventorySize; public int BaseInventorySize { get { return _baseInventorySize; } }
-
-    [SerializeField] public List<InventoryItem> InventoryItems = new();
-}
-
-public struct InventoryItem
-{
-    public int ItemID;
-    public int CurrentStackSize;
-
-    public void ClearItem()
-    {
-        ItemID = -1;
-        CurrentStackSize = 0;
-    }
 }

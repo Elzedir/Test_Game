@@ -30,15 +30,9 @@ public class Inventory_Creator : MonoBehaviour
         }
     }
 
-    public void UpdateInventoryUI(Inventory_Manager inventoryManager)
+    public void UpdateInventoryUI<T>(IInventory<T> inventorySource) where T : MonoBehaviour
     {
         TempInventoryManager = inventoryManager;
-
-        Dictionary<int, (int, int, bool)> inventoryItems = inventoryManager.InventoryItemIDs;
-        Actor_Base inventoryActor = inventoryManager.GetComponent<Actor_Base>();
-        Chest inventoryChest = inventoryManager.GetComponent<Chest>();
-
-        bool hasItems = false;
 
         foreach (Transform child in inventoryArea)
         {
@@ -46,7 +40,7 @@ public class Inventory_Creator : MonoBehaviour
 
             if (slot != null)
             {
-                if (inventoryItems.TryGetValue(slot.slotIndex, out var itemData))
+                if (inventorySource.GetInventoryData().TryGetValue(slot.slotIndex, out var itemData))
                 {
                     (int itemID, int stackSize, bool isFull) = itemData;
 
@@ -58,11 +52,6 @@ public class Inventory_Creator : MonoBehaviour
                     }
                 }
             }
-        }
-
-        if (!hasItems)
-        {
-            Debug.Log("No items in the inventory.");
         }
     }
 }

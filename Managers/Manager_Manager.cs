@@ -6,7 +6,6 @@ public class Manager_Manager : MonoBehaviour
 {
     public static Manager_Manager Instance;
     public Manager_Abilities AbilityManager;
-    public Chest_Manager ChestManager;
     public GameManager GameManager;
     public Manager_Input InputManager;
 }
