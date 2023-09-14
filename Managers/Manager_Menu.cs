@@ -31,7 +31,7 @@ public class Manager_Menu : MonoBehaviour
     {
         if (menu != null)
         {
-            menu.CloseMenu();
+            menu.CloseMenu<Manager_Menu>();
             SetWindowToBack(menu.gameObject);
         }
 
@@ -59,7 +59,7 @@ public class Manager_Menu : MonoBehaviour
             }
             else
             {
-                Menu_Escape.Instance.OpenMenu();
+                Menu_Escape.Instance.OpenMenu<Manager_Menu>();
             }
         }
     }
@@ -78,7 +78,7 @@ public class Manager_Menu : MonoBehaviour
     {
         if (!menu.IsOpen)
         {
-            menu.OpenMenu(interactedObject);
+            menu.OpenMenu<Manager_Menu>(interactedObject);
             SetWindowToFront(menu.gameObject);
         }
         else

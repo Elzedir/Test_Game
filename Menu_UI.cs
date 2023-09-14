@@ -10,12 +10,12 @@ public class Menu_UI : MonoBehaviour
         get { return _isOpen; }
     }
 
-    public virtual void OpenMenu(GameObject interactedObject = null)
+    public virtual void OpenMenu<T>(GameObject interactedObject = null) where T : MonoBehaviour
     {
 
     }
 
-    public virtual void CloseMenu()
+    public virtual void CloseMenu<T>(GameObject interactedObject = null) where T : MonoBehaviour
     {
 
     }

@@ -67,7 +67,7 @@ public class Menu_Settings_Rebind : MonoBehaviour
                         {
                             Manager_Input.Instance.KeyBindings.RebindKey(actionKey, _newKeyCode);
                             _isWaitingForConfirmation = false;
-                            Menu_Settings.Instance.OpenMenu();
+                            Menu_Settings.Instance.OpenMenu<Menu_Settings_Rebind>();
                             Menu_Settings.Instance.ControlsCategorySelected();
                             break;
                         }

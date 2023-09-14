@@ -8,7 +8,6 @@ public class Inventory_Creator : MonoBehaviour
 {
     [SerializeField] private Transform inventoryArea;
     private bool isOpen = false;
-    public Inventory_Manager TempInventoryManager;
 
     public bool IsOpen
     {
@@ -32,25 +31,15 @@ public class Inventory_Creator : MonoBehaviour
 
     public void UpdateInventoryUI<T>(IInventory<T> inventorySource) where T : MonoBehaviour
     {
-        TempInventoryManager = inventoryManager;
+        List<InventoryItem> inventoryItems = inventorySource.GetInventoryData().InventoryItems;
 
-        foreach (Transform child in inventoryArea)
+        for (int i = 0; i < inventoryArea.childCount; i++)
         {
-            Inventory_Slot slot = child.GetComponent<Inventory_Slot>();
+            Inventory_Slot slot = inventoryArea.GetChild(i).GetComponent<Inventory_Slot>();
 
-            if (slot != null)
+            if (slot != null && i < inventoryItems.Count)
             {
-                if (inventorySource.GetInventoryData().TryGetValue(slot.slotIndex, out var itemData))
-                {
-                    (int itemID, int stackSize, bool isFull) = itemData;
-
-                    slot.UpdateSlotUI(itemID, stackSize, inventoryActor, inventoryChest);
-
-                    if (itemID != -1)
-                    {
-                        hasItems = true;
-                    }
-                }
+                slot.UpdateSlotUI(inventorySource, inventoryItems[i]);
             }
         }
     }

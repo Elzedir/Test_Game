@@ -1,6 +1,8 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading;
 using Unity.VisualScripting;
@@ -59,9 +61,9 @@ public class Equipment_Manager : MonoBehaviour
 
             if (!equipped)
             {
-                if (equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID != -1 && item.ItemStats.CommonStats.ItemID != equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID)
+                if (equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemStats.CommonStats.ItemID != -1 && item.ItemStats.CommonStats.ItemID != equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemStats.CommonStats.ItemID)
                 {
-                    Debug.Log("Unequipped itemID " + equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID);
+                    Debug.Log("Unequipped itemID " + equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemStats.CommonStats.ItemID);
                     UnequipEquipment(equipDestination, primaryEquipSlot);
                 }
 
@@ -173,29 +175,26 @@ public class Equipment_Manager : MonoBehaviour
 
         List<EquipmentItem> equipmentItems = equipDestination.GetEquipmentData().EquipmentItems;
         int maxStackSize = item.ItemStats.CommonStats.MaxStackSize;
-        int totalStackSize = equipmentItems[equipSlot.SlotIndex].CurrentStackSize + stackSize;
+        int totalStackSize = equipmentItems[equipSlot.SlotIndex].ItemStats.CommonStats.CurrentStackSize + stackSize;
         int remainingStackSize = totalStackSize - maxStackSize;
 
         EquipmentItem itemToEquip = equipmentItems[equipSlot.SlotIndex];
-        itemToEquip.ItemID = item.ItemStats.CommonStats.ItemID;
-        itemToEquip.CurrentStackSize = Math.Min(totalStackSize, maxStackSize);
+        itemToEquip.ItemStats.CommonStats.ItemID = item.ItemStats.CommonStats.ItemID;
+        itemToEquip.ItemStats.CommonStats.CurrentStackSize = Math.Min(totalStackSize, maxStackSize);
 
         return (true, totalStackSize > maxStackSize ? remainingStackSize : 0);
     }
     public void UnequipEquipment<T>(IEquipment<T> equipmentSource, Equipment_Slot equipSlot) where T : MonoBehaviour
     {
-        List_Item previousEquipment = List_Item.GetItemData(equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex].ItemID);
+        List_Item previousEquipment = List_Item.GetItemData(equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex].ItemStats.CommonStats.ItemID);
 
-        int stackSize = equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex].CurrentStackSize;
+        int stackSize = equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex].ItemStats.CommonStats.CurrentStackSize;
 
-        IInventory<T> inventoryDestination = equipmentSource.GetIEquipmentBaseClass().GetComponent<IInventory<T>>();
-
-        bool itemReturnedToInventory = Inventory_Manager.AddItem(inventoryDestination, previousEquipment, stackSize);
+        bool itemReturnedToInventory = Inventory_Manager.AddItem(equipmentSource.GetIEquipmentBaseClass().GetComponent<IInventory<T>>(), previousEquipment, stackSize);
 
         if (itemReturnedToInventory)
         {
-            equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex].ItemID = -1;
-            equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex].CurrentStackSize = 0;
+            equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex] = EquipmentItem.None;
         }
         else { Debug.Log("Item failed to go home to inventory"); }
 
@@ -208,7 +207,7 @@ public class Equipment_Manager : MonoBehaviour
     {
         foreach (EquipmentItem equipmentItem in itemSource.GetEquipmentData().EquipmentItems)
         {
-            if (equipmentItem.ItemID != -1)
+            if (equipmentItem.ItemStats.CommonStats.ItemID != -1)
             {
                 UnequipEquipment(itemSource, equipmentItem.Slot);
             }
@@ -217,19 +216,19 @@ public class Equipment_Manager : MonoBehaviour
     public void DropEquipment<T>(IEquipment<T> equipmentSource, Equipment_Slot equipSlot, int dropAmount) where T : MonoBehaviour
     {
         EquipmentItem equipmentItem = equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex];
-        GameManager.Instance.CreateNewItem(equipmentItem.ItemID, dropAmount);
+        GameManager.Instance.CreateNewItem(equipmentItem.ItemStats.CommonStats.ItemID, dropAmount);
 
-        dropAmount = dropAmount == -1 ? equipmentItem.CurrentStackSize : dropAmount;
-        int remainingStackSize = equipmentItem.CurrentStackSize - dropAmount;
+        dropAmount = dropAmount == -1 ? equipmentItem.ItemStats.CommonStats.CurrentStackSize : dropAmount;
+        int remainingStackSize = equipmentItem.ItemStats.CommonStats.CurrentStackSize - dropAmount;
 
         if (remainingStackSize <= 0)
         {
-            equipmentItem.ItemID = -1;
-            equipmentItem.CurrentStackSize = 0;
+            equipmentItem.ItemStats.CommonStats.ItemID = -1;
+            equipmentItem.ItemStats.CommonStats.CurrentStackSize = 0;
         }
         else
         {
-            equipmentItem.CurrentStackSize = remainingStackSize;
+            equipmentItem.ItemStats.CommonStats.CurrentStackSize = remainingStackSize;
         }
 
         if (Inventory_Window.Instance.IsOpen)
@@ -237,24 +236,24 @@ public class Equipment_Manager : MonoBehaviour
             Inventory_Manager.RefreshPlayerUI();
         }
     }
-    public void UpdateSprites<T>(IEquipment<T> equipmentSource) where T : MonoBehaviour
+    public static void UpdateSprites<T>(IEquipment<T> equipmentSource) where T : MonoBehaviour
     {
         foreach (EquipmentItem equipmentItem in equipmentSource.GetEquipmentData().EquipmentItems)
         {
-            equipmentItem.Slot.UpdateSprite(equipmentItem.Slot, List_Item.GetItemData(equipmentItem.ItemID));
+            equipmentItem.Slot.UpdateSprite(equipmentItem.Slot, List_Item.GetItemData(equipmentItem.ItemStats.CommonStats.ItemID));
         }
     }
 
-    public List<Equipment_Slot> WeaponEquipped<T>(IEquipment<T> equipmentSource) where T : MonoBehaviour
+    public static List<Equipment_Slot> WeaponEquipped<T>(IEquipment<T> equipmentSource) where T : MonoBehaviour
     {
         List<Equipment_Slot> equippedWeapons = new List<Equipment_Slot>();
 
-        if (equipmentSource.GetEquipmentData().EquipmentItems[2].ItemID != -1)
+        if (equipmentSource.GetEquipmentData().EquipmentItems[2].ItemStats.CommonStats.ItemID != -1)
         {
             equippedWeapons.Add(equipmentSource.GetEquipmentData().EquipmentItems[2].Slot);
         }
 
-        if (equipmentSource.GetEquipmentData().EquipmentItems[3].ItemID != -1)
+        if (equipmentSource.GetEquipmentData().EquipmentItems[3].ItemStats.CommonStats.ItemID != -1)
         {
             equippedWeapons.Add(equipmentSource.GetEquipmentData().EquipmentItems[3].Slot);
         }
@@ -266,81 +265,17 @@ public class Equipment_Manager : MonoBehaviour
 [Serializable]
 public class Equipment
 {
-    [SerializeField] private int _numberOfEquipmentPieces = 6;
+    [SerializeField] private int _numberOfEquipmentPieces = 6; public int NumberOfEquipmentPieces { get { return _numberOfEquipmentPieces; } }
 
     [SerializeField] public List<EquipmentItem> EquipmentItems = new();
-
-    public void SetEquipmentTypes<T>(IEquipment<T> objectToEquip) where T : MonoBehaviour
-    {
-        List<EquipmentItem> equipmentItems = new List<EquipmentItem>
-        {
-        EquipmentItem.None,
-        EquipmentItem.None,
-        EquipmentItem.None,
-        EquipmentItem.None,
-        EquipmentItem.None,
-        EquipmentItem.None
-        };
-
-        for (int i = 1; i < _numberOfEquipmentPieces; i++)
-        {
-            Equipment_Slot child = objectToEquip.GetIEquipmentBaseClass().transform.GetChild(i).GetComponent<Equipment_Slot>();
-
-            if (child != null)
-            {
-                switch (child.SlotType)
-                {
-                    case SlotType.Head:
-                        child.SlotIndex = 0;
-                        break;
-                    case SlotType.Chest:
-                        child.SlotIndex = 1;
-                        break;
-                    case SlotType.MainHand:
-                        child.SlotIndex = 2;
-                        break;
-                    case SlotType.OffHand:
-                        child.SlotIndex = 3;
-                        break;
-                    case SlotType.Legs:
-                        child.SlotIndex = 4;
-                        break;
-                    case SlotType.Consumable:
-                        child.SlotIndex = 5;
-                        break;
-                }
-
-                EquipmentItem newEquipmentItem = new EquipmentItem
-                {
-                    Slot = child,
-                    SlotType = child.SlotType,
-                    ItemID = -1,
-                    CurrentStackSize = 0
-                };
-
-                equipmentItems[child.SlotIndex] = newEquipmentItem;
-
-            }
-        }
-
-        objectToEquip.GetEquipmentData().EquipmentItems = equipmentItems;
-    }
 }
 
 public class EquipmentItem
 {
     public Equipment_Slot Slot;
-    public SlotType SlotType;
-    public int ItemID;
-    public int CurrentStackSize;
+    public ItemStats ItemStats;
 
-    public static readonly EquipmentItem None = new EquipmentItem { SlotType = SlotType.None, ItemID = -1, CurrentStackSize = 0 };
-
-    public void ClearItem()
-    {
-        ItemID = -1;
-        CurrentStackSize = 0;
-    }
+    public static readonly EquipmentItem None = new EquipmentItem { Slot = null, ItemStats = ItemStats.None() };
 }
 
 public interface IEquipment<T> where T : MonoBehaviour
@@ -352,8 +287,7 @@ public interface IEquipment<T> where T : MonoBehaviour
     public Equipment_Slot Legs { get; set; }
     public Equipment_Slot Consumable { get; set; }
     public bool EquipmentisOpen { get; set; }
-    public EquipmentType EquipmentType { get; }
     public T GetIEquipmentBaseClass();
     public Equipment GetEquipmentData();
-    public EquipmentItem GetEquipmentItem(EquipmentType equipmentType);
+    public EquipmentItem GetEquipmentItem(EquipmentItem equipmentItem);
 }

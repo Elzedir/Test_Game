@@ -32,13 +32,11 @@ public class Equipment_Slot : MonoBehaviour
 {
     public int SlotIndex;
     public SlotType SlotType;
-    protected Equipment_Manager _equipmentManager;
+    public EquipmentItem EquipmentItem;
     protected Actor_Base _actor;
 
     protected SpriteRenderer _spriteRenderer;
     protected Animator _animator; 
-
-    public ItemStats ItemStats;
 
     private HashSet<Collider2D> _hitEnemies;
     protected bool _offHandAttack = false;
@@ -49,14 +47,11 @@ public class Equipment_Slot : MonoBehaviour
     public void Start()
     {        
         InitialiseComponents();
-
-        _equipmentManager.OnEquipmentChange += PopulateEquipmentSlots;
     }
 
     private void InitialiseComponents()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
-        _equipmentManager = GetComponentInParent<Equipment_Manager>();
         _actor = GetComponentInParent<Actor_Base>();
         _animator = GetComponent<Animator>();
     }
@@ -67,7 +62,7 @@ public class Equipment_Slot : MonoBehaviour
 
         if (_actor.ActorStates.Attacking)
         {
-            if (ItemStats.WeaponStats.WeaponType == WeaponType.OneHandedMelee || ItemStats.WeaponStats.WeaponType == WeaponType.TwoHandedMelee)
+            if (EquipmentItem.ItemStats.WeaponStats.WeaponType == WeaponType.OneHandedMelee || EquipmentItem.ItemStats.WeaponStats.WeaponType == WeaponType.TwoHandedMelee)
             {
                 if (this.SlotType == SlotType.MainHand)
                 {
@@ -78,7 +73,7 @@ public class Equipment_Slot : MonoBehaviour
                     MeleeCollideCheck();
                 }
             }
-            else if (ItemStats.WeaponStats.WeaponType == WeaponType.OneHandedRanged || ItemStats.WeaponStats.WeaponType == WeaponType.TwoHandedRanged)
+            else if (EquipmentItem.ItemStats.WeaponStats.WeaponType == WeaponType.OneHandedRanged || EquipmentItem.ItemStats.WeaponStats.WeaponType == WeaponType.TwoHandedRanged)
             {
                 if (this.SlotType == SlotType.MainHand)
                 {
@@ -123,9 +118,9 @@ public class Equipment_Slot : MonoBehaviour
     }
     public virtual void Attack(Equipment_Slot equipmentSlot = null, float chargeTime = 0f)
     {
-        if (chargeTime > ItemStats.WeaponStats.MaxChargeTime)
+        if (chargeTime > EquipmentItem.ItemStats.WeaponStats.MaxChargeTime)
         {
-            chargeTime = ItemStats.WeaponStats.MaxChargeTime;
+            chargeTime = EquipmentItem.ItemStats.WeaponStats.MaxChargeTime;
         }
 
         _chargeTime = chargeTime;
@@ -163,23 +158,6 @@ public class Equipment_Slot : MonoBehaviour
         _hitEnemies.Clear();
     }
 
-    public void PopulateEquipmentSlots()
-    {
-        Equipment_Manager equipmentManager = GetComponentInParent<Equipment_Manager>();
-
-        foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> equipment in equipmentManager.CurrentEquipment)
-        {
-            (int, int, bool) equipmentData = equipment.Value;
-
-            int itemID = equipmentData.Item1;
-            int stackSize = equipmentData.Item2;
-
-            if (itemID != -1)
-            {
-                ItemStats = List_Item.GetItemData(itemID).ItemStats;
-            }
-        }
-    }
     protected void MeleeCollideCheck()
     {
         float colliderRatio = 0.75f;

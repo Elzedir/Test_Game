@@ -69,7 +69,7 @@ public class Character_Window : Menu_UI
         _staminaNumber = allChildren.FirstOrDefault(t => t.name == "StaminaNumber").GetComponent<TextMeshProUGUI>();
     }
 
-    public override void OpenMenu(GameObject interactedCharacter = null)
+    public override void OpenMenu<T>(GameObject interactedCharacter = null)
     {
         if (_specialisationButtons == null)
         {
@@ -94,7 +94,7 @@ public class Character_Window : Menu_UI
         SetCharacterStats(interactedCharacter);
     }
 
-    public override void CloseMenu()
+    public override void CloseMenu<T>(GameObject interactedObject = null)
     {
         gameObject.SetActive(false);
         _abilitiesPanel.gameObject.SetActive(false);
@@ -137,9 +137,9 @@ public class Character_Window : Menu_UI
         }
 
         _levelNumber.text = actor.ActorData.ActorStats.Level.ToString();
-        _healthNumber.text = $"{actor.ActorScripts.StatManager.CurrentHealth} / {actor.ActorScripts.StatManager.MaxHealth}";
-        _manaNumber.text = $"{actor.ActorScripts.StatManager.CurrentMana} / {actor.ActorScripts.StatManager.MaxMana}";
-        _staminaNumber.text = $"{actor.ActorScripts.StatManager.CurrentStamina} / {actor.ActorScripts.StatManager.MaxStamina}";
+        _healthNumber.text = $"{actor.ActorScripts.StatManager.CurrentCombatStats.Health} / {actor.ActorData.ActorStats.CombatStats.Health}";
+        _manaNumber.text = $"{actor.ActorScripts.StatManager.CurrentCombatStats.Mana} / {actor.ActorData.ActorStats.CombatStats.Mana}";
+        _staminaNumber.text = $"{actor.ActorScripts.StatManager.CurrentCombatStats.Stamina} / {actor.ActorData.ActorStats.CombatStats.Stamina}";
     }
 
     public void SetCharacterStats(GameObject interactedObject)

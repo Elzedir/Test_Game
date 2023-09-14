@@ -26,7 +26,7 @@ public class Journal_Window : Menu_UI
         gameObject.SetActive(false);
     }
 
-    public override void OpenMenu(GameObject interactedObject = null)
+    public override void OpenMenu<T>(GameObject interactedObject = null)
     {
         gameObject.SetActive(true);
         _isOpen = true;
@@ -39,7 +39,7 @@ public class Journal_Window : Menu_UI
         CreateQuestButtons();
     }
 
-    public override void CloseMenu()
+    public override void CloseMenu<T>(GameObject interactedObject = null)
     {
         foreach (Transform quest in journalListArea)
         {

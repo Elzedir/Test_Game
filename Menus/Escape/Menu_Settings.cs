@@ -25,14 +25,14 @@ public class Menu_Settings : Menu_UI
         gameObject.SetActive(false);
     }
 
-    public override void OpenMenu(GameObject interactedObject = null)
+    public override void OpenMenu<T>(GameObject interactedObject = null)
     {
         gameObject.SetActive(true);
         _isOpen = true;
         Menu_Settings_Rebind.Instance.CloseMenu();
         GameManager.Instance.ChangeState(GameState.Paused);
     }
-    public override void CloseMenu()
+    public override void CloseMenu<T>(GameObject interactedObject = null)
     {
         foreach (GameObject setting in _openSetting)
         {

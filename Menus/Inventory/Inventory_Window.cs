@@ -10,13 +10,11 @@ public class Inventory_Window : Menu_UI
     public static Inventory_Window Instance;
 
     public TextMeshProUGUI nameText;
-    public  List<Inventory_Slot> inventorySlots = new();
+    public List<Inventory_Slot> InventorySlots = new();
     public Equipment_Window EquipmentPanel;
-    public Transform InventoryEquippableCreator;
-    public Transform InventoryNotEquippableCreator;
 
-    [SerializeField] private Transform _inventoryEquippablePanel;
-    [SerializeField] private Transform _inventoryNotEquippablePanel;
+    [SerializeField] private Transform _actorinventoryPanel;
+    [SerializeField] private Transform _chestInventoryPanel;
 
     public void Awake()
     {
@@ -26,14 +24,8 @@ public class Inventory_Window : Menu_UI
     public void Start()
     {
         gameObject.SetActive(false);
-        _inventoryEquippablePanel.gameObject.SetActive(false);
-        _inventoryNotEquippablePanel.gameObject.SetActive(false);
-    }
-
-    public List<Inventory_Slot> InventorySlots
-    {
-        get { return inventorySlots; }
-        set { inventorySlots = value; }
+        _actorinventoryPanel.gameObject.SetActive(false);
+        _chestInventoryPanel.gameObject.SetActive(false);
     }
 
     public void SetInventoryWindowName(string name)
@@ -41,76 +33,44 @@ public class Inventory_Window : Menu_UI
         nameText.text = name;
     }
 
-    public void OpenInventoryEquippable()
+    public void OpenActorInventory()
     {
-        _inventoryEquippablePanel.gameObject.SetActive(true);
-        _inventoryNotEquippablePanel.gameObject.SetActive(false);
+        _actorinventoryPanel.gameObject.SetActive(true);
+        _chestInventoryPanel.gameObject.SetActive(false);
     }
 
-    public void CloseInventoryEquippable()
+    public void CloseActorInventory()
     {
-        _inventoryEquippablePanel.gameObject.SetActive(false);
+        _actorinventoryPanel.gameObject.SetActive(false);
     }
 
-    public void OpenInventoryNotEquippable()
+    public void OpenChestInventory()
     {
-        _inventoryNotEquippablePanel.gameObject.SetActive(true);
-        _inventoryEquippablePanel.gameObject.SetActive(false);
+        _chestInventoryPanel.gameObject.SetActive(true);
+        _actorinventoryPanel.gameObject.SetActive(false);
     }
 
-    public void CloseInventoryNotEquippable()
+    public void CloseChestInventory()
     {
-        _inventoryNotEquippablePanel.gameObject.SetActive(false);
+        _chestInventoryPanel.gameObject.SetActive(false);
     }
-
-    public void OpenMenu<T>(IInventory<T> inventorySource = null) where T : MonoBehaviour
+    public override void OpenMenu<T>(GameObject inventorySourceGO)
     {
         if (_isOpen)
         {
             Manager_Menu.Instance.HandleEscapePressed(this);
         }
 
-        if (!inventorySource.InventoryisOpen)
+        IInventory<T> inventorySource = inventorySourceGO.GetComponent<IInventory<T>>();
+
+        if (inventorySource == null)
         {
-            gameObject.SetActive(true);
-            Inventory_Creator inventoryCreator = null;
-
-            if (inventorySource.InventoryType == InventoryType.Actor)
-            {
-                OpenInventoryEquippable();
-                inventoryCreator = InventoryEquippableCreator.GetComponent<Inventory_Creator>();
-            }
-            else if (inventorySource.InventoryType == InventoryType.Chest)
-            {
-                OpenInventoryNotEquippable();
-                inventoryCreator = InventoryNotEquippableCreator.GetComponent<Inventory_Creator>();
-            }
-
-            _isOpen = true;
-            inventorySource.InventoryisOpen = true;
-            inventoryCreator.IsOpen = true;
-
-            SetInventoryWindowName(inventorySource.GetIInventoryBaseClass().name);
-            Manager_Menu.Instance.SetWindowToFront(gameObject);
-
-            if (inventoryCreator != null)
-            {
-                inventoryCreator.CreateSlots(inventorySource.GetInventorySize());
-                inventoryCreator.UpdateInventoryUI(inventorySource);
-
-            }
-            else { Debug.Log("Slot creator doesn't exist"); }
-
-            if (inventorySource.GetIInventoryBaseClass().TryGetComponent(out Equipmnt_Manager equipmentManager))
-            {
-                EquipmentPanel.UpdateEquipmentUI(equipmentManager);
-            }
+            return;
         }
-        else
-        {
-            int childCount = transform.parent.childCount;
 
-            if (transform.GetSiblingIndex() == childCount - 1)
+        if (inventorySource.InventoryisOpen)
+        {
+            if (transform.GetSiblingIndex() == transform.parent.childCount - 1)
             {
                 Manager_Menu.Instance.HandleEscapePressed(this);
             }
@@ -118,20 +78,52 @@ public class Inventory_Window : Menu_UI
             {
                 Manager_Menu.Instance.SetWindowToFront(gameObject);
             }
+            return;
         }
-    }
-    public override void CloseMenu()
-    {
+        
         Inventory_Creator inventoryCreator = null;
 
-        if (InventoryEquippableCreator.GetComponent<Inventory_Creator>().IsOpen)
+        if (inventorySource.InventoryType == InventoryType.Actor)
         {
-            inventoryCreator = InventoryEquippableCreator.GetComponent<Inventory_Creator>();
+            OpenActorInventory();
+            inventoryCreator = GetComponentInChildren<Inventory_Creator_Actor>();
         }
-        else if (InventoryNotEquippableCreator.GetComponent<Inventory_Creator>().IsOpen)
+        else if (inventorySource.InventoryType == InventoryType.Chest)
         {
-            inventoryCreator = InventoryNotEquippableCreator.GetComponent<Inventory_Creator>();
+            OpenChestInventory();
+            inventoryCreator = GetComponentInChildren<Inventory_Creator_Chest>();
         }
+
+        gameObject.SetActive(true);
+        _isOpen = true;
+        inventorySource.InventoryisOpen = true;
+        inventoryCreator.IsOpen = true;
+
+        SetInventoryWindowName(inventorySource.GetIInventoryBaseClass().name);
+        Manager_Menu.Instance.SetWindowToFront(gameObject);
+
+        if (inventoryCreator != null)
+        {
+            inventoryCreator.CreateSlots(inventorySource.GetInventorySize());
+            inventoryCreator.UpdateInventoryUI(inventorySource);
+        }
+        else { Debug.Log("Slot creator doesn't exist"); }
+
+        if (inventorySource.GetIInventoryBaseClass().TryGetComponent<IEquipment<T>>(out IEquipment<T> equipmentSource))
+        {
+            EquipmentPanel.UpdateEquipmentUI(equipmentSource);
+        }
+    }
+    
+    public override void CloseMenu<T>(GameObject inventorySourceGO)
+    {
+        IInventory<T> inventorySource = inventorySourceGO.GetComponent<IInventory<T>>();
+
+        Inventory_Creator inventoryCreator = GetComponentInChildren<Inventory_Creator_Actor>().IsOpen
+        ? GetComponentInChildren<Inventory_Creator_Actor>()
+        : GetComponentInChildren<Inventory_Creator_Chest>().IsOpen
+            ? GetComponentInChildren<Inventory_Creator_Chest>()
+            : null;
 
         if (inventoryCreator != null)
         {
@@ -143,25 +135,24 @@ public class Inventory_Window : Menu_UI
             }
 
             inventoryCreator.IsOpen = false;
-            inventoryCreator.TempInventoryManager.IsOpen = false;
-            inventoryCreator.TempInventoryManager = null;
+            inventorySource.InventoryisOpen = false;
         }
 
         _isOpen = false;
         gameObject.SetActive(false);
     }
 
-    public void RefreshPlayerUI(GameObject interactedObject, Equipment_Manager actorEquipmentManager = null)
+    public void RefreshUI<T>(GameObject interactedObject) where T : MonoBehaviour
     {
-        Manager_Stats statManager = GameManager.Instance.Player.GetComponent<Manager_Stats>();
+        Manager_Stats statManager = interactedObject.GetComponent<Actor_Base>().ActorScripts.StatManager;
         statManager.UpdateStats();
 
         Manager_Menu.Instance.HandleEscapePressed(this);
-        OpenMenu(interactedObject);
+        OpenMenu<Inventory_Window>(interactedObject);
 
-        if (actorEquipmentManager != null)
+        if (interactedObject.TryGetComponent<IEquipment<T>>(out IEquipment<T> equipmentSource))
         {
-            actorEquipmentManager.UpdateSprites();
+            Equipment_Manager.UpdateSprites(equipmentSource);
         }
     }
 }

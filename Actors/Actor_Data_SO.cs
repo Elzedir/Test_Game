@@ -177,6 +177,26 @@ public struct CombatStats
     public float MagicalDefence;
 
     public float DodgeCooldown;
+
+    public static CombatStats operator +(CombatStats a, CombatStats b)
+    {
+        return new CombatStats
+        {
+            Health = a.Health + b.Health,
+            Mana = a.Mana + b.Mana,
+            Stamina = a.Stamina + b.Stamina,
+            PushRecovery = a.PushRecovery + b.PushRecovery,
+            AttackDamage = a.AttackDamage + b.AttackDamage,
+            AttackSpeed = a.AttackSpeed + b.AttackSpeed,
+            AttackSwingTime = a.AttackSwingTime + b.AttackSwingTime,
+            AttackRange = a.AttackRange + b.AttackRange,
+            AttackPushForce = a.AttackPushForce + b.AttackPushForce,
+            AttackCooldown = a.AttackCooldown + b.AttackCooldown,
+            PhysicalDefence = a.PhysicalDefence + b.PhysicalDefence,
+            MagicalDefence = a.MagicalDefence + b.MagicalDefence,
+            DodgeCooldown = a.DodgeCooldown + b.DodgeCooldown
+        };
+    }
 }
 
 [System.Serializable]

@@ -137,8 +137,16 @@ public abstract class List_Item
 public struct ItemStats
 {
     public CommonStats CommonStats;
+    public CombatStats CombatStats;
     public WeaponStats WeaponStats;
     public ArmourStats ArmourStats;
+
+    public static ItemStats None()
+    {
+        ItemStats none = new ItemStats();
+        none.CommonStats.ItemID = -1;
+        return none;
+    }
 }
 
 [Serializable]
@@ -164,10 +172,6 @@ public struct WeaponStats
 {
     public WeaponType WeaponType;
     public WeaponClass WeaponClass;
-    public float ItemDamage;
-    public float ItemSpeed;
-    public float ItemForce;
-    public float ItemRange;
     public float MaxChargeTime;
 }
 
@@ -175,8 +179,5 @@ public struct WeaponStats
 public struct ArmourStats
 {
     public ArmourType ArmourType;
-    public float ItemMaxHealthBonus;
-    public float ItemPhysicalArmour;
-    public float ItemMagicalArmour;
     public float ItemCoverage;
 }

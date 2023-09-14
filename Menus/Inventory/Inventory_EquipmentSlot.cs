@@ -11,52 +11,37 @@ using UnityEngine.UI;
 using static UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle;
 using static UnityEditor.Progress;
 
-public enum EquipmentSlotType
-{
-    Head,
-    Chest,
-    MainHand,
-    OffHand,
-    Legs,
-    Consumable
-}
 
 [System.Serializable]
-public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
+public class Inventory_EquipmentSlot : MonoBehaviour
 {
+    public EquipmentItem EquipmentItem;
     public TextMeshProUGUI stackSizeText;
     public Image itemIcon;
-    public EquipmentSlotType equipmentSlotType;
+    public SlotType InventoryEquipmentSlotType;
 
     protected virtual void Start()
     {
         
     }
+    public virtual void UpdateSlotUI(EquipmentItem equipmentItem)
+    {
+        EquipmentItem = equipmentItem;
 
-    public void OnDrop(PointerEventData eventData)
-    {
-        //Inventory_EquipmentSlot sourceSlot = eventData.pointerDrag.GetComponent<ItemDragHandler>().equipmentSlotIndex;
-        // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
-    }
-    public virtual void UpdateSlotUI(int itemID, int stackSize)
-    {
-        Debug.Log("Update Slot UI called");
-        if (itemID == -1 || stackSize == 0)
+        if (equipmentItem.ItemStats.CommonStats.ItemID == -1 || equipmentItem.ItemStats.CommonStats.CurrentStackSize == 0)
         {
             itemIcon.sprite = null;
             stackSizeText.enabled = false;
         }
         else
         {
-            List_Item item = List_Item.GetItemData(itemID);
-            Sprite itemSprite = item.ItemStats.CommonStats.ItemIcon;
-            itemIcon.sprite = itemSprite;
+            itemIcon.sprite = List_Item.GetItemData(equipmentItem.ItemStats.CommonStats.ItemID).ItemStats.CommonStats.ItemIcon;
 
             if (stackSizeText != null)
             {
-                if (stackSize > 1)
+                if (equipmentItem.ItemStats.CommonStats.CurrentStackSize > 1)
                 {
-                    stackSizeText.text = stackSize.ToString();
+                    stackSizeText.text = equipmentItem.ItemStats.CommonStats.CurrentStackSize.ToString();
                     stackSizeText.enabled = true;
                 }
                 else
@@ -69,49 +54,18 @@ public class Inventory_EquipmentSlot : MonoBehaviour, IDropHandler
 
     public void OnPointerDown()
     {
-        Inventory_EquipmentSlot inventoryEquipmentSlot = GetComponent<Inventory_EquipmentSlot>();
-        Equipment_Window equipmentWindow = GetComponentInParent<Equipment_Window>();
-        Equipment_Slot equipSlot;
+        if (EquipmentItem.Slot == null)
+        {
+            Debug.Log($"EquipmentItem.Slot: {EquipmentItem.Slot} is null.");
+        }
+
         bool itemEquipped = false;
-        bool droppable = false;
 
-        switch (inventoryEquipmentSlot.equipmentSlotType)
+        if (EquipmentItem.ItemStats.CommonStats.ItemID != -1)
         {
-            case EquipmentSlotType.Head:
-                equipSlot = equipmentWindow.actorHead;
-                break;
-            case EquipmentSlotType.Chest:
-                equipSlot = equipmentWindow.actorChest;
-                break;
-            case EquipmentSlotType.MainHand:
-                equipSlot = equipmentWindow.actorMainHand;
-                break;
-            case EquipmentSlotType.OffHand:
-                equipSlot = equipmentWindow.actorOffHand;
-                break;
-            case EquipmentSlotType.Legs:
-                equipSlot = equipmentWindow.actorLegs;
-                break;
-            case EquipmentSlotType.Consumable:
-                equipSlot = equipmentWindow.actorConsumable;
-                break;
-            default:
-                equipSlot = null;
-                break;
+            itemEquipped = true;
         }
 
-        if (equipSlot != null)
-        {
-            if (equipmentWindow.actorEquipmentManager.CurrentEquipment.ContainsKey(equipSlot))
-            {
-                if (equipmentWindow.actorEquipmentManager.CurrentEquipment[equipSlot].Item1 != -1)
-                {
-                    itemEquipped = true;
-                    droppable = true;
-                }
-            }
-        }
-        
-        Menu_RightClick.Instance.RightClickMenu(interactedThing: equipSlot.gameObject, actor: equipmentWindow.actor, itemEquipped: itemEquipped, droppable: droppable);
+        Menu_RightClick.Instance.RightClickMenu(interactedThing: EquipmentItem.Slot.gameObject, itemEquipped: itemEquipped, droppable: true);
     }
 }

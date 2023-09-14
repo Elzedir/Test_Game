@@ -9,10 +9,6 @@ public class Chest : MonoBehaviour, IInventory<Chest>
     private SpriteRenderer _spriteRenderer;
     public Chest_Data_SO ChestData;
 
-    public InventoryType InventoryType => InventoryType.Chest;
-    public bool InventoryIsOpen;
-    public bool InventoryisOpen => InventoryIsOpen;
-
     // Put in a way for the chest to go back to normal after it closes.
 
     public void Start()
@@ -35,9 +31,17 @@ public class Chest : MonoBehaviour, IInventory<Chest>
         }
     }
 
-    public void OpenChestInventory(Inventory_NotEquippable inventoryManager)
+    public InventoryType InventoryType => InventoryType.Chest;
+    public bool InventoryIsOpen { get; set; }
+    public bool InventoryisOpen
     {
-        Inventory_Window.Instance.OpenMenu(this.gameObject);
+        get => InventoryIsOpen;
+        set => InventoryIsOpen = value;
+    }
+
+    public void OpenChestInventory()
+    {
+        Inventory_Window.Instance.OpenMenu<Chest>(this.gameObject);
     }
 
     public Chest GetIInventoryBaseClass()

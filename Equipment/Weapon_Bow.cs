@@ -35,7 +35,7 @@ public class Weapon_Bow : Weapon
         arrow.Actor = actor;
         arrow.ChargeTime = equipmentSlot.ChargeTime;
         arrow.Direction = attackDirection.normalized;
-        arrow.Range = equipmentSlot.ItemStats.WeaponStats.ItemRange;
-        arrow.Speed = equipmentSlot.ItemStats.WeaponStats.ItemSpeed;
+        arrow.Range = equipmentSlot.EquipmentItem.ItemStats.CombatStats.AttackRange;
+        arrow.Speed = equipmentSlot.EquipmentItem.ItemStats.CombatStats.AttackSpeed;
     }
 }

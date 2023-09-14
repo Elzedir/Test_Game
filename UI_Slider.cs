@@ -40,12 +40,12 @@ public class UI_Slider : Menu_UI
         sliderAmount.text = value.ToString("0");
     }
 
-    public override void OpenMenu(GameObject interactedObject = null)
+    public override void OpenMenu<T>(GameObject interactedObject = null)
     {
         gameObject.SetActive(true);
         transform.SetAsLastSibling();
     }
-    public override void CloseMenu()
+    public override void CloseMenu<T>(GameObject interactedObject = null)
     {
         gameObject.SetActive(false);
     }

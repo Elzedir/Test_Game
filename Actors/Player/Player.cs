@@ -30,7 +30,7 @@ public class Player : MonoBehaviour
     public void PlayerRespawn()
     {
         GameManager.Instance.PlayerDead = false;
-        _playerActor.ActorScripts.StatManager.RestoreHealth(_playerActor.ActorScripts.StatManager.MaxHealth);
+        _playerActor.ActorScripts.StatManager.RestoreHealth(_playerActor.ActorScripts.StatManager.CurrentCombatStats.Health);
         _playerActor.PushDirection = Vector3.zero;
     }
 
@@ -86,7 +86,7 @@ public class Player : MonoBehaviour
     {
         if (!_playerActor.ActorStates.Attacking)
         {
-            List<Equipment_Slot> equippedWeapons = _playerActor.ActorScripts.EquipmentManager.WeaponEquipped();
+            List<Equipment_Slot> equippedWeapons = Equipment_Manager.WeaponEquipped(PlayerActor);
 
             if (equippedWeapons.Count > 0)
             {

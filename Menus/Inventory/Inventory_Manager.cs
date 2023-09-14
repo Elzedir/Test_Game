@@ -59,8 +59,7 @@ public class Inventory_Manager : MonoBehaviour
 
                 if (remainingStackSize > 0)
                 {
-                    IInventory<T> inventoryDestination = itemDestination.GetIInventoryBaseClass().GetComponent<IInventory<T>>();
-                    AddItem(item, remainingStackSize, inventoryDestination);
+                    AddItem(itemDestination, item, remainingStackSize);
                 }
 
                 return true;
@@ -132,7 +131,7 @@ public class Inventory_Manager : MonoBehaviour
 
         if (itemToPickup == null || stackSize <= 0) { Debug.Log($"ItemToPickup: {itemToPickup} is null or stacksize: {stackSize} is 0 or less"); return false; }
 
-        if (AddItem(itemToPickup, stackSize, itemDestination))
+        if (AddItem(itemDestination, itemToPickup, stackSize))
         {
             if (inventorySlotIndex != -1 && itemSource != null)
             {
@@ -145,7 +144,10 @@ public class Inventory_Manager : MonoBehaviour
             else { Debug.Log($"Either InventorySlotIndex: {inventorySlotIndex}, ItemSource: {itemSource}, or PickedUpItem: {pickedUpItem} have a problem."); return false; }
         }
 
-        if inventory window is open, refresh it
+        if (Inventory_Window.Instance.IsOpen)
+        {
+            RefreshPlayerUI();
+        }
 
         return true;
     }
@@ -173,7 +175,7 @@ public class Inventory_Manager : MonoBehaviour
             return false;
         }
 
-        (bool equipped, int remainingStackSize) = equipmentManager.Equip(itemToEquip, stackSize);
+        (bool equipped, int remainingStackSize) = equipmentManager.Equip(itemDestination.GetIInventoryBaseClass().GetComponent<IEquipment<T>>(), itemToEquip, stackSize);
 
         if (!equipped) { Debug.Log("Item was not equipped"); return false;}
 
@@ -191,7 +193,7 @@ public class Inventory_Manager : MonoBehaviour
         {
             if (itemSource != null)
             {
-                AddItem(itemToEquip, remainingStackSize, itemSource);
+                AddItem(itemSource, itemToEquip, remainingStackSize);
             }
             else
             {
@@ -210,7 +212,7 @@ public class Inventory_Manager : MonoBehaviour
         {
             if (Manager_Menu.Instance.InventoryMenu != null)
             {
-                Manager_Menu.Instance.InventoryMenu.RefreshPlayerUI(gameObject);
+                Manager_Menu.Instance.InventoryMenu.RefreshUI(gameObject);
             }
             else { Debug.Log("No open UI window"); }
 
@@ -232,6 +234,12 @@ public class InventoryItem
 {
     public int ItemID;
     public int CurrentStackSize;
+
+    public InventoryItem (int itemID, int currentStackSize)
+    {
+        ItemID = itemID;
+        CurrentStackSize = currentStackSize;
+    }
 
     public void ClearItem()
     {

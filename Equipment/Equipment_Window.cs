@@ -6,98 +6,30 @@ using UnityEngine;
 
 public class Equipment_Window : MonoBehaviour
 {
-    public Transform equipmentArea;
-    public Manager_Stats statsManager;
-    public Actor_Base actor;
-    public Equipment_Manager actorEquipmentManager;
+    public object EquipmentSource;
+    public Transform EquipmentArea;
     public Inventory_EquipmentSlot Head, Chest, MainHand, OffHand, Legs, Consumable;
-    public Equipment_Slot actorHead, actorChest, actorMainHand, actorOffHand, actorLegs, actorConsumable;
 
-    public void Start()
+    public void UpdateEquipmentUI<T>(IEquipment<T> equipmentSource) where T : MonoBehaviour
     {
-        statsManager = GetComponentInParent<Manager_Stats>();
-    }
+        EquipmentSource = equipmentSource;
+        var equipmentData = equipmentSource.GetEquipmentData().EquipmentItems;
 
-    public void UpdateEquipmentUI(Equipment_Manager equipmentManager)
-    {
-        Dictionary<Equipment_Slot, (int, int, bool)> equippedItems = equipmentManager.CurrentEquipment;
-        actor = equipmentManager.GetComponentInParent<Actor_Base>();
-        actorEquipmentManager = equipmentManager;
-        SetActorEquipmentSlots();
-        int currentSlot = 0;
-        bool hasItems = false;
-
-        foreach (KeyValuePair<Equipment_Slot, (int, int, bool)> item in equippedItems)
+        for (int i = 0; i < equipmentData.Count; i++)
         {
-            if (currentSlot >= equipmentArea.childCount)
-            {
-                break;
-            }
-
-            Transform equipmentSlot = equipmentArea.GetChild(currentSlot);
-            Inventory_EquipmentSlot equipmentSlotScript = equipmentSlot.GetComponentInChildren<Inventory_EquipmentSlot>();
+            Inventory_EquipmentSlot equipmentSlotScript = EquipmentArea.GetChild(i).GetComponent<Inventory_EquipmentSlot>();
 
             if (equipmentSlotScript != null)
             {
-                equipmentSlotScript.UpdateSlotUI(item.Value.Item1, item.Value.Item2);
-            }
-            else
-            {
-                Debug.Log("No equipment slot script found");
-            }
-            if (item.Value.Item1 != -1)
-            {
-                hasItems = true;
-            }
-
-            currentSlot++;
-
-        }
-        if (!hasItems)
-        {
-            Debug.Log("No items in the equipment.");
-        }
-    }
-
-    public void SetActorEquipmentSlots()
-    {
-        for (int i = 0; i < actor.transform.childCount; i++)
-        {
-            Equipment_Slot equipSlot = actor.transform.GetChild(i).GetComponent<Equipment_Slot>();
-
-            if (equipSlot != null )
-            {
-                switch (equipSlot.SlotType)
+                EquipmentItem equipmentItem = new EquipmentItem
                 {
-                    case SlotType.Head:
-                        actorHead = equipSlot;
-                        break;
-                    case SlotType.Chest:
-                        actorChest = equipSlot;
-                        break;
-                    case SlotType.MainHand:
-                        actorMainHand = equipSlot;
-                        break;
-                    case SlotType.OffHand:
-                        actorOffHand = equipSlot;
-                        break;
-                    case SlotType.Legs:
-                        actorLegs = equipSlot;
-                        break;
-                    default:
-                        Debug.Log("Could not find slot");
-                        break;
-                }
-            }
-        }
-    }
+                    Slot = equipmentData[i].Slot,
+                    ItemStats = equipmentData[i].ItemStats,
+                };
 
-    public void ResetSlots()
-    {
-        actorHead = null;
-        actorChest = null;
-        actorMainHand = null;
-        actorOffHand = null;
-        actorLegs = null;
+                equipmentSlotScript.UpdateSlotUI(equipmentItem);
+            }
+            else { Debug.Log("No equipment slot script found"); }
+        }
     }
 }
