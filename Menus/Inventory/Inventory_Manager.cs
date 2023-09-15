@@ -11,7 +11,7 @@ public enum InventoryType
     Crate
 }
 
-public class Inventory_Manager : MonoBehaviour
+public abstract class Inventory_Manager : MonoBehaviour
 {
     //protected void SaveInventory(Inventory_Manager inventoryManager, Actor_Base actor)
     //{
@@ -49,13 +49,13 @@ public class Inventory_Manager : MonoBehaviour
         for (int i = 0; i < inventoryList.Count; i++)
         {
             InventoryItem inventoryItem = inventoryList[i];
-            int totalStackSize = inventoryItem.CurrentStackSize + stackSize;
+            int totalStackSize = inventoryItem.StackSize + stackSize;
             int remainingStackSize = totalStackSize - maxStackSize;
 
             if (inventoryItem.ItemID == item.ItemStats.CommonStats.ItemID || inventoryItem.ItemID == -1)
             {
                 inventoryItem.ItemID = item.ItemStats.CommonStats.ItemID;
-                inventoryItem.CurrentStackSize = Math.Min(totalStackSize, maxStackSize);
+                inventoryItem.StackSize = Math.Min(totalStackSize, maxStackSize);
 
                 if (remainingStackSize > 0)
                 {
@@ -69,29 +69,29 @@ public class Inventory_Manager : MonoBehaviour
         return false;
     }
     public static void RemoveItem<T>(
+        IInventory<T> itemSource,
         int itemIndex, 
-        int removeStackSize, 
-        IInventory<T> itemSource) where T : MonoBehaviour
+        int removeStackSize) where T : MonoBehaviour
     {
         List<InventoryItem> inventoryList = itemSource.GetInventoryData().InventoryItems;
 
         InventoryItem inventoryItem = inventoryList[itemIndex];
 
-        int leftoverStackSize =  inventoryItem.CurrentStackSize - removeStackSize;
+        int leftoverStackSize =  inventoryItem.StackSize - removeStackSize;
 
         if (leftoverStackSize <= 0)
         {
-            inventoryItem.ClearItem();
+            inventoryItem = InventoryItem.None;
         }
         else
         {
-            inventoryItem.CurrentStackSize = leftoverStackSize;
+            inventoryItem.StackSize = leftoverStackSize;
         }
     }
     public static void DropItem<T>(
+        IInventory<T> itemSource,
         int itemIndex, 
-        int dropAmount, 
-        IInventory<T> itemSource) where T : MonoBehaviour
+        int dropAmount) where T : MonoBehaviour
     {
         List<InventoryItem> inventoryList = itemSource.GetInventoryData().InventoryItems;
 
@@ -99,25 +99,25 @@ public class Inventory_Manager : MonoBehaviour
 
         if (dropAmount == -1)
         {
-            dropAmount = inventoryItem.CurrentStackSize;
+            dropAmount = inventoryItem.StackSize;
         }
 
         GameManager.Instance.CreateNewItem(inventoryItem.ItemID, dropAmount);
 
-        int leftoverStackSize = inventoryItem.CurrentStackSize - dropAmount;
+        int leftoverStackSize = inventoryItem.StackSize - dropAmount;
 
         if (leftoverStackSize <= 0)
         {
-            inventoryItem.ClearItem();
+            inventoryItem = InventoryItem.None;
         }
         else
         {
-            inventoryItem.CurrentStackSize = leftoverStackSize;
+            inventoryItem.StackSize = leftoverStackSize;
         }
     }
-    public bool OnItemPickup<T>(
-        IInventory<T> itemDestination,
+    public static bool OnItemPickup<T>(
         IInventory<T> itemSource,
+        IInventory<T> itemDestination,
         Interactable_Item pickedUpItem = null, 
         int inventorySlotIndex = -1) where T : MonoBehaviour
     {
@@ -127,7 +127,7 @@ public class Inventory_Manager : MonoBehaviour
 
         int stackSize = pickedUpItem != null 
             ? pickedUpItem.StackSize 
-            : itemDestination.GetInventoryItem(inventorySlotIndex).CurrentStackSize;
+            : itemDestination.GetInventoryItem(inventorySlotIndex).StackSize;
 
         if (itemToPickup == null || stackSize <= 0) { Debug.Log($"ItemToPickup: {itemToPickup} is null or stacksize: {stackSize} is 0 or less"); return false; }
 
@@ -135,7 +135,7 @@ public class Inventory_Manager : MonoBehaviour
         {
             if (inventorySlotIndex != -1 && itemSource != null)
             {
-                RemoveItem(inventorySlotIndex, stackSize, itemSource);
+                RemoveItem(itemSource, inventorySlotIndex, stackSize);
             }
             else if (pickedUpItem != null)
             {
@@ -151,19 +151,20 @@ public class Inventory_Manager : MonoBehaviour
 
         return true;
     }
-    public bool OnEquip<T>(
+    public static bool OnEquip<T>(
         IInventory<T> itemDestination,
         IInventory<T> itemSource,
         Interactable_Item pickedUpItem = null, 
         int inventorySlotIndex = -1) where T : MonoBehaviour
     {
+        Debug.Log(itemSource);
         List_Item itemToEquip = List_Item.GetItemData(pickedUpItem != null 
             ? pickedUpItem.ItemID 
             : itemSource.GetInventoryItem(inventorySlotIndex).ItemID);
 
         int stackSize = pickedUpItem != null
             ? pickedUpItem.StackSize
-            : itemDestination.GetInventoryItem(inventorySlotIndex).CurrentStackSize;
+            : itemDestination.GetInventoryItem(inventorySlotIndex).StackSize;
 
         if (itemToEquip == null || stackSize <= 0) { Debug.Log($"ItemToEquip: {itemToEquip} is null or stacksize: {stackSize} is 0 or less"); return false; }
 
@@ -181,7 +182,7 @@ public class Inventory_Manager : MonoBehaviour
 
         if (inventorySlotIndex != -1 && itemSource != null)
         {
-            RemoveItem(inventorySlotIndex, stackSize, itemSource);
+            RemoveItem(itemSource, inventorySlotIndex, stackSize);
         }
         else if (pickedUpItem != null)
         {
@@ -212,7 +213,7 @@ public class Inventory_Manager : MonoBehaviour
         {
             if (Manager_Menu.Instance.InventoryMenu != null)
             {
-                Manager_Menu.Instance.InventoryMenu.RefreshUI(gameObject);
+                Inventory_Window.Instance.RefreshUI<Inventory_Manager>();
             }
             else { Debug.Log("No open UI window"); }
 
@@ -225,33 +226,55 @@ public class Inventory_Manager : MonoBehaviour
 [Serializable]
 public class Inventory
 {
-    public int BaseInventorySize;
-    public bool Equippable = true;
+    public int BaseInventorySize = 10;
     [SerializeField] public List<InventoryItem> InventoryItems = new();
+    public void InitialiseInventoryItems()
+    {
+        foreach (InventoryItem inventoryItem in InventoryItems)
+        {
+            inventoryItem.UpdateItemStats();
+        }
+    }
 }
-
+[Serializable]
 public class InventoryItem
 {
-    public int ItemID;
-    public int CurrentStackSize;
+    [SerializeField] private int _itemID;
+    [SerializeField] private int _stackSize;
 
-    public InventoryItem (int itemID, int currentStackSize)
+    public int ItemID
     {
-        ItemID = itemID;
-        CurrentStackSize = currentStackSize;
+        get { return _itemID; }
+        set
+        {
+            _itemID = value;
+            UpdateItemStats();
+        }
     }
 
-    public void ClearItem()
+    public int StackSize
     {
-        ItemID = -1;
-        CurrentStackSize = 0;
+        get { return _stackSize; }
+        set
+        {
+            _stackSize = value;
+            UpdateItemStats();
+        }
+    }
+
+    public ItemStats ItemStats;
+    public static readonly InventoryItem None = new InventoryItem { ItemStats = ItemStats.None() };
+    public void UpdateItemStats()
+    {
+        ItemStats.SetItemStats(ItemID, StackSize, ItemStats);
     }
 }
 
 public interface IInventory<T> where T : MonoBehaviour
 {
-    public bool InventoryisOpen { get; set; }
+    public bool InventoryIsOpen { get; set; }
     public InventoryType InventoryType { get; }
+    public void InitialiseInventory();
     public T GetIInventoryBaseClass();
     public Inventory GetInventoryData();
     public InventoryItem GetInventoryItem(int itemIndex);

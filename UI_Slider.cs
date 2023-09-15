@@ -14,7 +14,6 @@ public class UI_Slider : Menu_UI
     public TextMeshProUGUI sliderAmount;
     public Equipment_Slot equipmentSlot;
     public Inventory_Slot inventorySlot;
-    public Actor_Base actor;
 
     public void Awake()
     {
@@ -52,16 +51,12 @@ public class UI_Slider : Menu_UI
 
     public void AcceptButtonPressed()
     {
-        Menu_RightClick.Instance.Drop(Mathf.RoundToInt(slider.value), equipmentSlot: equipmentSlot, inventorySlot: inventorySlot, actor: actor);
+        Menu_RightClick.Instance.Drop<UI_Slider>(Mathf.RoundToInt(slider.value), equipmentSlot: equipmentSlot, inventorySlot: inventorySlot);
         gameObject.SetActive(false);
     }
 
-    public void DropItemSlider(int currentStackSize, Equipment_Slot dropXEquipmentSlot = null, Inventory_Slot dropXInventorySlot = null, Actor_Base dropXActor = null)
+    public void DropItemSlider(int currentStackSize, Equipment_Slot dropXEquipmentSlot = null, Inventory_Slot dropXInventorySlot = null)
     {
-        if (dropXActor != null)
-        {
-            actor = dropXActor;
-        }
         if (dropXEquipmentSlot != null)
         {
             equipmentSlot = dropXEquipmentSlot;

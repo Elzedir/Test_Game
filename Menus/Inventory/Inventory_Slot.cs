@@ -29,7 +29,7 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
         InventorySource = inventorySource;
         InventoryItem = inventoryItem;
 
-        if (inventoryItem.ItemID == -1 || InventoryItem.CurrentStackSize == 0)
+        if (inventoryItem.ItemID == -1 || InventoryItem.StackSize == 0)
         {
             slotIcon = null;
             stackSizeText.enabled = false;
@@ -46,9 +46,9 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
 
             slotIcon.sprite = itemSprite;
 
-            if (inventoryItem.CurrentStackSize > 1)
+            if (inventoryItem.StackSize > 1)
             {
-                stackSizeText.text = inventoryItem.CurrentStackSize.ToString();
+                stackSizeText.text = inventoryItem.StackSize.ToString();
                 stackSizeText.enabled = true;
             }
             else
@@ -62,6 +62,6 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
     {
         List_Item item = List_Item.GetItemData(InventoryItem.ItemID);
 
-        Menu_RightClick.Instance.RightClickMenu(interactingThing: InventorySource, item: item, equippable: item.ItemStats.CommonStats.Equippable, interactedThing: this.gameObject, droppable: true);
+        Menu_RightClick.Instance.RightClickMenu(objectSource: this.gameObject, item: item, droppable: true);
     }
 }

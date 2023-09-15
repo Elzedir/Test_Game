@@ -18,14 +18,13 @@ public class Menu_RightClick : MonoBehaviour
     public Manager_Input InputManager;
     public Equipment_Window EquipmentWindow;
 
-    private GameObject _interactingThing;
-    private GameObject _interactedThing;
+    private GameObject _sourceGO;
+    private GameObject _destinationGO;
+    private Interactable_Item _interactedItem;
 
     private Inventory_Slot _inventorySlot;
     private Equipment_Slot _equipmentSlot;
-    private Actor_Base _actor;
-    private Interactable_Item _item;
-
+    
     private Button_Equip _buttonEquip;
     private Button_PickupItem _buttonPickup;
     private Button_Talk _buttonTalk;
@@ -64,8 +63,6 @@ public class Menu_RightClick : MonoBehaviour
         CloseRightClickButtons(gameObject, true);
     }
 
-
-
     public void CloseRightClickButtons(GameObject obj, bool initialising = false)
     {
         if (obj == null)
@@ -103,18 +100,17 @@ public class Menu_RightClick : MonoBehaviour
     public void RightClickMenuClose()
     {
         gameObject.SetActive(false);
-        _interactingThing = null;
+        _destinationGO = null;
         _inventorySlot = null;
         _equipmentSlot = null;
-        _actor = null;
-        _item = null;
+        _sourceGO = null;
+        _interactedItem = null;
         CloseRightClickButtons(gameObject);
     }
 
-    public void ActiveButtonsCheck(object interactingThing = null, 
-                               object interactedThing = null,
+    public void ActiveButtonsCheck(object objectSource = null,
+                               object objectDestination = null,
                                List_Item item = null,
-                               bool equippable = false,
                                bool itemEquipped = false,
                                bool droppable = false,
                                bool talkable = false,
@@ -122,31 +118,36 @@ public class Menu_RightClick : MonoBehaviour
     {
         position = Input.mousePosition;
 
-        if (interactedThing is GameObject go)
+        if (objectSource == null)
         {
-            _interactingThing = go;
+            _sourceGO = GameManager.Instance.Player.gameObject;
         }
-        else if (interactedThing is Actor_Base interactedActor)
+        else if (objectDestination == null)
         {
-            _interactedThing = interactedActor.gameObject;
+            _destinationGO = GameManager.Instance.Player.gameObject;
         }
         
-        if (interactingThing is Actor_Base interactingActor)
+        if (objectDestination is GameObject interactedThingGO)
         {
-            _actor = interactingActor;
+            _destinationGO = interactedThingGO;
         }
 
-        if (_interactingThing.TryGetComponent<Interactable_Item>(out Interactable_Item interactableItem))
+        if (_destinationGO.TryGetComponent<Interactable_Item>(out Interactable_Item interactableItem))
         {
-            _item = interactableItem;
+            _interactedItem = interactableItem;
         }
 
-        if (item != null || _item != null)
+        if (item != null)
         {
             _buttonPickup.gameObject.SetActive(true);
+            _buttonEquip.gameObject.SetActive(item.ItemStats.CommonStats.Equippable);
+        }
+        else if (_interactedItem != null)
+        {
+            _buttonPickup.gameObject.SetActive(true);
+            _buttonEquip.gameObject.SetActive(List_Item.GetItemData(_interactedItem.ItemID).ItemStats.CommonStats.Equippable);
         }
         
-        _buttonEquip.gameObject.SetActive(equippable);
         _buttonUnequip.gameObject.SetActive(itemEquipped);
         _buttonTalk.gameObject.SetActive(talkable);
         _buttonDropOne.gameObject.SetActive(droppable);
@@ -154,23 +155,22 @@ public class Menu_RightClick : MonoBehaviour
         _buttonDropAll.gameObject.SetActive(droppable);
         _buttonOpen.gameObject.SetActive(openable);
 
-        _inventorySlot = _interactingThing.GetComponent<Inventory_Slot>();
-        _equipmentSlot = _interactingThing.GetComponent<Equipment_Slot>();
+        _inventorySlot = _destinationGO.GetComponent<Inventory_Slot>();
+        _equipmentSlot = _destinationGO.GetComponent<Equipment_Slot>();
     }
-    public void RightClickMenu(object interactingThing = null,
-                           object interactedThing = null,
+    public void RightClickMenu(object objectSource = null,
+                           object objectDestination = null,
                            List_Item item = null,
-                           bool equippable = false,
                            bool itemEquipped = false,
                            bool droppable = false,
                            bool talkable = false,
                            bool openable = false)
     {
-        ActiveButtonsCheck(interactingThing, interactedThing, item, equippable, itemEquipped, droppable, talkable, openable);
+        ActiveButtonsCheck(objectSource, objectDestination, item, itemEquipped, droppable, talkable, openable);
         RightClickMenuOpen();
     }
 
-    public void EquipButtonPressed()
+    public void EquipButtonPressed<T>() where T : MonoBehaviour
     {
         int inventorySlotIndex = -1;
 
@@ -179,21 +179,27 @@ public class Menu_RightClick : MonoBehaviour
             inventorySlotIndex = _inventorySlot.slotIndex;
         }
 
-        bool equipped = Inventory_Manager.OnEquip(, interactedObject: _interactingThing, pickedUpItem: _item, inventorySlotIndex: inventorySlotIndex);
+        IInventory<T> inventorySource = _sourceGO.GetComponent<IInventory<T>>();
+        IInventory<T> inventoryDestination = _destinationGO.GetComponent<IInventory<T>>();
+
+        bool equipped = Inventory_Manager.OnEquip(itemSource: inventorySource, itemDestination: inventoryDestination, pickedUpItem: _interactedItem, inventorySlotIndex: inventorySlotIndex);
+
         if (equipped)
         {
             RightClickMenuClose();
         }
     }
-    public void UnequipButtonPressed()
+    public void UnequipButtonPressed<T>() where T : MonoBehaviour
     {
         if (_equipmentSlot != null)
         {
-            Equipment_Manager.Unequip(_equipmentSlot);
+            IEquipment<T> equipmentSource = _sourceGO.GetComponent<IEquipment<T>>();
+
+            Equipment_Manager.UnequipEquipment(equipmentSource: equipmentSource, equipSlot: _equipmentSlot);
             RightClickMenuClose();
         }
     }
-    public void PickupButtonPressed()
+    public void PickupButtonPressed<T>() where T : MonoBehaviour
     {
         int inventorySlotIndex = -1;
 
@@ -201,72 +207,72 @@ public class Menu_RightClick : MonoBehaviour
         {
             inventorySlotIndex = _inventorySlot.slotIndex;
         }
-        Debug.Log(_item);
-        Debug.Log(inventorySlotIndex);
-        Debug.Log(_interactingThing);
 
-        bool pickedUp = Inventory_Manager.OnItemPickup(pickedUpItem: _item, inventorySlotIndex: inventorySlotIndex, interactedObject: _interactingThing);
+        IInventory<T> inventorySource = _sourceGO.GetComponent<IInventory<T>>();
+        IInventory<T> inventoryDestination = _destinationGO.GetComponent<IInventory<T>>();
+
+        bool pickedUp = Inventory_Manager.OnItemPickup(itemSource: inventorySource, itemDestination: inventoryDestination, pickedUpItem: _interactedItem, inventorySlotIndex: inventorySlotIndex);
         
-        if (pickedUp && _item != null)
+        if (pickedUp && _interactedItem != null)
         {
             RightClickMenuClose();
         }
     }
-    public void Drop(int dropAmount, Equipment_Slot equipmentSlot = null, Inventory_Slot inventorySlot = null, Actor_Base actor = null)
+    public void Drop<T>(int dropAmount, Equipment_Slot equipmentSlot = null, Inventory_Slot inventorySlot = null) where T : MonoBehaviour
     {
         if (equipmentSlot != null)
         {
-            Equipment_Manager.DropEquipment(equipmentSlot, dropAmount);
-            Manager_Menu.Instance.InventoryMenu.RefreshUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
+            IEquipment<T> equipmentSource = _sourceGO.GetComponent<IEquipment<T>>();
+            Equipment_Manager.DropEquipment(equipmentSource, equipmentSlot, dropAmount);
+            Manager_Menu.Instance.InventoryMenu.RefreshUI<Menu_RightClick>(_sourceGO);
         }
 
         else if (inventorySlot != null)
         {
-            Inventory_Manager.DropItem(inventorySlot.slotIndex, dropAmount, inventoryManager);
-            Manager_Menu.Instance.InventoryMenu.RefreshUI(actor.gameObject, actor.GetComponent<Equipment_Manager>());
+            IInventory<T> inventorySource = _sourceGO.GetComponent<IInventory<T>>();
+            Inventory_Manager.DropItem(inventorySource, inventorySlot.slotIndex, dropAmount);
+            Manager_Menu.Instance.InventoryMenu.RefreshUI<Menu_RightClick>(_sourceGO);
         }
     }
     public void DropOneButtonPressed()
     {
-        Drop(1, equipmentSlot: _equipmentSlot, inventorySlot: _inventorySlot, actor: _actor);
+        Drop<Menu_RightClick>(1, equipmentSlot: _equipmentSlot, inventorySlot: _inventorySlot);
     }
-    public void DropXButtonPressed()
+    public void DropXButtonPressed<T>() where T : MonoBehaviour
     {
         UI_Slider.instance.OpenMenu<Menu_RightClick>();
 
         if (_equipmentSlot != null)
         {
-            UI_Slider.instance.DropItemSlider(Equipment_Manager.CurrentEquipment[_equipmentSlot].Item2, dropXEquipmentSlot: _equipmentSlot, dropXActor: _actor);
+            UI_Slider.instance.DropItemSlider(_sourceGO.GetComponent<IEquipment<T>>().GetEquipmentData().EquipmentItems[_equipmentSlot.SlotIndex].StackSize, dropXEquipmentSlot: _equipmentSlot);
             RightClickMenuClose();
 
         }
         else if (_inventorySlot != null)
         {
-            UI_Slider.instance.DropItemSlider(Inventory_Manager.InventoryItemIDs[_inventorySlot.slotIndex].Item2, dropXInventorySlot: _inventorySlot, dropXActor: _actor);
+            UI_Slider.instance.DropItemSlider(_sourceGO.GetComponent<IInventory<T>>().GetInventoryData().InventoryItems[_inventorySlot.slotIndex].StackSize, dropXInventorySlot: _inventorySlot);
             RightClickMenuClose();
         }
     }
     public void DropAllButtonPressed()
     {
-        Drop(-1, equipmentSlot: _equipmentSlot, inventorySlot: _inventorySlot, actor: _actor);
+        Drop<Menu_RightClick>(-1, equipmentSlot: _equipmentSlot, inventorySlot: _inventorySlot);
     }
     public void TalkButtonPressed()
     {
-        if (_actor != null)
+        if (_destinationGO != null)
         {
-            Dialogue_Manager.instance.OpenDialogue(_actor.gameObject, _actor.DialogueData);
+            Dialogue_Manager.instance.OpenDialogue(_destinationGO, _destinationGO.GetComponent<Actor_Base>().DialogueData);
             RightClickMenuClose();
         }
-        else
-        {
-            Debug.Log("Interacted character does not exist");
-        }
+
+        else { Debug.Log("Interacted character does not exist"); }
     }
     public void OpenButtonPressed()
     {
-        if (_interactingThing.TryGetComponent<Chest>(out Chest chest))
+        if (_destinationGO.TryGetComponent<Chest>(out Chest chest))
         {
-            chest.OpenChestInventory(chest.Inventory_NotEquippable);
+            chest.OpenChestInventory();
             RightClickMenuClose();
         }
     }

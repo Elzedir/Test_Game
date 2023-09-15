@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -71,15 +73,18 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
         ActorComponents.ActorColl = GetComponent<BoxCollider2D>();
         ActorComponents.ActorBody = GetComponent<Rigidbody2D>();
         _actorAnimator = GetComponent<Animator>();
+        Transform vfxTransform = transform.Find("VFX") ?? CreateChildGameObject("VFX").transform;
+        ActorScripts.Actor_VFX = vfxTransform.GetComponent<Actor_VFX>() ?? vfxTransform.gameObject.AddComponent<Actor_VFX>();
     }
 
     private void InitialiseAndSetEquipment()
     {
         List<EquipmentItem> equipmentItems = new List<EquipmentItem>(ActorData.ActorEquipment.NumberOfEquipmentPieces);
         equipmentItems.AddRange(Enumerable.Repeat(EquipmentItem.None, ActorData.ActorEquipment.NumberOfEquipmentPieces));
+        EquipmentSlotList = new List<Equipment_Slot>();
 
         Transform[] allChildren = transform.GetComponentsInChildren<Transform>(true);
-        string[] requiredParts = { "Head", "Chest", "MainHand", "OffHand", "Legs", "Consumable", "VFX" };
+        string[] requiredParts = { "Head", "Chest", "MainHand", "OffHand", "Legs", "Consumable" };
 
         foreach (string part in requiredParts)
         {
@@ -87,9 +92,7 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
 
             if (childTransform == null)
             {
-                GameObject newPart = new GameObject(part);
-                newPart.transform.SetParent(transform);
-                childTransform = newPart.transform;
+                childTransform = CreateChildGameObject(part).transform;
             }
 
             Equipment_Slot slotComponent = null;
@@ -127,15 +130,6 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
                     Consumable = slotComponent;
                     slotIndex = 5;
                     break;
-                case "VFX":
-                    ActorScripts.Actor_VFX = GetComponentInChildren<Actor_VFX>();
-                    if (ActorScripts.Actor_VFX == null)
-                    {
-                        ActorScripts.Actor_VFX = childTransform.gameObject.AddComponent<Actor_VFX>();
-                    }
-                    slotIndex = 6;
-                    break;
-
             }
 
             if (slotComponent != null && slotIndex >= 0)
@@ -143,9 +137,19 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
                 slotComponent.SlotIndex = slotIndex;
                 equipmentItems[slotIndex] = EquipmentItem.None;
             }
+
+            EquipmentSlotList.Add(slotComponent);
         }
 
         ActorData.ActorEquipment.EquipmentItems = equipmentItems;
+        Equipment_Manager.PopulateEquipmentSlots(this);
+    }
+
+    private GameObject CreateChildGameObject(string name)
+    {
+        GameObject newPart = new GameObject(name);
+        newPart.transform.SetParent(transform);
+        return newPart;
     }
 
     private T AddOrGetComponent<T>(Transform childTransform) where T : Equipment_Slot
@@ -214,7 +218,6 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
             // AbilityUse();
         }
     }
-
 
     public void HandleNPCDirection()
     {
@@ -320,7 +323,7 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
             {
                 _agent.isStopped = false;
                 _agent.SetDestination(closestEnemy.transform.position);
-                _agent.speed = ActorScripts.StatManager.CurrentSpeed;
+                _agent.speed = ActorScripts.StatManager.CurrentCombatStats.MoveSpeed;
             }
             else
             {
@@ -434,7 +437,7 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
         if(distanceToStart > 0.01f)
         {
             _agent.SetDestination(startingPosition);
-            _agent.speed = ActorScripts.StatManager.CurrentSpeed;
+            _agent.speed = ActorScripts.StatManager.CurrentCombatStats.MoveSpeed;
         }
         else
         {
@@ -479,7 +482,7 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
             }
             else
             {
-                Menu_RightClick.Instance.RightClickMenu(interactedThing: gameObject, interactingThing: _actor, talkable: true) ;
+                Menu_RightClick.Instance.RightClickMenu(objectDestination: gameObject, talkable: true) ;
             }
         }
     }
@@ -584,12 +587,12 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
     {
         _actor.ActorStates.Dodging = true;
         _actor.ActorStates.DodgeAvailable = false;
-        _actor.ActorScripts.StatManager.CurrentSpeed = _actor.ActorScripts.StatManager.CurrentSpeed * 2;
+        _actor.ActorScripts.StatManager.CurrentCombatStats.MoveSpeed = _actor.ActorData.ActorStats.CombatStats.MoveSpeed * 2;
         animator.SetTrigger("Dodge");
 
         yield return new WaitForSeconds(animator.GetCurrentAnimatorClipInfo(0)[0].clip.length);
 
-        _actor.ActorScripts.StatManager.CurrentSpeed = _actor.ActorScripts.StatManager.CurrentSpeed / 2;
+        _actor.ActorScripts.StatManager.CurrentCombatStats.MoveSpeed = _actor.ActorData.ActorStats.CombatStats.MoveSpeed;
         _actor.ActorStates.Dodging = false;
 
         animator.ResetTrigger("Dodge");
@@ -605,10 +608,9 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
 
     public InventoryType InventoryType => InventoryType.Actor;
     public bool InventoryIsOpen { get; set; }
-    public bool InventoryisOpen
+    public void InitialiseInventory()
     {
-        get => InventoryIsOpen;
-        set => InventoryIsOpen = value;
+        ActorData.ActorInventory.InitialiseInventoryItems();
     }
 
     public Actor_Base GetIInventoryBaseClass()
@@ -628,14 +630,17 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
         return ActorScripts.StatManager.CurrentInventorySize;
     }
 
+    public List<Equipment_Slot> EquipmentSlotList { get; set; }
     public Equipment_Slot Head { get; set; }
     public Equipment_Slot Chest { get; set; }
     public Equipment_Slot MainHand { get; set; }
     public Equipment_Slot OffHand { get; set; }
     public Equipment_Slot Legs { get; set; }
     public Equipment_Slot Consumable { get; set; }
-
-    public bool EquipmentisOpen { get; set; }
+    public void InitialiseEquipment()
+    {
+        ActorData.ActorEquipment.InitialiseEquipmentItems();
+    }
 
     public Actor_Base GetIEquipmentBaseClass()
     {

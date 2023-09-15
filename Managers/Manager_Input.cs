@@ -49,10 +49,10 @@ public class Manager_Input : MonoBehaviour
     {
         _keyActions = new Dictionary<ActionKey, Action>
         {
-            { ActionKey.MoveUp, HandleWPressed },
-            { ActionKey.MoveDown, HandleAPressed },
-            { ActionKey.S, HandleSPressed },
-            { ActionKey.D, HandleDPressed },
+            { ActionKey.Move_Up, HandleWPressed },
+            { ActionKey.Move_Down, HandleAPressed },
+            { ActionKey.Move_Left, HandleSPressed },
+            { ActionKey.Move_Right, HandleDPressed },
 
             { ActionKey.C, HandleCPressed },
             { ActionKey.E, HandleEPressed },
@@ -263,7 +263,7 @@ public class Manager_Input : MonoBehaviour
 
 public enum ActionKey
 {
-    MoveUp, MoveDown, S, D,
+    Move_Up, Move_Down, Move_Left, Move_Right,
     Mouse0, Mouse1,
     C, E, Escape, I, J, Space
 }
@@ -275,10 +275,10 @@ public class KeyBindings
 
     public KeyBindings()
     {
-        Keys.Add(ActionKey.MoveUp, KeyCode.W);
-        Keys.Add(ActionKey.MoveDown, KeyCode.A);
-        Keys.Add(ActionKey.S, KeyCode.S);
-        Keys.Add(ActionKey.D, KeyCode.D);
+        Keys.Add(ActionKey.Move_Up, KeyCode.W);
+        Keys.Add(ActionKey.Move_Down, KeyCode.A);
+        Keys.Add(ActionKey.Move_Left, KeyCode.S);
+        Keys.Add(ActionKey.Move_Right, KeyCode.D);
 
         Keys.Add(ActionKey.Mouse0, KeyCode.Mouse0);
         Keys.Add(ActionKey.Mouse1, KeyCode.Mouse1);

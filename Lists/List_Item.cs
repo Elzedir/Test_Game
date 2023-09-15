@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor.Animations;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public enum ItemType
 {
@@ -140,6 +141,12 @@ public struct ItemStats
     public CombatStats CombatStats;
     public WeaponStats WeaponStats;
     public ArmourStats ArmourStats;
+
+    public static void SetItemStats(int itemID, int stackSize, ItemStats itemStats)
+    {
+        itemStats = List_Item.GetItemData(itemID).ItemStats;
+        itemStats.CommonStats.CurrentStackSize = stackSize;
+    }
 
     public static ItemStats None()
     {

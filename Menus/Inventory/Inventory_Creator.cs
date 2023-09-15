@@ -6,7 +6,6 @@ using static UnityEditor.Progress;
 
 public class Inventory_Creator : MonoBehaviour
 {
-    [SerializeField] private Transform inventoryArea;
     private bool isOpen = false;
 
     public bool IsOpen
@@ -21,7 +20,7 @@ public class Inventory_Creator : MonoBehaviour
 
         for (int i = 0; i < numSlots; i++)
         {
-            GameObject slotObject = Instantiate(List_InGamePrefabs.GetPrefab(Prefab.InventorySlot), inventoryArea);
+            GameObject slotObject = Instantiate(List_InGamePrefabs.GetPrefab(Prefab.InventorySlot), transform);
             Inventory_Slot slot = slotObject.GetComponent<Inventory_Slot>();
 
             slot.slotIndex = slotID;
@@ -33,9 +32,9 @@ public class Inventory_Creator : MonoBehaviour
     {
         List<InventoryItem> inventoryItems = inventorySource.GetInventoryData().InventoryItems;
 
-        for (int i = 0; i < inventoryArea.childCount; i++)
+        for (int i = 0; i < transform.childCount; i++)
         {
-            Inventory_Slot slot = inventoryArea.GetChild(i).GetComponent<Inventory_Slot>();
+            Inventory_Slot slot = transform.GetChild(i).GetComponent<Inventory_Slot>();
 
             if (slot != null && i < inventoryItems.Count)
             {

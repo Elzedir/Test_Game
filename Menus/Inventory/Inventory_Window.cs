@@ -68,7 +68,7 @@ public class Inventory_Window : Menu_UI
             return;
         }
 
-        if (inventorySource.InventoryisOpen)
+        if (inventorySource.InventoryIsOpen)
         {
             if (transform.GetSiblingIndex() == transform.parent.childCount - 1)
             {
@@ -96,7 +96,7 @@ public class Inventory_Window : Menu_UI
 
         gameObject.SetActive(true);
         _isOpen = true;
-        inventorySource.InventoryisOpen = true;
+        inventorySource.InventoryIsOpen = true;
         inventoryCreator.IsOpen = true;
 
         SetInventoryWindowName(inventorySource.GetIInventoryBaseClass().name);
@@ -135,15 +135,20 @@ public class Inventory_Window : Menu_UI
             }
 
             inventoryCreator.IsOpen = false;
-            inventorySource.InventoryisOpen = false;
+            inventorySource.InventoryIsOpen = false;
         }
 
         _isOpen = false;
         gameObject.SetActive(false);
     }
 
-    public void RefreshUI<T>(GameObject interactedObject) where T : MonoBehaviour
+    public void RefreshUI<T>(GameObject interactedObject = null) where T : MonoBehaviour
     {
+        if (interactedObject == null)
+        {
+            interactedObject = GameManager.Instance.Player.gameObject;
+        }
+
         Manager_Stats statManager = interactedObject.GetComponent<Actor_Base>().ActorScripts.StatManager;
         statManager.UpdateStats();
 

@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static FactionManager;
 using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public enum ActorType
@@ -63,7 +65,6 @@ public class Actor_Data_SO : ScriptableObject
         }
     }
 
-    public Actor_Base Actor;
     private Actor_Skills _actorSkills;
     public ActorStats ActorStats;
     public Specialisations ActorSpecialisations;
@@ -85,6 +86,7 @@ public class Actor_Data_SO : ScriptableObject
     public void Initialise(Actor_Base actor)
     {
         SetActorLayer(actor);
+        InitialiseStats();
         GameManager.Instance.RunCoroutine(DelayedInitialiseAbilityCooldowns());
     }
 
@@ -101,9 +103,38 @@ public class Actor_Data_SO : ScriptableObject
         }
     }
 
+    public void InitialiseStats()
+    {
+        InitialiseFieldValues(ref ActorStats);
+        InitialiseFieldValues(ref ActorStats.CombatStats);
+    }
+
+    private void InitialiseFieldValues<T>(ref T stats) where T : struct
+    {
+        FieldInfo[] fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
+        foreach (FieldInfo field in fields)
+        {
+            if (field.FieldType == typeof(float))
+            {
+                if ((float)field.GetValue(stats) == 0)
+                {
+                    Debug.Log($"Scriptable Object field {field} was 0. Restart for it to work.");
+                    field.SetValueDirect(__makeref(stats), 1f);
+                }
+            }
+            else if (field.FieldType == typeof(int))
+            {
+                if ((int)field.GetValue(stats) == 0)
+                {
+                    Debug.Log($"Scriptable object field {field} was 0. Restart for it to work.");
+                    field.SetValueDirect(__makeref(stats), 1);
+                }
+            }
+        }
+    }
+
     public void SetActorLayer(Actor_Base actor)
     {
-        Actor = actor;
         FactionManager factionManager = FactionManager.instance;
         string layerName = factionManager.GetLayerNameFromFaction(_faction);
         int layerIndex = LayerMask.NameToLayer(layerName);
@@ -152,9 +183,6 @@ public struct ActorStats
     public CombatStats CombatStats;
 
     public int XpValue;
-    public float baseYSpeed;
-    public float baseXSpeed;
-
     public List<Actor_Vocation_Entry> VocationExperience;
 }
 
@@ -176,6 +204,7 @@ public struct CombatStats
     public float PhysicalDefence;
     public float MagicalDefence;
 
+    public float MoveSpeed;
     public float DodgeCooldown;
 
     public static CombatStats operator +(CombatStats a, CombatStats b)

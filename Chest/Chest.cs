@@ -27,23 +27,20 @@ public class Chest : MonoBehaviour, IInventory<Chest>
                     ? SO_List.Instance.ChestSprites[1].sprite
                     : SO_List.Instance.ChestSprites[2].sprite;
 
-            Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, openable: true);
+            Menu_RightClick.Instance.RightClickMenu(objectDestination: this.gameObject, openable: true);
         }
     }
-
-    public InventoryType InventoryType => InventoryType.Chest;
-    public bool InventoryIsOpen { get; set; }
-    public bool InventoryisOpen
-    {
-        get => InventoryIsOpen;
-        set => InventoryIsOpen = value;
-    }
-
     public void OpenChestInventory()
     {
         Inventory_Window.Instance.OpenMenu<Chest>(this.gameObject);
     }
 
+    public InventoryType InventoryType => InventoryType.Chest;
+    public bool InventoryIsOpen { get; set; }
+    public void InitialiseInventory()
+    {
+        ChestData.ChestInventory.InitialiseInventoryItems();
+    }
     public Chest GetIInventoryBaseClass()
     {
         return this;

@@ -32,7 +32,7 @@ public class Interactable_Item : MonoBehaviour
         if (Input.GetMouseButtonUp(1))
         {
             _item = List_Item.GetItemData(ItemID);
-            Menu_RightClick.Instance.RightClickMenu(interactedThing: this.gameObject, equippable: _item.ItemStats.CommonStats.Equippable);
+            Menu_RightClick.Instance.RightClickMenu(objectDestination: this.gameObject, item: _item);
         }
     }
 }

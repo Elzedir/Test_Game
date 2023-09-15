@@ -6,8 +6,7 @@ using UnityEngine;
 public class Manager_Stats : MonoBehaviour
 {
     // General
-    private Actor_Data_SO _actorData;
-    public float CurrentSpeed;
+    private Actor_Base _actor;
 
     // Damager
 
@@ -17,24 +16,31 @@ public class Manager_Stats : MonoBehaviour
 
     private void Start()
     {
-        _actorData = GetComponent<Actor_Base>().ActorData;
+        _actor = GetComponent<Actor_Base>();
         UpdateStats();
     }
 
     public void UpdateStats()
     {
-        CurrentInventorySize = _actorData.ActorInventory.BaseInventorySize; // change this later
-        List<EquipmentItem> equipmentData = _actorData.Actor.GetEquipmentData().EquipmentItems;
+        CurrentInventorySize = _actor.ActorData.ActorInventory.BaseInventorySize; // change this later
+        List<EquipmentItem> equipmentData = _actor.GetEquipmentData().EquipmentItems;
 
         for (int i = 0; i < equipmentData.Count; i++)
         {
-            List_Item item = List_Item.GetItemData(equipmentData[i].ItemStats.CommonStats.ItemID);
+            List_Item item = List_Item.GetItemData(equipmentData[i].ItemID);
 
             float tempHealth = CurrentCombatStats.Health;
             float tempMana = CurrentCombatStats.Mana;
             float tempStamina = CurrentCombatStats.Stamina;
 
-            CurrentCombatStats = _actorData.ActorStats.CombatStats + item.ItemStats.CombatStats;
+            if (item != null && item.ItemStats.CommonStats.ItemID != -1)
+            {
+                CurrentCombatStats = _actor.ActorData.ActorStats.CombatStats + item.ItemStats.CombatStats;
+            }
+            else
+            {
+                CurrentCombatStats = _actor.ActorData.ActorStats.CombatStats;
+            }
 
             CurrentCombatStats.Health = tempHealth;
             CurrentCombatStats.Mana = tempMana;
@@ -45,7 +51,7 @@ public class Manager_Stats : MonoBehaviour
     {
         Damage damage = new Damage
         {
-            origin = _actorData.Actor.transform.position,
+            origin = _actor.transform.position,
             damageAmount = CurrentCombatStats.AttackDamage * (1 + (chargeTime * 0.25f)),
             pushForce = CurrentCombatStats.AttackPushForce
         };
@@ -58,7 +64,7 @@ public class Manager_Stats : MonoBehaviour
 
         float damageReduction = CurrentCombatStats.PhysicalDefence + CurrentCombatStats.MagicalDefence;
 
-        if (_actorData.Actor.ActorStates.Dodging)
+        if (_actor.ActorStates.Dodging)
         {
             damageReduction *= 2; // Change this to be a dodgemitigation calculation
         }
@@ -84,18 +90,20 @@ public class Manager_Stats : MonoBehaviour
 
         if (CurrentCombatStats.Health <= 0)
         {
-            _actorData.Actor.Death();
+            _actor.Death();
             return;
         }
+
+        _actor.PushDirection = (transform.position - damage.origin).normalized * damage.pushForce;
     }
 
     public void RestoreHealth(float amount)
     {
         CurrentCombatStats.Health += amount;
 
-        if (CurrentCombatStats.Health > _actorData.ActorStats.CombatStats.Health)
+        if (CurrentCombatStats.Health > _actor.ActorData.ActorStats.CombatStats.Health)
         {
-            CurrentCombatStats.Health = _actorData.ActorStats.CombatStats.Health;
+            CurrentCombatStats.Health = _actor.ActorData.ActorStats.CombatStats.Health;
             return;
         }
 
@@ -106,8 +114,8 @@ public class Manager_Stats : MonoBehaviour
     public void UpdateStatsOnLevelUp()
     {
         UpdateStats();
-        CurrentCombatStats.Health = _actorData.ActorStats.CombatStats.Health;
-        CurrentCombatStats.Mana = _actorData.ActorStats.CombatStats.Mana;
-        CurrentCombatStats.Stamina = _actorData.ActorStats.CombatStats.Stamina;
+        CurrentCombatStats.Health = _actor.ActorData.ActorStats.CombatStats.Health;
+        CurrentCombatStats.Mana = _actor.ActorData.ActorStats.CombatStats.Mana;
+        CurrentCombatStats.Stamina = _actor.ActorData.ActorStats.CombatStats.Stamina;
     }
 }

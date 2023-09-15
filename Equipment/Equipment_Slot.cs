@@ -88,6 +88,11 @@ public class Equipment_Slot : MonoBehaviour
         }
     }
 
+    public void SetEquipmentItem(EquipmentItem equipmentItem)
+    {
+        EquipmentItem = equipmentItem;
+    }
+
     public void UpdateSprite(Equipment_Slot equipSlot, List_Item item)
     {
         if (item == null)

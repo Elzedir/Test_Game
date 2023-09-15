@@ -28,20 +28,20 @@ public class Inventory_EquipmentSlot : MonoBehaviour
     {
         EquipmentItem = equipmentItem;
 
-        if (equipmentItem.ItemStats.CommonStats.ItemID == -1 || equipmentItem.ItemStats.CommonStats.CurrentStackSize == 0)
+        if (equipmentItem.ItemID == -1 || equipmentItem.StackSize == 0)
         {
             itemIcon.sprite = null;
             stackSizeText.enabled = false;
         }
         else
         {
-            itemIcon.sprite = List_Item.GetItemData(equipmentItem.ItemStats.CommonStats.ItemID).ItemStats.CommonStats.ItemIcon;
+            itemIcon.sprite = List_Item.GetItemData(equipmentItem.ItemID).ItemStats.CommonStats.ItemIcon;
 
             if (stackSizeText != null)
             {
-                if (equipmentItem.ItemStats.CommonStats.CurrentStackSize > 1)
+                if (equipmentItem.StackSize > 1)
                 {
-                    stackSizeText.text = equipmentItem.ItemStats.CommonStats.CurrentStackSize.ToString();
+                    stackSizeText.text = equipmentItem.StackSize.ToString();
                     stackSizeText.enabled = true;
                 }
                 else
@@ -61,11 +61,11 @@ public class Inventory_EquipmentSlot : MonoBehaviour
 
         bool itemEquipped = false;
 
-        if (EquipmentItem.ItemStats.CommonStats.ItemID != -1)
+        if (EquipmentItem.ItemID != -1)
         {
             itemEquipped = true;
         }
 
-        Menu_RightClick.Instance.RightClickMenu(interactedThing: EquipmentItem.Slot.gameObject, itemEquipped: itemEquipped, droppable: true);
+        Menu_RightClick.Instance.RightClickMenu(objectDestination: EquipmentItem.Slot.gameObject, itemEquipped: itemEquipped, droppable: true);
     }
 }
