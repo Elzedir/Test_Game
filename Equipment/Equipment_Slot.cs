@@ -28,7 +28,7 @@ public enum SlotType
 
 [System.Serializable]
 [RequireComponent(typeof(SpriteRenderer))]
-public class Equipment_Slot : MonoBehaviour
+public class Equipment_Slot : MonoBehaviour, ISlot<Equipment_Slot>
 {
     public int SlotIndex;
     public SlotType SlotType;
@@ -266,5 +266,10 @@ public class Equipment_Slot : MonoBehaviour
             coll.SendMessage("ReceiveDamage", damage);
             _chargeTime = 0f;
         }
+    }
+
+    public Equipment_Slot GetISlotBaseClass()
+    {
+        return this;
     }
 }

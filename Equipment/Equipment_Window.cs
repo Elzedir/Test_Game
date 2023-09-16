@@ -27,7 +27,7 @@ public class Equipment_Window : MonoBehaviour
                     ItemStats = equipmentData[i].ItemStats,
                 };
 
-                equipmentSlotScript.UpdateSlotUI(equipmentItem);
+                equipmentSlotScript.UpdateSlotUI(equipmentSource, equipmentItem);
             }
             else { Debug.Log("No equipment slot script found"); }
         }

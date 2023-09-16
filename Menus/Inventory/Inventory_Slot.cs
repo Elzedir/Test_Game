@@ -7,9 +7,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class Inventory_Slot : MonoBehaviour, IDropHandler
+public class Inventory_Slot : MonoBehaviour, ISlot<Inventory_Slot>
 {
-    private object InventorySource;
+    private GameObject _inventorySource;
     
     public int slotIndex;
     public InventoryItem InventoryItem;
@@ -26,7 +26,7 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
 
     public virtual void UpdateSlotUI<T>(IInventory<T> inventorySource, InventoryItem inventoryItem) where T : MonoBehaviour
     {
-        InventorySource = inventorySource;
+        _inventorySource = inventorySource.GetIInventoryBaseClass().gameObject;
         InventoryItem = inventoryItem;
 
         if (inventoryItem.ItemID == -1 || InventoryItem.StackSize == 0)
@@ -62,6 +62,16 @@ public class Inventory_Slot : MonoBehaviour, IDropHandler
     {
         List_Item item = List_Item.GetItemData(InventoryItem.ItemID);
 
-        Menu_RightClick.Instance.RightClickMenu(objectSource: this.gameObject, item: item, droppable: true);
+        Menu_RightClick.Instance.RightClickMenu(objectSource: _inventorySource,  slot: this, item: item, droppable: true);
     }
+
+    public Inventory_Slot GetISlotBaseClass()
+    {
+        return this;
+    }
+}
+
+public interface ISlot<T> where T : MonoBehaviour
+{
+    public T GetISlotBaseClass();
 }

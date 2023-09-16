@@ -15,6 +15,8 @@ using static UnityEditor.Progress;
 [System.Serializable]
 public class Inventory_EquipmentSlot : MonoBehaviour
 {
+    private GameObject _equipmentSourceGO;
+
     public EquipmentItem EquipmentItem;
     public TextMeshProUGUI stackSizeText;
     public Image itemIcon;
@@ -24,10 +26,11 @@ public class Inventory_EquipmentSlot : MonoBehaviour
     {
         
     }
-    public virtual void UpdateSlotUI(EquipmentItem equipmentItem)
+    public virtual void UpdateSlotUI<T>(IEquipment<T> equipmentSource, EquipmentItem equipmentItem) where T : MonoBehaviour
     {
+        _equipmentSourceGO = equipmentSource.GetIEquipmentBaseClass().gameObject;
         EquipmentItem = equipmentItem;
-
+        
         if (equipmentItem.ItemID == -1 || equipmentItem.StackSize == 0)
         {
             itemIcon.sprite = null;
@@ -66,6 +69,6 @@ public class Inventory_EquipmentSlot : MonoBehaviour
             itemEquipped = true;
         }
 
-        Menu_RightClick.Instance.RightClickMenu(objectDestination: EquipmentItem.Slot.gameObject, itemEquipped: itemEquipped, droppable: true);
+        Menu_RightClick.Instance.RightClickMenu(objectSource: _equipmentSourceGO, slot:EquipmentItem.Slot, itemEquipped: itemEquipped, droppable: true);
     }
 }

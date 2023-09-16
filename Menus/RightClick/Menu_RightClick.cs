@@ -108,8 +108,9 @@ public class Menu_RightClick : MonoBehaviour
         CloseRightClickButtons(gameObject);
     }
 
-    public void ActiveButtonsCheck(object objectSource = null,
-                               object objectDestination = null,
+    public void ActiveButtonsCheck(GameObject objectSource = null,
+                               GameObject objectDestination = null,
+                               object slot = null,
                                List_Item item = null,
                                bool itemEquipped = false,
                                bool droppable = false,
@@ -118,21 +119,10 @@ public class Menu_RightClick : MonoBehaviour
     {
         position = Input.mousePosition;
 
-        if (objectSource == null)
-        {
-            _sourceGO = GameManager.Instance.Player.gameObject;
-        }
-        else if (objectDestination == null)
-        {
-            _destinationGO = GameManager.Instance.Player.gameObject;
-        }
-        
-        if (objectDestination is GameObject interactedThingGO)
-        {
-            _destinationGO = interactedThingGO;
-        }
+        _sourceGO = objectSource != null ? objectSource : GameManager.Instance.Player.gameObject;
+        _destinationGO = objectDestination != null ? objectDestination : GameManager.Instance.Player.gameObject;
 
-        if (_destinationGO.TryGetComponent<Interactable_Item>(out Interactable_Item interactableItem))
+        if (_sourceGO != null && _sourceGO.TryGetComponent<Interactable_Item>(out Interactable_Item interactableItem))
         {
             _interactedItem = interactableItem;
         }
@@ -155,18 +145,28 @@ public class Menu_RightClick : MonoBehaviour
         _buttonDropAll.gameObject.SetActive(droppable);
         _buttonOpen.gameObject.SetActive(openable);
 
-        _inventorySlot = _destinationGO.GetComponent<Inventory_Slot>();
-        _equipmentSlot = _destinationGO.GetComponent<Equipment_Slot>();
+        if (slot != null)
+        {
+            if (slot is Inventory_Slot inventorySlot)
+            {
+                _inventorySlot = inventorySlot;
+            }
+            else if (slot is Equipment_Slot equipmentSlot)
+            {
+                _equipmentSlot = equipmentSlot;
+            }
+        }
     }
-    public void RightClickMenu(object objectSource = null,
-                           object objectDestination = null,
+    public void RightClickMenu(GameObject objectSource = null,
+                           GameObject objectDestination = null,
+                           object slot = null,
                            List_Item item = null,
                            bool itemEquipped = false,
                            bool droppable = false,
                            bool talkable = false,
                            bool openable = false)
     {
-        ActiveButtonsCheck(objectSource, objectDestination, item, itemEquipped, droppable, talkable, openable);
+        ActiveButtonsCheck(objectSource, objectDestination, slot, item, itemEquipped, droppable, talkable, openable);
         RightClickMenuOpen();
     }
 
@@ -179,8 +179,17 @@ public class Menu_RightClick : MonoBehaviour
             inventorySlotIndex = _inventorySlot.slotIndex;
         }
 
+        Debug.Log(_sourceGO);
+        Debug.Log(_destinationGO);
+
         IInventory<T> inventorySource = _sourceGO.GetComponent<IInventory<T>>();
         IInventory<T> inventoryDestination = _destinationGO.GetComponent<IInventory<T>>();
+        // It works in Inventory Window but not here. Try debug the whole class.
+
+        Debug.Log(_sourceGO);
+        Debug.Log(_destinationGO);
+        Debug.Log(inventorySource);
+        Debug.Log(inventoryDestination);
 
         bool equipped = Inventory_Manager.OnEquip(itemSource: inventorySource, itemDestination: inventoryDestination, pickedUpItem: _interactedItem, inventorySlotIndex: inventorySlotIndex);
 

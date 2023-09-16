@@ -157,7 +157,10 @@ public abstract class Inventory_Manager : MonoBehaviour
         Interactable_Item pickedUpItem = null, 
         int inventorySlotIndex = -1) where T : MonoBehaviour
     {
+        Debug.Log(pickedUpItem);
         Debug.Log(itemSource);
+        Debug.Log(itemSource.GetInventoryItem(inventorySlotIndex));
+        Debug.Log(itemSource.GetInventoryItem(inventorySlotIndex).ItemID);
         List_Item itemToEquip = List_Item.GetItemData(pickedUpItem != null 
             ? pickedUpItem.ItemID 
             : itemSource.GetInventoryItem(inventorySlotIndex).ItemID);

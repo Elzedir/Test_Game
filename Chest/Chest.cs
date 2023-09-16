@@ -27,7 +27,7 @@ public class Chest : MonoBehaviour, IInventory<Chest>
                     ? SO_List.Instance.ChestSprites[1].sprite
                     : SO_List.Instance.ChestSprites[2].sprite;
 
-            Menu_RightClick.Instance.RightClickMenu(objectDestination: this.gameObject, openable: true);
+            Menu_RightClick.Instance.RightClickMenu(objectDestination: gameObject, openable: true);
         }
     }
     public void OpenChestInventory()
