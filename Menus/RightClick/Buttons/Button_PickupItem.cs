@@ -7,6 +7,6 @@ public class Button_PickupItem : RightClickOption
     public override void OnButtonPress()
     {
         Debug.Log("Pickup Item Called");
-        Menu_RightClick.Instance.PickupButtonPressed<Button_PickupItem>();
+        Menu_RightClick.Instance.PickupButtonPressed();
     }
 }

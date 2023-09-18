@@ -17,7 +17,6 @@ public class Manager_Input : MonoBehaviour
     public static Manager_Input Instance;
     public KeyBindings KeyBindings;
     private Dictionary<ActionKey, Action> _keyActions;
-    public Menu_RightClick MenuRightClickScript;
 
     public GameObject InteractedCharacter;
 
@@ -174,7 +173,7 @@ public class Manager_Input : MonoBehaviour
 
     public void HandleCPressed()
     {
-        Character_Window.Instance.OpenMenu<Manager_Input>();
+        Character_Window.Instance.OpenMenu();
     }
 
     public void HandleEPressed()

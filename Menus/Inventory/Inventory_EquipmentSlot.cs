@@ -15,7 +15,7 @@ using static UnityEditor.Progress;
 [System.Serializable]
 public class Inventory_EquipmentSlot : MonoBehaviour
 {
-    private GameObject _equipmentSourceGO;
+    private IEquipment _equipmentSourceActor;
 
     public EquipmentItem EquipmentItem;
     public TextMeshProUGUI stackSizeText;
@@ -26,9 +26,13 @@ public class Inventory_EquipmentSlot : MonoBehaviour
     {
         
     }
-    public virtual void UpdateSlotUI<T>(IEquipment<T> equipmentSource, EquipmentItem equipmentItem) where T : MonoBehaviour
+    public virtual void UpdateSlotUI(IEquipment equipmentSource, EquipmentItem equipmentItem)
     {
-        _equipmentSourceGO = equipmentSource.GetIEquipmentBaseClass().gameObject;
+        if (equipmentSource is Actor_Base equipmentSourceActor)
+        {
+            _equipmentSourceActor = equipmentSourceActor;
+        }
+        
         EquipmentItem = equipmentItem;
         
         if (equipmentItem.ItemID == -1 || equipmentItem.StackSize == 0)
@@ -59,7 +63,7 @@ public class Inventory_EquipmentSlot : MonoBehaviour
     {
         if (EquipmentItem.Slot == null)
         {
-            Debug.Log($"EquipmentItem.Slot: {EquipmentItem.Slot} is null.");
+            Debug.Log($"EquipmentItem.Slot: {EquipmentItem.Slot} is null."); return;
         }
 
         bool itemEquipped = false;
@@ -69,6 +73,13 @@ public class Inventory_EquipmentSlot : MonoBehaviour
             itemEquipped = true;
         }
 
-        Menu_RightClick.Instance.RightClickMenu(objectSource: _equipmentSourceGO, slot:EquipmentItem.Slot, itemEquipped: itemEquipped, droppable: true);
+        IEquipment equipmentSource = null;
+
+        if (_equipmentSourceActor != null && _equipmentSourceActor is IEquipment equipmentSourceActor)
+        {
+            equipmentSource = equipmentSourceActor;
+        }
+
+        Menu_RightClick.Instance.SlotEquipment(equipmentSource: equipmentSource, equipmentSlot: EquipmentItem.Slot, item: List_Item.GetItemData(EquipmentItem.ItemID), itemEquipped: itemEquipped);
     }
 }

@@ -7,12 +7,12 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class Inventory_Slot : MonoBehaviour, ISlot<Inventory_Slot>
+public class Inventory_Slot : MonoBehaviour
 {
-    private GameObject _inventorySource;
+    private IInventory _inventorySource;
     
     public int slotIndex;
-    public InventoryItem InventoryItem;
+    public InventoryItem InventoryItem { get; set; }
     public TextMeshProUGUI stackSizeText;
     public Image slotIcon;
     public Button inventoryEquipButton;
@@ -24,9 +24,10 @@ public class Inventory_Slot : MonoBehaviour, ISlot<Inventory_Slot>
         // Inventory_Manager.instance.MoveItem(sourceSlot.slotIndex, targetSlotIndex);
     }
 
-    public virtual void UpdateSlotUI<T>(IInventory<T> inventorySource, InventoryItem inventoryItem) where T : MonoBehaviour
+    public virtual void UpdateSlotUI(IInventory inventorySource, InventoryItem inventoryItem)
     {
-        _inventorySource = inventorySource.GetIInventoryBaseClass().gameObject;
+        _inventorySource = inventorySource;
+
         InventoryItem = inventoryItem;
 
         if (inventoryItem.ItemID == -1 || InventoryItem.StackSize == 0)
@@ -60,18 +61,6 @@ public class Inventory_Slot : MonoBehaviour, ISlot<Inventory_Slot>
 
     public void OnButtonDown()
     {
-        List_Item item = List_Item.GetItemData(InventoryItem.ItemID);
-
-        Menu_RightClick.Instance.RightClickMenu(objectSource: _inventorySource,  slot: this, item: item, droppable: true);
+        Menu_RightClick.Instance.SlotInventory(inventorySource: _inventorySource, inventorySlot: this);
     }
-
-    public Inventory_Slot GetISlotBaseClass()
-    {
-        return this;
-    }
-}
-
-public interface ISlot<T> where T : MonoBehaviour
-{
-    public T GetISlotBaseClass();
 }

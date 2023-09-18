@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public class UI_Slider : Menu_UI
 {
-    public static UI_Slider instance;
+    public static UI_Slider Instance;
     public Slider slider;
     public TextMeshProUGUI sliderTitle;
     public TextMeshProUGUI sliderAmount;
@@ -17,9 +17,9 @@ public class UI_Slider : Menu_UI
 
     public void Awake()
     {
-        if (instance == null)
+        if (Instance == null)
         {
-            instance = this;
+            Instance = this;
         }
         else
         {
@@ -39,19 +39,19 @@ public class UI_Slider : Menu_UI
         sliderAmount.text = value.ToString("0");
     }
 
-    public override void OpenMenu<T>(GameObject interactedObject = null)
+    public override void OpenMenu(GameObject interactedObject = null)
     {
         gameObject.SetActive(true);
         transform.SetAsLastSibling();
     }
-    public override void CloseMenu<T>(GameObject interactedObject = null)
+    public override void CloseMenu(GameObject interactedObject = null)
     {
         gameObject.SetActive(false);
     }
 
     public void AcceptButtonPressed()
     {
-        Menu_RightClick.Instance.Drop<UI_Slider>(Mathf.RoundToInt(slider.value), equipmentSlot: equipmentSlot, inventorySlot: inventorySlot);
+        Menu_RightClick.Instance.Drop(Mathf.RoundToInt(slider.value), equipmentSlot: equipmentSlot, inventorySlot: inventorySlot);
         gameObject.SetActive(false);
     }
 

@@ -39,7 +39,7 @@ public class Menu_Settings_Rebind : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    public void OnRebindKeyPresssed(ActionKey actionKey, KeyCode newKey)
+    public void OnRebindKeyPressed(ActionKey actionKey, KeyCode newKey)
     {
         RebindQuestion.text = $"To confirm {actionKey.ToString()}'s rebind to {newKey.ToString()}, press {newKey.ToString()} again. To go back, press {Manager_Input.Instance.KeyBindings.Keys[ActionKey.Escape].ToString()}.";
         PressedKey.text = $"{newKey.ToString()}";
@@ -67,7 +67,7 @@ public class Menu_Settings_Rebind : MonoBehaviour
                         {
                             Manager_Input.Instance.KeyBindings.RebindKey(actionKey, _newKeyCode);
                             _isWaitingForConfirmation = false;
-                            Menu_Settings.Instance.OpenMenu<Menu_Settings_Rebind>();
+                            Menu_Settings.Instance.OpenMenu();
                             Menu_Settings.Instance.ControlsCategorySelected();
                             break;
                         }
@@ -75,7 +75,7 @@ public class Menu_Settings_Rebind : MonoBehaviour
                     else
                     {
                         _newKeyCode = keyCode;
-                        OnRebindKeyPresssed(actionKey, _newKeyCode);
+                        OnRebindKeyPressed(actionKey, _newKeyCode);
                     }
                 }
             }

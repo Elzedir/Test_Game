@@ -10,7 +10,7 @@ public class Equipment_Window : MonoBehaviour
     public Transform EquipmentArea;
     public Inventory_EquipmentSlot Head, Chest, MainHand, OffHand, Legs, Consumable;
 
-    public void UpdateEquipmentUI<T>(IEquipment<T> equipmentSource) where T : MonoBehaviour
+    public void UpdateEquipmentUI(IEquipment equipmentSource)
     {
         EquipmentSource = equipmentSource;
         var equipmentData = equipmentSource.GetEquipmentData().EquipmentItems;

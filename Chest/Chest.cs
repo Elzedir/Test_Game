@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Chest : MonoBehaviour, IInventory<Chest>
+public class Chest : MonoBehaviour, IInventory
 {
     private SpriteRenderer _spriteRenderer;
     public Chest_Data_SO ChestData;
@@ -27,21 +27,25 @@ public class Chest : MonoBehaviour, IInventory<Chest>
                     ? SO_List.Instance.ChestSprites[1].sprite
                     : SO_List.Instance.ChestSprites[2].sprite;
 
-            Menu_RightClick.Instance.RightClickMenu(objectDestination: gameObject, openable: true);
+            Menu_RightClick.Instance.Chest(chest: this);
         }
     }
     public void OpenChestInventory()
     {
-        Inventory_Window.Instance.OpenMenu<Chest>(this.gameObject);
+        Inventory_Window.Instance.OpenMenu(this.gameObject);
     }
 
     public InventoryType InventoryType => InventoryType.Chest;
     public bool InventoryIsOpen { get; set; }
     public void InitialiseInventory()
     {
-        ChestData.ChestInventory.InitialiseInventoryItems();
+        ChestData.ChestInventory.InitialiseInventoryItems(ChestData.ChestInventory.BaseInventorySize, ChestData.ChestInventory);
     }
-    public Chest GetIInventoryBaseClass()
+    public GameObject GetIInventoryGO()
+    {
+        return gameObject;
+    }
+    public IInventory GetIInventoryInterface()
     {
         return this;
     }

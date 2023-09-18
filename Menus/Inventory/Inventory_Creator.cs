@@ -28,7 +28,7 @@ public class Inventory_Creator : MonoBehaviour
         }
     }
 
-    public void UpdateInventoryUI<T>(IInventory<T> inventorySource) where T : MonoBehaviour
+    public void UpdateInventoryUI(IInventory inventorySource)
     {
         List<InventoryItem> inventoryItems = inventorySource.GetInventoryData().InventoryItems;
 

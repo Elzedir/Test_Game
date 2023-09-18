@@ -27,11 +27,11 @@ public class Manager_Menu : MonoBehaviour
         Instance = this;
     }
 
-    public void HandleEscapePressed(Menu_UI menu = null)
+    public void HandleEscapePressed(Menu_UI menu = null, GameObject interactedObject = null)
     {
         if (menu != null)
         {
-            menu.CloseMenu<Manager_Menu>();
+            menu.CloseMenu(interactedObject);
             SetWindowToBack(menu.gameObject);
         }
 
@@ -52,14 +52,14 @@ public class Manager_Menu : MonoBehaviour
                 GameObject lastOpenWindow = openUIWindows.LastOrDefault();
                 SetWindowToBack(lastOpenWindow);
 
-                if (OtherWindowOpen() && lastOpenWindow.TryGetComponent<Menu_UI>(out Menu_UI lastOpenMenuMenu))
+                if (!OtherWindowOpen() && lastOpenWindow.TryGetComponent<Menu_UI>(out Menu_UI lastOpenMenuMenu))
                 {
-                    HandleEscapePressed(lastOpenMenuMenu);
+                    HandleEscapePressed(lastOpenMenuMenu, lastOpenMenuMenu.InteractedObject);
                 }
             }
             else
             {
-                Menu_Escape.Instance.OpenMenu<Manager_Menu>();
+                Menu_Escape.Instance.OpenMenu();
             }
         }
     }
@@ -78,7 +78,7 @@ public class Manager_Menu : MonoBehaviour
     {
         if (!menu.IsOpen)
         {
-            menu.OpenMenu<Manager_Menu>(interactedObject);
+            menu.OpenMenu(interactedObject);
             SetWindowToFront(menu.gameObject);
         }
         else

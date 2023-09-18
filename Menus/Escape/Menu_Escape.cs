@@ -24,13 +24,13 @@ public class Menu_Escape : Menu_UI
         gameObject.SetActive(false);
     }
 
-    public override void OpenMenu<T>(GameObject interactedObject = null)
+    public override void OpenMenu(GameObject interactedObject = null)
     {
         gameObject.SetActive(true);
         _isOpen = true;
         GameManager.Instance.ChangeState(GameState.Paused);
     }
-    public override void CloseMenu<T>(GameObject interactedObject = null)
+    public override void CloseMenu(GameObject interactedObject = null)
     {
         gameObject.SetActive(false);
         _isOpen = false;
@@ -41,8 +41,8 @@ public class Menu_Escape : Menu_UI
     {
         if (GameManager.Instance.CurrentState != GameState.InCombat)
         {
-            Menu_CharacterSelect.Instance.OpenMenu<Menu_Escape>();
-            CloseMenu<Menu_Escape>();
+            Menu_CharacterSelect.Instance.OpenMenu();
+            CloseMenu();
         }
         else
         {
@@ -54,8 +54,8 @@ public class Menu_Escape : Menu_UI
     {
         if (GameManager.Instance.CurrentState != GameState.InCombat)
         {
-            Menu_Settings.Instance.OpenMenu<Menu_Escape>();
-            CloseMenu<Menu_Escape>();
+            Menu_Settings.Instance.OpenMenu();
+            CloseMenu();
         }
         else
         {

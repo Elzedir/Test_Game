@@ -6,7 +6,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
+public class Actor_Base : Hitbox, IInventory, IEquipment
 {
     public ActorScripts ActorScripts;
     public ActorStates ActorStates;
@@ -235,7 +235,6 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
         }
     }
     
-
     public virtual void TargetCheck()
     {
         float maxTargetDistance = float.MaxValue;
@@ -482,7 +481,7 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
             }
             else
             {
-                Menu_RightClick.Instance.RightClickMenu(objectDestination: gameObject, talkable: true) ;
+                Menu_RightClick.Instance.Actor(actor: this) ;
             }
         }
     }
@@ -610,10 +609,13 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
     public bool InventoryIsOpen { get; set; }
     public void InitialiseInventory()
     {
-        ActorData.ActorInventory.InitialiseInventoryItems();
+        
     }
-
-    public Actor_Base GetIInventoryBaseClass()
+    public GameObject GetIInventoryGO()
+    {
+        return gameObject;
+    }
+    public IInventory GetIInventoryInterface()
     {
         return this;
     }
@@ -641,8 +643,11 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
     {
         ActorData.ActorEquipment.InitialiseEquipmentItems();
     }
-
-    public Actor_Base GetIEquipmentBaseClass()
+    public GameObject GetIEquipmentGO()
+    {
+        return gameObject;
+    }
+    public IEquipment GetIEquipmentInterface()
     {
         return this;
     }
@@ -650,11 +655,11 @@ public class Actor_Base : Hitbox, IInventory<Actor_Base>, IEquipment<Actor_Base>
     {
         return ActorData.ActorEquipment;
     }
-    public EquipmentItem GetEquipmentItem(EquipmentItem equipmentItem)
+    public EquipmentItem GetEquipmentItem(Equipment_Slot equipmentSlot)
     {
         foreach (EquipmentItem equipment in ActorData.ActorEquipment.EquipmentItems)
         {
-            if (equipmentItem.Slot.SlotType == equipment.Slot.SlotType)
+            if (equipmentSlot.SlotType == equipment.Slot.SlotType)
             {
                 return equipment;
             }

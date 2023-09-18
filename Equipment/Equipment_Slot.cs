@@ -1,19 +1,6 @@
-using NUnit.Framework.Internal.Execution;
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using TMPro;
-using Unity.VisualScripting;
-using UnityEditor.Animations;
-using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.U2D;
-using UnityEngine.UI;
-using static Equipment_Manager;
-using static UnityEditor.IMGUI.Controls.PrimitiveBoundsHandle;
-using static UnityEditor.Progress;
 
 public enum SlotType
 {
@@ -28,7 +15,7 @@ public enum SlotType
 
 [System.Serializable]
 [RequireComponent(typeof(SpriteRenderer))]
-public class Equipment_Slot : MonoBehaviour, ISlot<Equipment_Slot>
+public class Equipment_Slot : MonoBehaviour
 {
     public int SlotIndex;
     public SlotType SlotType;
@@ -38,11 +25,11 @@ public class Equipment_Slot : MonoBehaviour, ISlot<Equipment_Slot>
     protected SpriteRenderer _spriteRenderer;
     protected Animator _animator; 
 
-    private HashSet<Collider2D> _hitEnemies;
+    protected HashSet<Collider2D> _hitEnemies;
     protected bool _offHandAttack = false;
 
-    private float _chargeTime = 0f; public float ChargeTime { get { return _chargeTime; } }
-    private bool _currentlyAttacking = false;
+    protected float _chargeTime = 0f; public float ChargeTime { get { return _chargeTime; } }
+    protected bool _currentlyAttacking = false;
 
     public void Start()
     {        
@@ -266,10 +253,5 @@ public class Equipment_Slot : MonoBehaviour, ISlot<Equipment_Slot>
             coll.SendMessage("ReceiveDamage", damage);
             _chargeTime = 0f;
         }
-    }
-
-    public Equipment_Slot GetISlotBaseClass()
-    {
-        return this;
     }
 }

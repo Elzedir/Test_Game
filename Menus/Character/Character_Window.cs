@@ -69,7 +69,7 @@ public class Character_Window : Menu_UI
         _staminaNumber = allChildren.FirstOrDefault(t => t.name == "StaminaNumber").GetComponent<TextMeshProUGUI>();
     }
 
-    public override void OpenMenu<T>(GameObject interactedCharacter = null)
+    public override void OpenMenu(GameObject interactedCharacter = null)
     {
         if (_specialisationButtons == null)
         {
@@ -94,7 +94,7 @@ public class Character_Window : Menu_UI
         SetCharacterStats(interactedCharacter);
     }
 
-    public override void CloseMenu<T>(GameObject interactedObject = null)
+    public override void CloseMenu(GameObject interactedObject = null)
     {
         gameObject.SetActive(false);
         _abilitiesPanel.gameObject.SetActive(false);

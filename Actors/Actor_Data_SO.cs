@@ -132,7 +132,6 @@ public class Actor_Data_SO : ScriptableObject
             }
         }
     }
-
     public void SetActorLayer(Actor_Base actor)
     {
         FactionManager factionManager = FactionManager.instance;
@@ -141,7 +140,6 @@ public class Actor_Data_SO : ScriptableObject
         actor.gameObject.layer = layerIndex;
         SetActorChildLayerRecursively(actor.gameObject, layerIndex);
     }
-
     public void SetActorChildLayerRecursively(GameObject obj, int newLayer)
     {
         if (obj == null)

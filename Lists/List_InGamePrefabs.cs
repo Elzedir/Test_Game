@@ -32,7 +32,6 @@ public class List_InGamePrefabs : MonoBehaviour
         _arrowPrefab = allChildren.FirstOrDefault(t => t.name == "Arrow").gameObject;
         _inventorySlotPrefab = allChildren.FirstOrDefault(t => t.name == "InventorySlot").gameObject;
         _abilityListIconPrefab = allChildren.FirstOrDefault(t => t.name == "AbilityIcon").gameObject;
-        Debug.Log(_abilityListIconPrefab);
     }
 
     public void PopulateDictionary()

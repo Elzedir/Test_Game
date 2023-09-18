@@ -14,10 +14,12 @@ public class Manager_Stats : MonoBehaviour
     
     public int CurrentInventorySize;
 
-    private void Start()
+    private IEnumerator Start()
     {
+        yield return new WaitForSeconds(0.1f);
         _actor = GetComponent<Actor_Base>();
         UpdateStats();
+        _actor.ActorData.ActorInventory.InitialiseInventoryItems(CurrentInventorySize, _actor.ActorData.ActorInventory);
     }
 
     public void UpdateStats()
