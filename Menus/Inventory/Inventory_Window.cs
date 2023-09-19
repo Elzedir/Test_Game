@@ -149,9 +149,11 @@ public class Inventory_Window : Menu_UI
 
     public void RefreshInventoryUI(GameObject interactedObject = null)
     {
-        InteractedObject = interactedObject;
-
-        if (InteractedObject == null)
+        if (interactedObject != null)
+        {
+            InteractedObject = interactedObject;
+        }
+        else
         {
             InteractedObject = GameManager.Instance.Player.gameObject;
         }

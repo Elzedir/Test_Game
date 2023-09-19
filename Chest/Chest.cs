@@ -11,12 +11,16 @@ public class Chest : MonoBehaviour, IInventory
 
     // Put in a way for the chest to go back to normal after it closes.
 
-    public void Start()
+    public IEnumerator Start()
     {
         if (TryGetComponent<SpriteRenderer>(out _spriteRenderer))
         {
             _spriteRenderer.sprite = SO_List.Instance.ChestSprites[0].sprite;
         }
+
+        yield return new WaitForSeconds(0.1f); // Initialise Items first
+
+        InitialiseInventory();
     }
 
     public void OnMouseOver()

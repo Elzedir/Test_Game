@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor.Playables;
 using UnityEngine;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public enum Ability
 {

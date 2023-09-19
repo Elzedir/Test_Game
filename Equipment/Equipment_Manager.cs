@@ -273,7 +273,7 @@ public class Equipment
     [SerializeField] public List<EquipmentItem> EquipmentItems = new();
     public void InitialiseEquipmentItems()
     {
-        foreach(EquipmentItem equipmentItem in EquipmentItems)
+        foreach (EquipmentItem equipmentItem in EquipmentItems)
         {
             equipmentItem.UpdateItemStats();
         }
@@ -312,7 +312,7 @@ public class EquipmentItem
 
     public void UpdateItemStats()
     {
-        ItemStats.SetItemStats(ItemID, StackSize, ItemStats);
+        ItemStats = ItemStats.SetItemStats(ItemID, StackSize);
     }
 }
 

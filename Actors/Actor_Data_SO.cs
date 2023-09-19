@@ -7,7 +7,6 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
 using static FactionManager;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public enum ActorType
 {

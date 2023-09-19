@@ -30,6 +30,7 @@ public class Inventory_Creator : MonoBehaviour
 
     public void UpdateInventoryUI(IInventory inventorySource)
     {
+
         List<InventoryItem> inventoryItems = inventorySource.GetInventoryData().InventoryItems;
 
         for (int i = 0; i < transform.childCount; i++)

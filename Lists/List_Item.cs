@@ -142,16 +142,25 @@ public struct ItemStats
     public WeaponStats WeaponStats;
     public ArmourStats ArmourStats;
 
-    public static void SetItemStats(int itemID, int stackSize, ItemStats itemStats)
+    public static ItemStats SetItemStats(int itemID, int stackSize)
     {
-        itemStats = List_Item.GetItemData(itemID).ItemStats;
-        itemStats.CommonStats.CurrentStackSize = stackSize;
+        if (itemID != -1 && stackSize != 0)
+        {
+            ItemStats newItemStats = List_Item.GetItemData(itemID).ItemStats;
+            newItemStats.CommonStats.CurrentStackSize = stackSize;
+            return newItemStats;
+        }
+        else
+        {
+            return ItemStats.None();
+        }
     }
 
     public static ItemStats None()
     {
         ItemStats none = new ItemStats();
         none.CommonStats.ItemID = -1;
+        none.CommonStats.CurrentStackSize = 0;
         return none;
     }
 }

@@ -130,6 +130,17 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void SlotInventory(IInventory inventorySource, Inventory_Slot inventorySlot)
     {
+        List_Item item = null;
+        bool droppable = false;
+        bool takeable = false;
+
+        if (inventorySlot.InventoryItem.ItemID > 0)
+        {
+            item = List_Item.GetItemData(inventorySlot.InventoryItem.ItemID);
+            droppable = true;
+            takeable = true;
+        }
+
         if (inventorySource.GetIInventoryGO() == GameManager.Instance.Player.PlayerActor.gameObject)
         {
             _inventoryDestination = _inventoryInteracted;
@@ -142,7 +153,7 @@ public class Menu_RightClick : MonoBehaviour
             _inventorySlot = inventorySlot;
         }
 
-        ActiveButtonsCheck(item: List_Item.GetItemData(inventorySlot.InventoryItem.ItemID), droppable: true);
+        ActiveButtonsCheck(item: item, droppable: droppable, itemTakeable: takeable);
     }
 
     public void SlotEquipment(IEquipment equipmentSource, Equipment_Slot equipmentSlot, List_Item item, bool itemEquipped)
@@ -157,7 +168,7 @@ public class Menu_RightClick : MonoBehaviour
             _equipmentDestination = GameManager.Instance.Player.PlayerActor as IEquipment;
         }
 
-        ActiveButtonsCheck(item: item, itemEquipped: itemEquipped, droppable: true);
+        ActiveButtonsCheck(item: item, itemEquipped: itemEquipped, droppable: itemEquipped, itemTakeable: itemEquipped);
     }
 
     public void RightClickMenuExit()
@@ -171,14 +182,16 @@ public class Menu_RightClick : MonoBehaviour
     }
     public void EquipButtonPressed()
     {
-        int inventorySlotIndex = -1;
+        bool equipped = false;
 
         if (_inventorySlot != null)
         {
-            inventorySlotIndex = _inventorySlot.slotIndex;
+            equipped = Inventory_Manager.OnEquipFromInventory(itemSource: _inventoryInteracted, itemDestination: _inventoryDestination, inventorySlotIndex: _inventorySlot.slotIndex);
         }
-
-        bool equipped = Inventory_Manager.OnEquip(itemSource: _inventoryInteracted, itemDestination: _inventoryDestination, pickedUpItem: _itemInteractable, inventorySlotIndex: inventorySlotIndex);
+        else if (_itemInteractable != null)
+        {
+            equipped = Inventory_Manager.OnEquipFromGround(itemDestination: _inventoryDestination, pickedUpItem: _itemInteractable);
+        }
 
         if (equipped)
         {

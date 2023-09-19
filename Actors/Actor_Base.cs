@@ -54,9 +54,10 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
         InitialiseComponents();
         LayerCount();
         ActorData.Initialise(_actor);
+
         if (ActorData.ActorType == ActorType.Playable)
         {
-            InitialiseAndSetEquipment();
+            StartCoroutine(InitialiseAndSetEquipment());
         }
     }
 
@@ -77,8 +78,10 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
         ActorScripts.Actor_VFX = vfxTransform.GetComponent<Actor_VFX>() ?? vfxTransform.gameObject.AddComponent<Actor_VFX>();
     }
 
-    private void InitialiseAndSetEquipment()
+    private IEnumerator InitialiseAndSetEquipment()
     {
+        yield return new WaitForSeconds(0.05f);
+
         List<EquipmentItem> equipmentItems = new List<EquipmentItem>(ActorData.ActorEquipment.NumberOfEquipmentPieces);
         equipmentItems.AddRange(Enumerable.Repeat(EquipmentItem.None, ActorData.ActorEquipment.NumberOfEquipmentPieces));
         EquipmentSlotList = new List<Equipment_Slot>();
@@ -609,7 +612,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
     public bool InventoryIsOpen { get; set; }
     public void InitialiseInventory()
     {
-        
+
     }
     public GameObject GetIInventoryGO()
     {
