@@ -67,12 +67,11 @@ public abstract class Inventory_Manager : MonoBehaviour
         int removeStackSize)
     {
         List<InventoryItem> inventoryList = itemSource.GetInventoryData().InventoryItems;
-
         int leftoverStackSize = inventoryList[itemIndex].StackSize - removeStackSize;
 
         if (leftoverStackSize <= 0)
         {
-            inventoryList[itemIndex] = InventoryItem.None;
+            InventoryItem.None(inventoryList[itemIndex]);
         }
         else
         {
@@ -99,11 +98,16 @@ public abstract class Inventory_Manager : MonoBehaviour
 
         if (leftoverStackSize <= 0)
         {
-            inventoryItem = InventoryItem.None;
+            InventoryItem.None(inventoryItem);
         }
         else
         {
             inventoryItem.StackSize = leftoverStackSize;
+        }
+
+        if (Inventory_Window.Instance.IsOpen)
+        {
+            Inventory_Window.Instance.RefreshInventoryUI(itemSource.GetIInventoryGO());
         }
     }
     public static bool OnItemPickup(
@@ -111,7 +115,6 @@ public abstract class Inventory_Manager : MonoBehaviour
         Interactable_Item pickedUpItem)
     {
         List_Item itemToPickup = List_Item.GetItemData(pickedUpItem.ItemID);
-
         int stackSize = pickedUpItem.StackSize;
 
         if (itemToPickup == null || stackSize <= 0) { Debug.Log($"ItemToPickup: {itemToPickup} is null or stacksize: {stackSize} is 0 or less"); return false; }
@@ -127,7 +130,7 @@ public abstract class Inventory_Manager : MonoBehaviour
 
         if (Inventory_Window.Instance.IsOpen)
         {
-            Inventory_Window.Instance.RefreshInventoryUI();
+            Inventory_Window.Instance.RefreshInventoryUI(itemDestination.GetIInventoryGO());
         }
 
         return true;
@@ -136,26 +139,21 @@ public abstract class Inventory_Manager : MonoBehaviour
     public static bool OnItemTake(
         IInventory itemSource,
         IInventory itemDestination,
-        int inventorySlotIndex = -1)
+        int inventorySlotIndex)
     {
         List_Item itemToPickup = List_Item.GetItemData(itemSource.GetInventoryItem(inventorySlotIndex).ItemID);
+        int stackSize = itemSource.GetInventoryItem(inventorySlotIndex).StackSize;
 
-        int stackSize = itemDestination.GetInventoryItem(inventorySlotIndex).StackSize;
-
-        if (itemToPickup == null || stackSize <= 0) { Debug.Log($"ItemToPickup: {itemToPickup} is null or stacksize: {stackSize} is 0 or less"); return false; }
+        if (itemToPickup == null || stackSize <= 0) { Debug.Log($"ItemToPickup: {itemToPickup.ItemStats.CommonStats.ItemName} is null or Stacksize({stackSize}) is 0"); return false; }
 
         if (AddItem(itemDestination, itemToPickup, stackSize))
         {
-            if (inventorySlotIndex != -1 && itemSource != null)
-            {
-                RemoveItem(itemSource, inventorySlotIndex, stackSize);
-            }
-            else { Debug.Log($"Either InventorySlotIndex: {inventorySlotIndex} or ItemSource: {itemSource} have a problem."); return false; }
+            RemoveItem(itemSource, inventorySlotIndex, stackSize);
         }
 
         if (Inventory_Window.Instance.IsOpen)
         {
-            Inventory_Window.Instance.RefreshInventoryUI();
+            Inventory_Window.Instance.RefreshInventoryUI(itemSource.GetIInventoryGO());
         }
 
         return true;
@@ -184,6 +182,11 @@ public abstract class Inventory_Manager : MonoBehaviour
             GameManager.Instance.CreateNewItem(itemToEquip.ItemStats.CommonStats.ItemID, remainingStackSize);
         }
 
+        if (Inventory_Window.Instance.IsOpen)
+        {
+            Inventory_Window.Instance.RefreshInventoryUI(itemDestination.GetIInventoryGO());
+        }
+
         return true;
     }
     public static bool OnEquipFromInventory(
@@ -192,7 +195,6 @@ public abstract class Inventory_Manager : MonoBehaviour
         int inventorySlotIndex = -1)
     {
         List_Item itemToEquip = List_Item.GetItemData(itemSource.GetInventoryItem(inventorySlotIndex).ItemID);
-
         int stackSize = itemSource.GetInventoryItem(inventorySlotIndex).StackSize;
 
         if (itemToEquip == null || stackSize <= 0) { Debug.Log($"ItemToEquip: {itemToEquip} is null or stacksize: {stackSize} is 0 or less"); return false; }
@@ -233,9 +235,20 @@ public class Inventory
         if (InventoryItems.Count < numSlots)
         {
             int itemsToAdd = numSlots - InventoryItems.Count;
+
             for (int i = 0; i < itemsToAdd; i++)
             {
-                InventoryItems.Add(new InventoryItem { ItemStats = ItemStats.None() });
+                InventoryItem newItem = new InventoryItem();
+                InventoryItem.None(newItem);
+                InventoryItems.Add(newItem);
+            }
+        }
+
+        for (int i = 0; i < InventoryItems.Count; i++)
+        {
+            if (InventoryItems[i].ItemID == -1 && InventoryItems[i].StackSize != 0)
+            {
+                InventoryItems[i].StackSize = 0;
             }
         }
 
@@ -274,7 +287,11 @@ public class InventoryItem
     }
 
     public ItemStats ItemStats;
-    public static readonly InventoryItem None = new InventoryItem { ItemStats = ItemStats.None() };
+    public static void None(InventoryItem inventoryItem)
+    {
+        inventoryItem.ItemID = -1;
+        inventoryItem.StackSize = 0;
+    }
     public void UpdateItemStats()
     {
         ItemStats = ItemStats.SetItemStats(ItemID, StackSize);
@@ -283,7 +300,6 @@ public class InventoryItem
 
 public interface IInventory
 {
-    public bool InventoryIsOpen { get; set; }
     public InventoryType InventoryType { get; }
     public void InitialiseInventory();
     public GameObject GetIInventoryGO();

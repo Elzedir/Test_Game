@@ -87,7 +87,7 @@ public class Manager_Menu : MonoBehaviour
 
             if (menu.transform.GetSiblingIndex() == childCount - 1)
             {
-                Manager_Menu.Instance.HandleEscapePressed(menu);
+                Manager_Menu.Instance.HandleEscapePressed(menu, interactedObject);
             }
             else
             {

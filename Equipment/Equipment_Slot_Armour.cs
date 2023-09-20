@@ -5,53 +5,53 @@ using static UnityEditor.Progress;
 
 public class Equipment_Slot_Armour : Equipment_Slot
 {
-    public override void SpriteVectors(Equipment_Slot equipSlot, List_Item item)
+    public override void SpriteVectors()
     {
-        if (equipSlot.SlotType == SlotType.Head)
+        if (SlotType == SlotType.Head)
         {
-            if (item.ItemStats.ArmourStats.ArmourType == ArmourType.Head)
+            if (EquipmentItem.ItemStats.ArmourStats.ArmourType == ArmourType.Head)
             {
                 _spriteRenderer.transform.localPosition = new Vector3(0f, 0.04f, 0f);
                 _spriteRenderer.transform.localScale = new Vector3(1f, 0.6f, 1f);
                 _spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
             }
-            else if (item.ItemStats.ArmourStats.ArmourType == ArmourType.Chest)
+            else if (EquipmentItem.ItemStats.ArmourStats.ArmourType == ArmourType.Chest)
             {
                 _spriteRenderer.transform.localPosition = new Vector3(0f, 0.08f, 0f);
                 _spriteRenderer.transform.localScale = new Vector3(1f, 0.6f, 1f);
                 _spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
             }
-            else if (item.ItemStats.ArmourStats.ArmourType == ArmourType.Legs)
+            else if (EquipmentItem.ItemStats.ArmourStats.ArmourType == ArmourType.Legs)
             {
                 _spriteRenderer.transform.localPosition = new Vector3(0f, 0.08f, 0f);
                 _spriteRenderer.transform.localScale = new Vector3(1.5f, 0.6f, 1f);
                 _spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));
             }
         }
-        else if (equipSlot.SlotType == SlotType.Chest)
+        else if (SlotType == SlotType.Chest)
         {
-            if (item.ItemStats.ArmourStats.ArmourType == ArmourType.Chest)
+            if (EquipmentItem.ItemStats.ArmourStats.ArmourType == ArmourType.Chest)
             {
                 _spriteRenderer.transform.localPosition = new Vector3(0f, -0.02f, 0f);
                 _spriteRenderer.transform.localScale = new Vector3(0.9f, 0.4f, 1f);
                 _spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
             }
-            else if (item.ItemStats.ArmourStats.ArmourType == ArmourType.Head || item.ItemStats.ArmourStats.ArmourType == ArmourType.Legs)
+            else if (EquipmentItem.ItemStats.ArmourStats.ArmourType == ArmourType.Head || EquipmentItem.ItemStats.ArmourStats.ArmourType == ArmourType.Legs)
             {
                 _spriteRenderer.transform.localPosition = new Vector3(0f, -0.02f, 0f);
                 _spriteRenderer.transform.localScale = new Vector3(0.9f, 0.4f, 1f);
                 _spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
             }
         }
-        else if (equipSlot.SlotType == SlotType.Legs)
+        else if (SlotType == SlotType.Legs)
         {
-            if (item.ItemStats.ArmourStats.ArmourType == ArmourType.Legs)
+            if (EquipmentItem.ItemStats.ArmourStats.ArmourType == ArmourType.Legs)
             {
                 _spriteRenderer.transform.localPosition = new Vector3(0f, -0.06f, 0f);
                 _spriteRenderer.transform.localScale = new Vector3(0.6f, 0.2f, 1f);
                 _spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
             }
-            else if (item.ItemStats.ArmourStats.ArmourType == ArmourType.Head || item.ItemStats.ArmourStats.ArmourType == ArmourType.Chest)
+            else if (EquipmentItem.ItemStats.ArmourStats.ArmourType == ArmourType.Head || EquipmentItem.ItemStats.ArmourStats.ArmourType == ArmourType.Chest)
             {
                 _spriteRenderer.transform.localPosition = new Vector3(0.035f, -0.06f, 0f);
                 _spriteRenderer.transform.localScale = new Vector3(0.3f, 0.4f, 1f);
@@ -59,9 +59,9 @@ public class Equipment_Slot_Armour : Equipment_Slot
             }
         }
     }
-    public override void SpriteSortingLayers(List_Item item)
+    public override void SpriteSortingLayers()
     {
-        switch (item.ItemStats.ArmourStats.ArmourType)
+        switch (EquipmentItem.ItemStats.ArmourStats.ArmourType)
         {
             case ArmourType.Head:
                 _spriteRenderer.sortingOrder = 3;

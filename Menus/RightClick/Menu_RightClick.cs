@@ -1,8 +1,12 @@
+using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 
 public class Menu_RightClick : MonoBehaviour
 {
     public static Menu_RightClick Instance;
+
+    private bool _isOpen = false;
+    private RectTransform _buttonsPanel;
 
     private IInventory _inventoryInteracted;
     private Inventory_Slot _inventorySlot;
@@ -31,6 +35,8 @@ public class Menu_RightClick : MonoBehaviour
         {
             Instance = this;
         }
+
+        _buttonsPanel = GameObject.Find("RightClickButtonsPanel").GetComponent<RectTransform>();
     }
     private void Start()
     {
@@ -48,6 +54,16 @@ public class Menu_RightClick : MonoBehaviour
 
         CloseRightClickButtons(gameObject, true);
     }
+
+    public void Update()
+    {
+        if (_isOpen && !RectTransformUtility.RectangleContainsScreenPoint(GetComponent<RectTransform>(), Input.mousePosition) && !RectTransformUtility.RectangleContainsScreenPoint(_buttonsPanel, Input.mousePosition))
+        {
+            RightClickMenuClose();
+            return;
+        }
+    }
+
     public void CloseRightClickButtons(GameObject obj, bool initialising = false)
     {
         if (obj == null)
@@ -77,9 +93,11 @@ public class Menu_RightClick : MonoBehaviour
     {
         gameObject.SetActive(true);
         transform.SetAsLastSibling();
+        _isOpen = true;
 
         Vector3 newPosition = new Vector3(position.x - 27.5f, position.y + 27.5f, position.z);
-        transform.position = newPosition;
+        transform.position = position;
+        _buttonsPanel.position = newPosition;
     }
 
 
@@ -126,6 +144,8 @@ public class Menu_RightClick : MonoBehaviour
     public void InteractableItem(Interactable_Item interactableItem)
     {
         _itemInteractable = interactableItem;
+        _inventoryDestination = GameManager.Instance.Player.PlayerActor as IInventory;
+        _equipmentDestination = GameManager.Instance.Player.PlayerActor as IEquipment;
         ActiveButtonsCheck(itemInteractable: true);
     }
     public void SlotInventory(IInventory inventorySource, Inventory_Slot inventorySlot)
@@ -133,6 +153,11 @@ public class Menu_RightClick : MonoBehaviour
         List_Item item = null;
         bool droppable = false;
         bool takeable = false;
+
+        if (inventorySlot.InventoryItem == null)
+        {
+            return;
+        }
 
         if (inventorySlot.InventoryItem.ItemID > 0)
         {
@@ -177,6 +202,7 @@ public class Menu_RightClick : MonoBehaviour
         _equipmentInteracted = null;
         _inventorySlot = null;
         _equipmentSlot = null;
+        _isOpen = false;
         gameObject.SetActive(false);
         CloseRightClickButtons(gameObject);
     }
@@ -218,14 +244,7 @@ public class Menu_RightClick : MonoBehaviour
 
     public void TakeButtonPressed()
     {
-        int inventorySlotIndex = -1;
-
-        if (_inventorySlot != null)
-        {
-            inventorySlotIndex = _inventorySlot.slotIndex;
-        }
-
-        bool taken = Inventory_Manager.OnItemTake(itemSource: _inventoryInteracted, itemDestination: _inventoryDestination, inventorySlotIndex: inventorySlotIndex);
+        bool taken = Inventory_Manager.OnItemTake(itemSource: _inventoryInteracted, itemDestination: _inventoryDestination, inventorySlotIndex: _inventorySlot.slotIndex);
 
         if (taken)
         {
@@ -283,15 +302,13 @@ public class Menu_RightClick : MonoBehaviour
 
     public void RightClickMenuClose()
     {
+        _isOpen = false;
         gameObject.SetActive(false);
         CloseRightClickButtons(gameObject);
     }
     public void OpenButtonPressed()
     {
-        if (_inventoryInteracted is Chest chest)
-        {
-            chest.OpenChestInventory();
-            RightClickMenuClose();
-        }
+        Inventory_Window.Instance.OpenMenu(_inventoryInteracted.GetIInventoryGO());
+        RightClickMenuClose();
     }
 }

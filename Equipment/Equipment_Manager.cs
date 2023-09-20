@@ -80,6 +80,8 @@ public abstract class Equipment_Manager : MonoBehaviour
             item.AttachWeaponScript(item, primaryEquipSlot);
         }
 
+        UpdateEquipment(equipDestination);
+
         return (equipped, remainingStackSize);
     }
     public static Equipment_Slot PrimaryEquipSlot(IEquipment slotSource, List_Item item)
@@ -173,9 +175,8 @@ public abstract class Equipment_Manager : MonoBehaviour
         int totalStackSize = equipmentItems[equipSlot.SlotIndex].StackSize + stackSize;
         int remainingStackSize = totalStackSize - maxStackSize;
 
-        EquipmentItem itemToEquip = equipmentItems[equipSlot.SlotIndex];
-        itemToEquip.ItemID = item.ItemStats.CommonStats.ItemID;
-        itemToEquip.StackSize = Math.Min(totalStackSize, maxStackSize);
+        equipmentItems[equipSlot.SlotIndex].ItemID = item.ItemStats.CommonStats.ItemID;
+        equipmentItems[equipSlot.SlotIndex].StackSize = Math.Min(totalStackSize, maxStackSize);
 
         return (true, totalStackSize > maxStackSize ? remainingStackSize : 0);
     }
@@ -189,7 +190,7 @@ public abstract class Equipment_Manager : MonoBehaviour
 
         if (itemReturnedToInventory)
         {
-            equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex] = EquipmentItem.None;
+            EquipmentItem.None(equipmentSource.GetEquipmentData().EquipmentItems[equipSlot.SlotIndex]);
         }
         else { Debug.Log("Item failed to go home to inventory"); }
 
@@ -197,16 +198,20 @@ public abstract class Equipment_Manager : MonoBehaviour
         {
             Inventory_Window.Instance.RefreshInventoryUI(); 
         }
+
+        UpdateEquipment(equipmentSource);
     }
-    public static void UnequipAll(IEquipment itemSource)
+    public static void UnequipAll(IEquipment equipmentSource)
     {
-        foreach (EquipmentItem equipmentItem in itemSource.GetEquipmentData().EquipmentItems)
+        foreach (EquipmentItem equipmentItem in equipmentSource.GetEquipmentData().EquipmentItems)
         {
             if (equipmentItem.ItemID != -1)
             {
-                UnequipEquipment(itemSource, equipmentItem.Slot);
+                UnequipEquipment(equipmentSource, equipmentSource.EquipmentSlotList[equipmentItem.SlotIndex]);
             }
         }
+
+        UpdateEquipment(equipmentSource);
     }
     public static void DropEquipment(IEquipment equipmentSource, Equipment_Slot equipSlot, int dropAmount)
     {
@@ -230,12 +235,16 @@ public abstract class Equipment_Manager : MonoBehaviour
         {
             Inventory_Window.Instance.RefreshInventoryUI();
         }
+
+        UpdateEquipment(equipmentSource);
     }
-    public static void UpdateSprites(IEquipment equipmentSource)
+    public static void UpdateEquipment(IEquipment equipmentSource)
     {
-        foreach (EquipmentItem equipmentItem in equipmentSource.GetEquipmentData().EquipmentItems)
+        for (int i = 0; i < equipmentSource.EquipmentSlotList.Count; i++)
         {
-            equipmentItem.Slot.UpdateSprite(equipmentItem.Slot, List_Item.GetItemData(equipmentItem.ItemID));
+            EquipmentItem equipmentItem = equipmentSource.GetEquipmentData().EquipmentItems[i];
+            equipmentSource.EquipmentSlotList[i].SetEquipmentItem(equipmentItem);
+            equipmentSource.EquipmentSlotList[i].UpdateSprite();
         }
     }
 
@@ -245,24 +254,15 @@ public abstract class Equipment_Manager : MonoBehaviour
 
         if (equipmentSource.GetEquipmentData().EquipmentItems[2].ItemID != -1)
         {
-            equippedWeapons.Add(equipmentSource.GetEquipmentData().EquipmentItems[2].Slot);
+            equippedWeapons.Add(equipmentSource.EquipmentSlotList[2]);
         }
 
         if (equipmentSource.GetEquipmentData().EquipmentItems[3].ItemID != -1)
         {
-            equippedWeapons.Add(equipmentSource.GetEquipmentData().EquipmentItems[3].Slot);
+            equippedWeapons.Add(equipmentSource.EquipmentSlotList[3]);
         }
 
         return equippedWeapons;
-    }
-
-    public static void PopulateEquipmentSlots(IEquipment equipmentSource)
-    {
-        for (int i = 0; i < equipmentSource.EquipmentSlotList.Count; i++)
-        {
-            EquipmentItem equipmentItem = equipmentSource.GetEquipmentData().EquipmentItems[i];
-            equipmentSource.EquipmentSlotList[i].SetEquipmentItem(equipmentItem);
-        }
     }
 }
 
@@ -282,8 +282,7 @@ public class Equipment
 [Serializable]
 public class EquipmentItem
 {
-    public Equipment_Slot Slot;
-
+    [SerializeField] public int SlotIndex;
     [SerializeField] private int _itemID;
     [SerializeField] private int _stackSize;
 
@@ -308,7 +307,12 @@ public class EquipmentItem
     }
 
     public ItemStats ItemStats;
-    public static readonly EquipmentItem None = new EquipmentItem { ItemStats = ItemStats.None() };
+
+    public static void None(EquipmentItem equipmentItem)
+    {
+        equipmentItem.ItemID = -1;
+        equipmentItem.StackSize = 0;
+    }
 
     public void UpdateItemStats()
     {

@@ -14,22 +14,12 @@ public class Inventory_Creator : MonoBehaviour
         set { isOpen = value; }
     }
 
-    public void CreateSlots(int numSlots)
+    public void CreateSlots(IInventory inventorySource)
     {
-        int slotID = 0;
-
-        for (int i = 0; i < numSlots; i++)
+        for (int i = 0; i < inventorySource.GetInventorySize(); i++)
         {
-            GameObject slotObject = Instantiate(List_InGamePrefabs.GetPrefab(Prefab.InventorySlot), transform);
-            Inventory_Slot slot = slotObject.GetComponent<Inventory_Slot>();
-
-            slot.slotIndex = slotID;
-            slotID++;
+            Instantiate(List_InGamePrefabs.GetPrefab(Prefab.InventorySlot), transform).GetComponent<Inventory_Slot>().slotIndex = i;
         }
-    }
-
-    public void UpdateInventoryUI(IInventory inventorySource)
-    {
 
         List<InventoryItem> inventoryItems = inventorySource.GetInventoryData().InventoryItems;
 

@@ -233,7 +233,7 @@ public class GameManager : MonoBehaviour
         return (float)Math.Round(randomFloat, 2);
     }
 
-    // OTher
+    // Other
 
     public void CreateNewItem(int itemID, int stackSize)
     {
@@ -280,6 +280,17 @@ public class GameManager : MonoBehaviour
         Player.PlayerActor.ActorData.ActorStats.Level = 0;
         Player.PlayerActor.ActorData.ActorStats.TotalExperience = 0;
         Player.PlayerActor.ActorData.ActorStats.CurrentExperience = 0;
+    }
+
+    [ContextMenu("Reset Player Equipment")]
+    private void ResetPlayerEquipment()
+    {
+        Player = FindFirstObjectByType<Player>();
+
+        for (int i = 0; i < Player.PlayerActor.ActorData.ActorEquipment.EquipmentItems.Count; i++)
+        {
+            EquipmentItem.None(Player.PlayerActor.ActorData.ActorEquipment.EquipmentItems[i]);
+        }
     }
 
     public void RunCoroutine(IEnumerator routine)

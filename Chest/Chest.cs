@@ -34,13 +34,8 @@ public class Chest : MonoBehaviour, IInventory
             Menu_RightClick.Instance.Chest(chest: this);
         }
     }
-    public void OpenChestInventory()
-    {
-        Inventory_Window.Instance.OpenMenu(this.gameObject);
-    }
 
     public InventoryType InventoryType => InventoryType.Chest;
-    public bool InventoryIsOpen { get; set; }
     public void InitialiseInventory()
     {
         ChestData.ChestInventory.InitialiseInventoryItems(ChestData.ChestInventory.BaseInventorySize, ChestData.ChestInventory);

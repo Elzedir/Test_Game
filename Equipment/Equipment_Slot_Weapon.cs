@@ -6,11 +6,11 @@ using static UnityEditor.Progress;
 
 public class Equipment_Slot_Weapon : Equipment_Slot
 {
-    public override void SpriteVectors(Equipment_Slot equipSlot, List_Item item)
+    public override void SpriteVectors()
     {
-        base.SpriteVectors(equipSlot, item);
+        base.SpriteVectors();
 
-        switch (item.ItemStats.WeaponStats.WeaponClass)
+        switch (EquipmentItem.ItemStats.WeaponStats.WeaponClass)
         {
             case WeaponClass.Axe:
                 // Change
@@ -37,7 +37,7 @@ public class Equipment_Slot_Weapon : Equipment_Slot
         }
     }
 
-    public override void SpriteSortingLayers(List_Item item)
+    public override void SpriteSortingLayers()
     {
         _spriteRenderer.sortingOrder = 4;
     }

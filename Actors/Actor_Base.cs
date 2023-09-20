@@ -83,7 +83,14 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
         yield return new WaitForSeconds(0.05f);
 
         List<EquipmentItem> equipmentItems = new List<EquipmentItem>(ActorData.ActorEquipment.NumberOfEquipmentPieces);
-        equipmentItems.AddRange(Enumerable.Repeat(EquipmentItem.None, ActorData.ActorEquipment.NumberOfEquipmentPieces));
+
+        for (int i = 0; i < ActorData.ActorEquipment.NumberOfEquipmentPieces; i++)
+        {
+            EquipmentItem newItem = new EquipmentItem();
+            EquipmentItem.None(newItem);
+            equipmentItems.Add(newItem);
+        }
+
         EquipmentSlotList = new List<Equipment_Slot>();
 
         Transform[] allChildren = transform.GetComponentsInChildren<Transform>(true);
@@ -107,45 +114,51 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
                     slotComponent = AddOrGetComponent<Equipment_Slot_Armour>(childTransform);
                     Head = slotComponent;
                     slotIndex = 0;
+                    slotComponent.SlotType = SlotType.Head;
                     break;
                 case "Chest":
                     slotComponent = AddOrGetComponent<Equipment_Slot_Armour>(childTransform);
                     Chest = slotComponent;
                     slotIndex = 1;
+                    slotComponent.SlotType = SlotType.Chest;
                     break;
                 case "MainHand":
                     slotComponent = AddOrGetComponent<Equipment_Slot_Weapon>(childTransform);
                     MainHand = slotComponent;
                     slotIndex = 2;
+                    slotComponent.SlotType = SlotType.MainHand;
                     break;
                 case "OffHand":
                     slotComponent = AddOrGetComponent<Equipment_Slot_Weapon>(childTransform);
                     OffHand = slotComponent;
                     slotIndex = 3;
+                    slotComponent.SlotType = SlotType.OffHand;
                     break;
                 case "Legs":
                     slotComponent = AddOrGetComponent<Equipment_Slot_Armour>(childTransform);
                     Legs = slotComponent;
                     slotIndex = 4;
+                    slotComponent.SlotType = SlotType.Legs;
                     break;
                 case "Consumable":
                     slotComponent = AddOrGetComponent<Equipment_Slot_Consumable>(childTransform);
                     Consumable = slotComponent;
                     slotIndex = 5;
+                    slotComponent.SlotType = SlotType.Consumable;
                     break;
             }
 
             if (slotComponent != null && slotIndex >= 0)
             {
                 slotComponent.SlotIndex = slotIndex;
-                equipmentItems[slotIndex] = EquipmentItem.None;
+                EquipmentItem.None(equipmentItems[slotIndex]);
             }
 
             EquipmentSlotList.Add(slotComponent);
         }
 
         ActorData.ActorEquipment.EquipmentItems = equipmentItems;
-        Equipment_Manager.PopulateEquipmentSlots(this);
+        Equipment_Manager.UpdateEquipment(this);
     }
 
     private GameObject CreateChildGameObject(string name)
@@ -609,7 +622,6 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
     }
 
     public InventoryType InventoryType => InventoryType.Actor;
-    public bool InventoryIsOpen { get; set; }
     public void InitialiseInventory()
     {
 
@@ -660,15 +672,17 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
     }
     public EquipmentItem GetEquipmentItem(Equipment_Slot equipmentSlot)
     {
-        foreach (EquipmentItem equipment in ActorData.ActorEquipment.EquipmentItems)
+        foreach (Equipment_Slot slot in EquipmentSlotList)
         {
-            if (equipmentSlot.SlotType == equipment.Slot.SlotType)
+            if (equipmentSlot.SlotType == slot.SlotType)
             {
-                return equipment;
+                return slot.EquipmentItem;
             }
         }
 
-        return EquipmentItem.None;
+        EquipmentItem noneItem = new EquipmentItem();
+        EquipmentItem.None(noneItem);
+        return noneItem;
     }
 }
 

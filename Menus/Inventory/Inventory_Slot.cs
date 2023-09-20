@@ -27,7 +27,6 @@ public class Inventory_Slot : MonoBehaviour
     public virtual void UpdateSlotUI(IInventory inventorySource, InventoryItem inventoryItem)
     {
         _inventorySource = inventorySource;
-
         InventoryItem = inventoryItem;
 
         if (inventoryItem.ItemID == -1 || InventoryItem.StackSize == 0)
@@ -44,6 +43,12 @@ public class Inventory_Slot : MonoBehaviour
             {
                 slotIcon = transform.Find("itemIcon").GetComponent<Image>();
             }
+
+            slotIcon.sprite = null;
+            stackSizeText.enabled = false;
+
+            Debug.Log(itemSprite);
+            Debug.Log(slotIcon.sprite);
 
             slotIcon.sprite = itemSprite;
 

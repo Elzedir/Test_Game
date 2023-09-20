@@ -80,33 +80,31 @@ public class Equipment_Slot : MonoBehaviour
         EquipmentItem = equipmentItem;
     }
 
-    public void UpdateSprite(Equipment_Slot equipSlot, List_Item item)
+    public void UpdateSprite()
     {
-        if (item == null)
+        if (EquipmentItem.ItemID == -1)
         {
-            _spriteRenderer.sprite = null;
+            return;
         }
-        else
-        {
-            _spriteRenderer.sprite = item.ItemStats.CommonStats.ItemIcon;
-            SpriteVectors(equipSlot, item);
-            SpriteSortingLayers(item);
-            SpriteAnimator(item);
-        }
+
+        _spriteRenderer.sprite = EquipmentItem.ItemStats.CommonStats.ItemIcon;
+        SpriteVectors();
+        SpriteSortingLayers();
+        SpriteAnimator();
     }
 
-    public virtual void SpriteVectors(Equipment_Slot equipSlot, List_Item item)
+    public virtual void SpriteVectors()
     {
 
     }
-    public virtual void SpriteSortingLayers(List_Item item)
+    public virtual void SpriteSortingLayers()
     {
         
     }
-    public void SpriteAnimator(List_Item item)
+    public void SpriteAnimator()
     {
         _animator.enabled = true;
-        _animator.runtimeAnimatorController = item.ItemStats.CommonStats.ItemAnimatorController;
+        _animator.runtimeAnimatorController = EquipmentItem.ItemStats.CommonStats.ItemAnimatorController;
     }
     public virtual void Attack(Equipment_Slot equipmentSlot = null, float chargeTime = 0f)
     {

@@ -61,9 +61,9 @@ public class Inventory_EquipmentSlot : MonoBehaviour
 
     public void OnPointerDown()
     {
-        if (EquipmentItem.Slot == null)
+        if (EquipmentItem.SlotIndex < 0)
         {
-            Debug.Log($"EquipmentItem.Slot: {EquipmentItem.Slot} is null."); return;
+            Debug.Log($"EquipmentItem.Slot: {EquipmentItem.SlotIndex} is less than 0... Somehow."); return;
         }
 
         bool itemEquipped = false;
@@ -80,6 +80,6 @@ public class Inventory_EquipmentSlot : MonoBehaviour
             equipmentSource = equipmentSourceActor;
         }
 
-        Menu_RightClick.Instance.SlotEquipment(equipmentSource: equipmentSource, equipmentSlot: EquipmentItem.Slot, item: List_Item.GetItemData(EquipmentItem.ItemID), itemEquipped: itemEquipped);
+        Menu_RightClick.Instance.SlotEquipment(equipmentSource: equipmentSource, equipmentSlot: equipmentSource.EquipmentSlotList[EquipmentItem.SlotIndex], item: List_Item.GetItemData(EquipmentItem.ItemID), itemEquipped: itemEquipped);
     }
 }

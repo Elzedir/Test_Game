@@ -13,7 +13,7 @@ public class Equipment_Window : MonoBehaviour
     public void UpdateEquipmentUI(IEquipment equipmentSource)
     {
         EquipmentSource = equipmentSource;
-        var equipmentData = equipmentSource.GetEquipmentData().EquipmentItems;
+        List<EquipmentItem> equipmentData = equipmentSource.GetEquipmentData().EquipmentItems;
 
         for (int i = 0; i < equipmentData.Count; i++)
         {
@@ -21,13 +21,7 @@ public class Equipment_Window : MonoBehaviour
 
             if (equipmentSlotScript != null)
             {
-                EquipmentItem equipmentItem = new EquipmentItem
-                {
-                    Slot = equipmentData[i].Slot,
-                    ItemStats = equipmentData[i].ItemStats,
-                };
-
-                equipmentSlotScript.UpdateSlotUI(equipmentSource, equipmentItem);
+                equipmentSlotScript.UpdateSlotUI(equipmentSource, equipmentData[i]);
             }
             else { Debug.Log("No equipment slot script found"); }
         }
