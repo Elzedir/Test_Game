@@ -39,8 +39,8 @@ public class List_Item_Weapon : List_Item
         float itemPhysicalDefence,
         float itemMagicalDefence,
         float itemDodgeCooldown,
-        WeaponType weaponType,
-        WeaponClass weaponClass,
+        WeaponType[] weaponType,
+        WeaponClass[] weaponClass,
         float maxChargeTime)
     {
         this.ItemStats.CommonStats.ItemID = itemID;
@@ -54,6 +54,7 @@ public class List_Item_Weapon : List_Item
         this.ItemStats.CommonStats.ItemAnimatorController = itemAnimatorController;
         this.ItemStats.CommonStats.MaxStackSize = maxStackSize;
         this.ItemStats.CommonStats.ItemValue = itemValue;
+
         this.ItemStats.CombatStats.Health = itemHealth;
         this.ItemStats.CombatStats.Mana = itemMana;
         this.ItemStats.CombatStats.Stamina = itemStamina;
@@ -67,6 +68,7 @@ public class List_Item_Weapon : List_Item
         this.ItemStats.CombatStats.PhysicalDefence = itemPhysicalDefence;
         this.ItemStats.CombatStats.MagicalDefence = itemMagicalDefence;
         this.ItemStats.CombatStats.DodgeCooldown = itemDodgeCooldown;
+
         this.ItemStats.WeaponStats.WeaponType = weaponType;
         this.ItemStats.WeaponStats.WeaponClass = weaponClass;
         this.ItemStats.WeaponStats.MaxChargeTime = maxChargeTime;
@@ -88,12 +90,14 @@ public class List_Item_Weapon : List_Item
     }
     static void Shortbows()
     {
+
+
         List_Item_Weapon testBow1 = new List_Item_Weapon(
             100, // ItemID
             ItemType.Weapon, // ItemType
             "Wooden Shortbow", // ItemName
             SO_List.Instance.WeaponRangedSprites[0].sprite, // ItemIcon
-            new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(0, 0, 0), // ItemPosition, ItemRotation, ItemScale
+            new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1), // ItemPosition, ItemRotation, ItemScale
             true, // ItemEquippable
             SO_List.Instance.animatorControllers[2].animatorController, // ItemAnimatorController
             1, // ItemMaxStackSize
@@ -103,16 +107,16 @@ public class List_Item_Weapon : List_Item
             0, // ItemStamina
             0, // ItemPushRecovery
             1, // ItemAttackDamage
-            1, // itemAttackSpeed,
-            1, // itemAttackSwingTime,
+            3, // itemAttackSpeed,
+            4, // itemAttackSwingTime,
             3, // itemAttackRange,
             1.5f, // itemAttackPushForce,
             1, // itemAttackCooldown,
             0, // itemPhysicalDefence,
             0, // itemMagicalDefence,
             0, // itemDodgeCooldown,
-            WeaponType.TwoHandedRanged, // WeaponType
-            WeaponClass.Shortbow, // WeaponClass
+            new WeaponType[] { WeaponType.TwoHandedRanged }, // WeaponType
+            new WeaponClass[] { WeaponClass.Shortbow }, // WeaponClass
             3); // ItemMaxChargeTime
 
         AddToList(AllWeaponData, testBow1);
@@ -142,8 +146,8 @@ public class List_Item_Weapon : List_Item
             0, // itemPhysicalDefence,
             0, // itemMagicalDefence,
             0, // itemDodgeCooldown,
-            WeaponType.OneHandedMelee, // WeaponType
-            WeaponClass.ShortSword, // WeaponClass
+            new WeaponType[] { WeaponType.OneHandedMelee }, // WeaponType
+            new WeaponClass[] { WeaponClass.ShortSword }, // WeaponClass
             3); // ItemMaxChargeTime);
 
         AddToList(AllWeaponData, woodShortsword1);

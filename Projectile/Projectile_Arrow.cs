@@ -30,7 +30,7 @@ public class Projectile_Arrow : Projectile
 
             if (_rb != null)
             {
-                if (distanceFromOrigin >= Range || _hasLanded)
+                if (distanceFromOrigin >= ItemStats.CombatStats.AttackRange || _hasLanded)
                 {
                     DespawnArrow();
                     // Play the hit animation.
@@ -38,7 +38,7 @@ public class Projectile_Arrow : Projectile
                 }
                 else
                 {
-                    _rb.velocity = Direction * Speed;
+                    _rb.velocity = Direction * ItemStats.CombatStats.AttackSwingTime;
                 }
 
                 if (_rb.velocity.magnitude < 0.1f)

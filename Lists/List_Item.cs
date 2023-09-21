@@ -113,23 +113,47 @@ public abstract class List_Item
     {
         GameManager.Destroy(equipmentSlot.GetComponent<Weapon>());
 
-        switch (item.ItemStats.WeaponStats.WeaponType)
+        foreach (WeaponType weaponType in item.ItemStats.WeaponStats.WeaponType)
         {
-            case WeaponType.OneHandedMelee:
-            case WeaponType.TwoHandedMelee:
-                // Can do another switch statement here to separate by weapon classes.
-                //equipmentSlot.AddComponent<Weapon_Sword>();
-                break;
-            case WeaponType.OneHandedRanged:
-            case WeaponType.TwoHandedRanged:
-                // Can do another switch statement here to separate by weapon classes.
-                equipmentSlot.AddComponent<Weapon_Bow>();
-                break;
-            case WeaponType.OneHandedMagic:
-            case WeaponType.TwoHandedMagic:
-                // Can do another switch statement here to separate by weapon classes.
-                //equipmentSlot.AddComponent<Weapon_Magic>();
-                break;
+            switch (weaponType)
+            {
+                case WeaponType.OneHandedMelee:
+                case WeaponType.TwoHandedMelee:
+                    foreach (WeaponClass weaponClass in item.ItemStats.WeaponStats.WeaponClass)
+                    {
+                        switch (weaponClass)
+                        {
+                            case WeaponClass.Axe:
+                                //equipmentSlot.AddComponent<Weapon_Axe>();
+                                break;
+                            case WeaponClass.ShortSword:
+                                //equipmentSlot.AddComponent<Weapon_ShortSword>();
+                                break;
+                                // Add more cases here
+                        }
+                    }
+                    break;
+                case WeaponType.OneHandedRanged:
+                case WeaponType.TwoHandedRanged:
+                    equipmentSlot.AddComponent<Weapon_Bow>();
+                    break;
+                case WeaponType.OneHandedMagic:
+                case WeaponType.TwoHandedMagic:
+                    foreach (WeaponClass weaponClass in item.ItemStats.WeaponStats.WeaponClass)
+                    {
+                        //switch (weaponClass)
+                        //{
+                        //    case WeaponClass.Staff:
+                        //        equipmentSlot.AddComponent<Weapon_Staff>();
+                        //        break;
+                        //    case WeaponClass.Wand:
+                        //        equipmentSlot.AddComponent<Weapon_Wand>();
+                        //        break;
+                        //         Add more cases here
+                        //}
+                    }
+                    break;
+            }
         }
     }
 }
@@ -186,8 +210,8 @@ public struct CommonStats
 [Serializable]
 public struct WeaponStats
 {
-    public WeaponType WeaponType;
-    public WeaponClass WeaponClass;
+    public WeaponType[] WeaponType;
+    public WeaponClass[] WeaponClass;
     public float MaxChargeTime;
 }
 

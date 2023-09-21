@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEditor.Playables;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,18 +10,27 @@ using UnityEngine.UI;
 public class HUD_Abilities : MonoBehaviour
 {
     public static HUD_Abilities Instance;
-    private const int AbilityCount = 10;
+
+    private Player _player;
+
+    public const int AbilityCount = 10;
 
     [SerializeField] private Transform[] _abilityIcons = new Transform[AbilityCount];
     [SerializeField] private TextMeshProUGUI[] _abilityCooldowns = new TextMeshProUGUI[AbilityCount];
+
+    private Dictionary<List_Ability, Coroutine> activeCooldowns = new Dictionary<List_Ability, Coroutine>();
 
     public void Awake()
     {
         Instance = this;
     }
 
-    public void Start()
+    public IEnumerator Start()
     {
+        yield return new WaitForSeconds(0.1f);
+
+        _player = GameManager.Instance.Player;
+
         InitialiseComponents();
     }
 
@@ -34,34 +44,49 @@ public class HUD_Abilities : MonoBehaviour
             _abilityIcons[i] = allChildren.FirstOrDefault(t => t.name == abilityName);
             _abilityCooldowns[i] = _abilityIcons[i]?.GetComponentInChildren<TextMeshProUGUI>();
             _abilityCooldowns[i].text = "";
+
+            Transform abilityOnCooldown = GameManager.Instance.FindTransformRecursively(_abilityIcons[i], "AbilityOnCooldown");
+            abilityOnCooldown.gameObject.SetActive(false);
+        }
+
+        foreach (KeyValuePair <List_Ability, float> ability in _player.PlayerActor.ActorData.ActorAbilities.AbilityCooldowns)
+        {
+            OnAbilityUse(ability.Key); 
         }
     }
 
-    public void UpdateAbilityIcons()
+    public void Update()
     {
-        List<Ability> activePlayerAbilities = GameManager.Instance.Player.PlayerActor.ActorData.ActorAbilities.AbilityList;
-
-        for (int i = 0; i < activePlayerAbilities.Count; i++)
+        if (_player == null || _player.gameObject != GameManager.Instance.Player.gameObject)
         {
-            if (activePlayerAbilities[i] != Ability.None)
+            _player = GameManager.Instance.Player;
+        }
+    }
+
+    public void OnAbilityUse(List_Ability ability)
+    {
+        float remainingCooldown = Manager_Abilities.GetRemainingCooldownTime(ability, _player.PlayerActor);
+
+        if (remainingCooldown > 0)
+        {
+            int abilityIndex = _player.PlayerActor.ActorData.ActorAbilities.AbilityList.IndexOf(ability.AbilityData.AbilityStats.AbilityName);
+
+            if (abilityIndex != -1)
             {
-                List_Ability ability = List_Ability.GetAbility(activePlayerAbilities[i]);
-                Image abilityIcon = _abilityIcons[i].GetComponent<Image>();
-                abilityIcon.sprite = ability.AbilityIcon;
-            }
-        }
-    }
+                if (activeCooldowns.ContainsKey(ability))
+                {
+                    StopCoroutine(activeCooldowns[ability]);
+                }
 
-    public void OnAbilityUsed(int abilityIndex, float cooldown)
-    {
-        if (abilityIndex >= 0 && abilityIndex < AbilityCount)
-        {
-            CooldownTimer(abilityIndex, cooldown);
+                activeCooldowns[ability] = StartCoroutine(CooldownTimer(abilityIndex, remainingCooldown));
+            }
         }
     }
 
     IEnumerator CooldownTimer(int abilityIndex, float cooldown)
     {
+        UpdateAbilityIcon(abilityIndex, true);
+
         float remainingCooldown = cooldown;
 
         while (remainingCooldown > 0)
@@ -72,5 +97,21 @@ public class HUD_Abilities : MonoBehaviour
         }
 
         _abilityCooldowns[abilityIndex].text = "";
+
+        UpdateAbilityIcon(abilityIndex, false);
+    }
+    public void UpdateAbilityIcon(int abilityIndex, bool isOnCooldown)
+    {
+        List_Ability ability = List_Ability.GetAbility(_player.PlayerActor.ActorData.ActorAbilities.AbilityList[abilityIndex]);
+        Image abilityIcon = _abilityIcons[abilityIndex].GetComponent<Image>();
+        abilityIcon.sprite = ability.AbilityData.AbilityStats.AbilityIcon;
+
+        Transform[] allChildren = _abilityIcons[abilityIndex].GetComponentsInChildren<Transform>(true);
+        Transform abilityOnCooldown = allChildren.FirstOrDefault(t => t.name == "AbilityOnCooldown");
+
+        if (abilityOnCooldown != null)
+        {
+            abilityOnCooldown.gameObject.SetActive(isOnCooldown);
+        }
     }
 }

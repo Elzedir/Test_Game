@@ -18,11 +18,11 @@ public class Character_Window : Menu_UI
     private List<Button> _specialisationButtons;
 
     private TextMeshProUGUI _actorSpecialisation1;
-    private Specialisation _specialisation1;
+    private Aspect _specialisation1;
     private TextMeshProUGUI _actorSpecialisation2;
-    private Specialisation _specialisation2;
+    private Aspect _specialisation2;
     private TextMeshProUGUI _actorSpecialisation3;
-    private Specialisation _specialisation3;
+    private Aspect _specialisation3;
     private Transform _abilitiesPanel;
     private Transform _abilityList;
 
@@ -111,19 +111,19 @@ public class Character_Window : Menu_UI
     {
         // Eventually put in an ability to change the font of the journal depending on the actor.
         _actorName.text = actor.name;
-        _actorTitle.text = List_Specialisation.GetCharacterTitle(actor).ToString();
+        _actorTitle.text = List_Aspect.GetCharacterTitle(actor).ToString();
         _actorIcon.sprite = actor.GetComponent<SpriteRenderer>().sprite;
 
-        if (actor.ActorData.ActorSpecialisations.ActorSpecialisations != null)
+        if (actor.ActorData.ActorAspects.ActorAspects != null)
         {
             Transform[] allChildren = transform.GetComponentsInChildren<Transform>(true);
 
-            _actorSpecialisation1.text = actor.ActorData.ActorSpecialisations.ActorSpecialisations[0].ToString();
-            _specialisation1 = actor.ActorData.ActorSpecialisations.ActorSpecialisations[0];
-            _actorSpecialisation2.text = actor.ActorData.ActorSpecialisations.ActorSpecialisations[1].ToString();
-            _specialisation2 = actor.ActorData.ActorSpecialisations.ActorSpecialisations[1];
-            _actorSpecialisation3.text = actor.ActorData.ActorSpecialisations.ActorSpecialisations[2].ToString();
-            _specialisation3 = actor.ActorData.ActorSpecialisations.ActorSpecialisations[2];
+            _actorSpecialisation1.text = actor.ActorData.ActorAspects.ActorAspects[0].ToString();
+            _specialisation1 = actor.ActorData.ActorAspects.ActorAspects[0];
+            _actorSpecialisation2.text = actor.ActorData.ActorAspects.ActorAspects[1].ToString();
+            _specialisation2 = actor.ActorData.ActorAspects.ActorAspects[1];
+            _actorSpecialisation3.text = actor.ActorData.ActorAspects.ActorAspects[2].ToString();
+            _specialisation3 = actor.ActorData.ActorAspects.ActorAspects[2];
 
             _specialisationButtons.Add(allChildren.FirstOrDefault(t => t.name == "ActorSpecialisationButton1").GetComponent<Button>());
             _specialisationButtons.Add(allChildren.FirstOrDefault(t => t.name == "ActorSpecialisationButton2").GetComponent<Button>());
@@ -133,7 +133,7 @@ public class Character_Window : Menu_UI
             _specialisationButtons[0].onClick.AddListener(() => SpecialisationButtonPressed(_specialisation1));
             _specialisationButtons[1].onClick.AddListener(() => SpecialisationButtonPressed(_specialisation2));
             _specialisationButtons[2].onClick.AddListener(() => SpecialisationButtonPressed(_specialisation3));
-            _specialisationButtons[3].onClick.AddListener(() => SpecialisationButtonPressed(Specialisation.Vocation));
+            _specialisationButtons[3].onClick.AddListener(() => SpecialisationButtonPressed(Aspect.Vocation));
         }
 
         _levelNumber.text = actor.ActorData.ActorStats.Level.ToString();
@@ -147,7 +147,7 @@ public class Character_Window : Menu_UI
         
     }
 
-    public void SpecialisationButtonPressed(Specialisation specialisation)
+    public void SpecialisationButtonPressed(Aspect specialisation)
     {
         foreach (Transform child in _abilityList)
         {
@@ -160,7 +160,7 @@ public class Character_Window : Menu_UI
             _specialisationButtonPressed = true;
         }
 
-        if (specialisation == Specialisation.Vocation)
+        if (specialisation == Aspect.Vocation)
         {
             // Open vocations
         }
@@ -168,7 +168,7 @@ public class Character_Window : Menu_UI
         {
             foreach (List_Ability ability in List_Ability.AllAbilityData)
             {
-                if (ability.AbilitySpecialisation == specialisation)
+                if (ability.AbilityData.AbilityStats.AbilitySpecialisation == specialisation)
                 {
                     GameObject abilityListIcon = Instantiate(List_InGamePrefabs.GetPrefab(Prefab.AbilityListIcon), _abilityList);
                     // Then fill in the details using the details of the ability

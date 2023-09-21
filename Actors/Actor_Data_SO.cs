@@ -66,7 +66,7 @@ public class Actor_Data_SO : ScriptableObject
 
     private Actor_Skills _actorSkills;
     public ActorStats ActorStats;
-    public Specialisations ActorSpecialisations;
+    public Aspects ActorAspects;
     public Inventory ActorInventory;
     public Equipment ActorEquipment;
     public Abilities ActorAbilities;
@@ -238,10 +238,10 @@ public struct SPECIAL
 }
 
 [System.Serializable]
-public struct Specialisations
+public struct Aspects
 {
     public Title ActorTitle;
-    public List<Specialisation> ActorSpecialisations;
+    public List<Aspect> ActorAspects;
 }
 
 [System.Serializable]

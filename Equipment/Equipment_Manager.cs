@@ -91,17 +91,19 @@ public abstract class Equipment_Manager : MonoBehaviour
         switch (item.ItemStats.CommonStats.ItemType)
         {
             case ItemType.Weapon:
-                switch (item.ItemStats.WeaponStats.WeaponType)
+
+                if (Array.Exists(item.ItemStats.WeaponStats.WeaponType, w =>
+                    w == WeaponType.OneHandedMelee ||
+                    w == WeaponType.TwoHandedMelee ||
+                    w == WeaponType.OneHandedRanged ||
+                    w == WeaponType.TwoHandedRanged ||
+                    w == WeaponType.OneHandedMagic ||
+                    w == WeaponType.TwoHandedMagic))
+
                 {
-                    case WeaponType.OneHandedMelee:
-                    case WeaponType.TwoHandedMelee:
-                    case WeaponType.OneHandedRanged:
-                    case WeaponType.TwoHandedRanged:
-                    case WeaponType.OneHandedMagic:
-                    case WeaponType.TwoHandedMagic:
-                        primaryEquipSlot = slotSource.MainHand;
-                        break;
+                    primaryEquipSlot = slotSource.MainHand;
                 }
+
                 break;
             case ItemType.Armour:
                 switch (item.ItemStats.ArmourStats.ArmourType)
@@ -133,21 +135,28 @@ public abstract class Equipment_Manager : MonoBehaviour
         switch (item.ItemStats.CommonStats.ItemType)
         {
             case ItemType.Weapon:
-                switch (item.ItemStats.WeaponStats.WeaponType)
+
+                if (Array.Exists(item.ItemStats.WeaponStats.WeaponType, w =>
+                    w == WeaponType.OneHandedMelee ||
+                    w == WeaponType.OneHandedRanged ||
+                    w == WeaponType.OneHandedMagic))
+
                 {
-                    case WeaponType.OneHandedMelee:
-                    case WeaponType.OneHandedRanged:
-                    case WeaponType.OneHandedMagic:
-                        secondaryEquipSlots = new Equipment_Slot[] { slotSource.MainHand, slotSource.OffHand };
-                        break;
-                    case WeaponType.TwoHandedMelee:
-                    case WeaponType.TwoHandedRanged:
-                    case WeaponType.TwoHandedMagic:
-                        secondaryEquipSlots = new Equipment_Slot[] { slotSource.MainHand };
-                        break;
-                    default:
-                        secondaryEquipSlots = new Equipment_Slot[] { null };
-                        break;
+                    secondaryEquipSlots = new Equipment_Slot[] { slotSource.MainHand, slotSource.OffHand };
+                }
+
+                else if (Array.Exists(item.ItemStats.WeaponStats.WeaponType, w =>
+                    w == WeaponType.TwoHandedMelee ||
+                    w == WeaponType.TwoHandedRanged ||
+                    w == WeaponType.TwoHandedMagic))
+
+                {
+                    secondaryEquipSlots = new Equipment_Slot[] { slotSource.MainHand };
+                }
+
+                else
+                {
+                    secondaryEquipSlots = new Equipment_Slot[] { null };
                 }
                 break;
             case ItemType.Armour:

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -49,7 +50,9 @@ public class Equipment_Slot : MonoBehaviour
 
         if (_actor.ActorStates.Attacking)
         {
-            if (EquipmentItem.ItemStats.WeaponStats.WeaponType == WeaponType.OneHandedMelee || EquipmentItem.ItemStats.WeaponStats.WeaponType == WeaponType.TwoHandedMelee)
+            WeaponType[] weaponTypes = EquipmentItem.ItemStats.WeaponStats.WeaponType;
+
+            if (weaponTypes != null && Array.Exists(weaponTypes, w => w == WeaponType.OneHandedMelee || w == WeaponType.TwoHandedMelee))
             {
                 if (this.SlotType == SlotType.MainHand)
                 {
@@ -60,7 +63,7 @@ public class Equipment_Slot : MonoBehaviour
                     MeleeCollideCheck();
                 }
             }
-            else if (EquipmentItem.ItemStats.WeaponStats.WeaponType == WeaponType.OneHandedRanged || EquipmentItem.ItemStats.WeaponStats.WeaponType == WeaponType.TwoHandedRanged)
+            else if (weaponTypes != null && Array.Exists(weaponTypes, w => w == WeaponType.OneHandedRanged || w == WeaponType.TwoHandedRanged))
             {
                 if (this.SlotType == SlotType.MainHand)
                 {
@@ -71,7 +74,6 @@ public class Equipment_Slot : MonoBehaviour
                     //RangedCollideCheck();
                 }
             }
-            
         }
     }
 
@@ -122,7 +124,12 @@ public class Equipment_Slot : MonoBehaviour
     }
     protected IEnumerator AttackCoroutine(Animator animator, Equipment_Slot equipmentSlot)
     {
-        // Change the animation of the charge time is high enough.
+        // Change the animation if the charge time is high enough.
+
+        float originalAnimationSpeed = animator.speed;
+
+        float newAnimationSpeed = 1f / this.EquipmentItem.ItemStats.CombatStats.AttackSpeed; 
+        animator.speed = newAnimationSpeed;
 
         if (_hitEnemies == null)
         {
@@ -138,7 +145,9 @@ public class Equipment_Slot : MonoBehaviour
         _currentlyAttacking = true;
         animator.SetTrigger("Attack");
 
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorClipInfo(0)[0].clip.length);
+        yield return new WaitForSeconds(animator.GetCurrentAnimatorClipInfo(0)[0].clip.length / newAnimationSpeed);
+
+        animator.speed = originalAnimationSpeed;
 
         _actor.ActorStates.Attacking = false;
         _currentlyAttacking = false;

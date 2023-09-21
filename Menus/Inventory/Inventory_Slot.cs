@@ -47,8 +47,7 @@ public class Inventory_Slot : MonoBehaviour
             slotIcon.sprite = null;
             stackSizeText.enabled = false;
 
-            Debug.Log(itemSprite);
-            Debug.Log(slotIcon.sprite);
+            Debug.Log("Sprite issue here");
 
             slotIcon.sprite = itemSprite;
 

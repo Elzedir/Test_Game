@@ -81,7 +81,7 @@ public class GameManager : MonoBehaviour
         List_Item_Weapon.InitializeWeaponData();
         List_Item_Armour.InitializeArmourData();
         List_Item_Consumable.InitializeConsumableData();
-        List_Specialisation.InitialiseSpecialisations();
+        List_Aspect.InitialiseSpecialisations();
         List_Ability.InitialiseAbilities();
     }
 
@@ -263,11 +263,11 @@ public class GameManager : MonoBehaviour
     {
         foreach (Transform child in parent)
         {
-            if (child.name == name)
-                return child;
+            if (child.name == name) return child;
+
             Transform result = FindTransformRecursively(child, name);
-            if (result != null)
-                return result;
+
+            if (result != null) return result;
         }
         return null;
     }

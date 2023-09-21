@@ -16,14 +16,18 @@ public class Manager_Abilities
         }
 
         ability.UseAbility(actor);
-
         actor.ActorData.ActorAbilities.AbilityCooldowns[ability] = Time.time;
-
+        HUD_Abilities.Instance.OnAbilityUse(ability);
     }
 
     public static float GetRemainingCooldownTime(List_Ability ability, Actor_Base actor)
     {
-        float remainingTime = actor.ActorData.ActorAbilities.AbilityCooldowns[ability] + ability.AbilityCooldown - Time.time;
-        return Mathf.Max(remainingTime, 0f);
+        if (actor.ActorData.ActorAbilities.AbilityCooldowns.ContainsKey(ability))
+        {
+            float remainingTime = actor.ActorData.ActorAbilities.AbilityCooldowns[ability] + ability.AbilityData.CombatStats.AttackCooldown - Time.time;
+            return Mathf.Max(remainingTime, 0f);
+        }
+
+        return 0f;
     }
 }

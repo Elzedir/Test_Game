@@ -14,6 +14,12 @@ public class Interactable_Item : MonoBehaviour
     public int StackSize;
     private List_Item _item;
 
+    public IEnumerator Start()
+    {
+        yield return new WaitForSeconds(0.1f);
+        UpdateItem();
+    }
+
     public void UpdateItem()
     {
         _coll = GetComponent<BoxCollider2D>();

@@ -10,6 +10,12 @@ public class Manager_Initialiser : MonoBehaviour
     // Initialise Inventory
     // Actors, Chest - requires List_Item to be initialised.
 
+    // Initialise Interactable_Item
+    // Items - require List_Item to be initialised
+
+    // Initialise HUD_Abilities
+    // Requires GameManager and Abilities to be initialised
+
     // Initialise Equipment
     // Actor_Base SetAndInitialiseEquipment - requires equipment slots to be initialised
 }

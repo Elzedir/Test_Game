@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [System.Serializable]
 public class Manager_Stats : MonoBehaviour
@@ -120,4 +121,15 @@ public class Manager_Stats : MonoBehaviour
         CurrentCombatStats.Mana = _actor.ActorData.ActorStats.CombatStats.Mana;
         CurrentCombatStats.Stamina = _actor.ActorData.ActorStats.CombatStats.Stamina;
     }
+}
+
+[System.Serializable]
+
+public struct DamageModifiers
+{
+    public float DamagePerAbilityLevel;
+
+    public float DamagePerItemLevel;
+
+    public SPECIAL DamagePerSpecial;
 }

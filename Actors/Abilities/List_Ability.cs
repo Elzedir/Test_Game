@@ -18,18 +18,7 @@ public class List_Ability
     public static List<List_Ability> AllAbilityData = new();
     private static HashSet<Ability> _usedAbilities = new();
 
-    public Ability AbilityName;
-    //public string AbilityDescription;
-    public Sprite AbilityIcon;
-    public Specialisation AbilitySpecialisation;
-    public int AbilityMaxLevel;
-    public float AbilityBaseDamage;
-    public float AbilityDamagePerAbilityLevel;
-    public float AbilityRange;
-    public float AbilitySpeed;
-    public float AbilityChargeTime;
-    public float AbilityCooldown;
-    // public Requiredweapon
+    public AbilityData AbilityData;
 
     public void Start()
     {
@@ -38,12 +27,12 @@ public class List_Ability
 
     public static void AddToList(List<List_Ability> list, List_Ability ability)
     {
-        if (_usedAbilities.Contains(ability.AbilityName))
+        if (_usedAbilities.Contains(ability.AbilityData.AbilityStats.AbilityName))
         {
-            throw new ArgumentException("Item ID " + ability.AbilityName + " is already used");
+            throw new ArgumentException("Item ID " + ability.AbilityData.AbilityStats.AbilityName + " is already used");
         }
 
-        _usedAbilities.Add(ability.AbilityName);
+        _usedAbilities.Add(ability.AbilityData.AbilityStats.AbilityName);
         list.Add(ability);
     }
 
@@ -55,16 +44,30 @@ public class List_Ability
     static void ArcheryAbilities()
     {
         List_Ability chargedShot = new List_Ability_ChargedShot(
-            Ability.ChargedShot,
-            Specialisation.Archery,
-            5,
-            5,
-            2,
-            3,
-            1.5f,
-            3f,
-            5f,
-            SO_List.Instance.WeaponMeleeSprites[0].sprite);
+            Ability.ChargedShot, // Name
+            "Charge up and fire an arrow of energy", // Description
+            SO_List.Instance.WeaponMeleeSprites[0].sprite, // Icon
+            Aspect.Hunt, // Specialisation
+            5, // Max Ability Level
+            2, // Damage Per Level
+            ItemType.Weapon, // Required Type
+            0, // Health
+            0, // Mana
+            0, // Stamina
+            0, // Push Recovery
+            5, // Ability Damage
+            1, // Ability Speed (Bow draw speed)
+            4, // Ability Swing Time (Arrow speed)
+            4, // Ability Range
+            1, // Ability Push Force
+            10f, // AbilityCooldown
+            0, 0, // Physical, Magical Defence
+            0, // DodgeCooldown
+
+            new WeaponType[] { WeaponType.OneHandedRanged, WeaponType.TwoHandedRanged }, // Weapon Type Restrictions
+            new WeaponClass[] { WeaponClass.None }, // Weapon Class Restrictions
+            2f // ChargeTime
+            );
         AddToList(AllAbilityData, chargedShot);
     }
 
@@ -72,7 +75,7 @@ public class List_Ability
     {
         foreach (List_Ability ability in AllAbilityData)
         {
-            if (ability.AbilityName == abilityEnum)
+            if (ability.AbilityData.AbilityStats.AbilityName == abilityEnum)
             {
                 unlockedAbilityList.Add(ability);
             }
@@ -81,7 +84,7 @@ public class List_Ability
 
     public virtual void UseAbility(Actor_Base actor)
     {
-        throw new ArgumentException("Ability " + this.AbilityName + " does not have a UseAbility");
+
     }
 
     //public virtual void Charge(GameObject target, Rigidbody2D self)
@@ -138,11 +141,32 @@ public class List_Ability
     {
         foreach (List_Ability ability in AllAbilityData)
         {
-            if (ability.AbilityName == abilityName)
+            if (ability.AbilityData.AbilityStats.AbilityName == abilityName)
             {
                 return ability;
             }
         }
         return null;
     }
+}
+
+[Serializable]
+public struct AbilityData
+{
+    public AbilityStats AbilityStats;
+    public CombatStats CombatStats;
+    public WeaponStats WeaponStats;
+    public ArmourStats ArmourStats;
+}
+
+[Serializable]
+public struct AbilityStats
+{
+    public Ability AbilityName;
+    public string AbilityDescription;
+    public Sprite AbilityIcon;
+    public Aspect AbilitySpecialisation;
+    public int AbilityMaxLevel;
+    public float AbilityDamagePerAbilityLevel;
+    public ItemType RequiredType;
 }

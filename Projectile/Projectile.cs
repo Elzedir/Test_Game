@@ -9,8 +9,7 @@ public abstract class Projectile : MonoBehaviour
     protected Collider2D _collider;
     public Vector2 Direction;
     public Vector3 Origin;
-    public float Speed;
-    public float Range;
+    public ItemStats ItemStats;
     public float ChargeTime;
     protected bool _hasLanded = false;
     protected HashSet<Collider2D> _hitEnemies;

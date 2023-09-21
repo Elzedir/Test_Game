@@ -1,15 +1,19 @@
+using NUnit.Framework.Constraints;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.VFX;
 
 public class Weapon_Bow : Weapon
 {
-    public override void WeaponAttack()
+    public override void WeaponAttack(Ability ability = Ability.None)
     {
-        Shoot();
+        Shoot(ability);
     }
 
-    private void Shoot()
+    private void Shoot(Ability ability = Ability.None)
     {
         Actor_Base actor = GetComponentInParent<Actor_Base>();
         Equipment_Slot equipmentSlot = GetComponent<Equipment_Slot>();
@@ -35,7 +39,21 @@ public class Weapon_Bow : Weapon
         arrow.Actor = actor;
         arrow.ChargeTime = equipmentSlot.ChargeTime;
         arrow.Direction = attackDirection.normalized;
-        arrow.Range = equipmentSlot.EquipmentItem.ItemStats.CombatStats.AttackRange;
-        arrow.Speed = equipmentSlot.EquipmentItem.ItemStats.CombatStats.AttackSpeed;
+        arrow.ItemStats = equipmentSlot.EquipmentItem.ItemStats;
+
+        if (ability == Ability.ChargedShot)
+        {
+            GameObject vfxChild = new GameObject("ArrowVFX");
+            vfxChild.transform.SetParent(arrowGO.transform);
+            vfxChild.transform.localPosition = Vector3.zero;
+            vfxChild.transform.localRotation = Quaternion.identity;
+
+            VisualEffect arrowVFX = vfxChild.AddComponent<VisualEffect>();
+            arrowVFX.visualEffectAsset = Resources.Load<VisualEffectAsset>("Resources_VFXGraphs/ArrowTest");
+            arrowVFX.AddComponent<SortingGroup>().sortingLayerName = "VFX";
+
+            arrow.ItemStats.CombatStats = List_Ability.GetAbility(ability).AbilityData.CombatStats;
+            arrow.ItemStats.WeaponStats = List_Ability.GetAbility(ability).AbilityData.WeaponStats;
+        }
     }
 }
