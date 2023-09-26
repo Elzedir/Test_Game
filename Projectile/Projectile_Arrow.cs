@@ -9,6 +9,21 @@ public class Projectile_Arrow : Projectile
 {
     private GameObject stuckTarget = null;
 
+    public Projectile_Arrow(
+        Vector2 direction,
+        Vector3 origin,
+        CombatStats combatStats,
+        float chargeTime,
+        LayerMask attackableLayers
+        )
+    {
+        this.Direction = direction;
+        this.Origin = origin;
+        this.CombatStats = combatStats;
+        this.ChargeTime = chargeTime;
+        this.AttackableLayers = attackableLayers;
+    }
+
     protected override void FixedUpdate()
     {
         if (isActiveAndEnabled)
@@ -30,7 +45,7 @@ public class Projectile_Arrow : Projectile
 
             if (_rb != null)
             {
-                if (distanceFromOrigin >= ItemStats.CombatStats.AttackRange || _hasLanded)
+                if (distanceFromOrigin >= CombatStats.AttackRange || _hasLanded)
                 {
                     DespawnArrow();
                     // Play the hit animation.
@@ -38,7 +53,7 @@ public class Projectile_Arrow : Projectile
                 }
                 else
                 {
-                    _rb.velocity = Direction * ItemStats.CombatStats.AttackSwingTime;
+                    _rb.velocity = Direction * CombatStats.AttackSwingTime;
                 }
 
                 if (_rb.velocity.magnitude < 0.1f)

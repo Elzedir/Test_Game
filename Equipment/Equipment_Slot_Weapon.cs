@@ -10,7 +10,7 @@ public class Equipment_Slot_Weapon : Equipment_Slot
     {
         base.SpriteVectors();
 
-        foreach (WeaponClass weaponClass in EquipmentItem.ItemStats.WeaponStats.WeaponClass)
+        foreach (WeaponClass weaponClass in EquipmentItem.ItemStats.WeaponStats.WeaponClassArray)
         {
             switch (weaponClass)
             {
@@ -31,7 +31,7 @@ public class Equipment_Slot_Weapon : Equipment_Slot
                     //spriteRenderer.transform.localPosition = new Vector3(-0.04f, -0.07f, 0f);
                     //spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));
                     break;
-                case WeaponClass.Shortbow:
+                case WeaponClass.ShortBow:
                     //spriteRenderer.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
                     //spriteRenderer.transform.localPosition = new Vector3(-0.04f, -0.07f, 0f);
                     //spriteRenderer.transform.localRotation = Quaternion.Euler(new Vector3(180, 0, 0));

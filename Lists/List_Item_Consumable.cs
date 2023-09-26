@@ -25,21 +25,7 @@ public class List_Item_Consumable : List_Item
         InitializeConsumableData();
     }
 
-    public List_Item_Consumable
-        (int itemID, 
-        ConsumableType consumableType, 
-        string consName, 
-        int consValue, 
-        Sprite consIcon, 
-        int maxStackSize)
-    {
-        this.ItemStats.CommonStats.ItemID = itemID;
-        this.consumableType = consumableType;
-        this.consName = consName;
-        this.consValue = consValue;
-        this.consIcon = consIcon;
-        this.ItemStats.CommonStats.MaxStackSize = maxStackSize;
-    }
+    public List_Item_Consumable(ItemStats itemStats) { this.ItemStats = itemStats; }
 
     public static void InitializeConsumableData()
     {
@@ -48,15 +34,6 @@ public class List_Item_Consumable : List_Item
 
     static void Potions()
     {
-        Sprite test_spr = Resources.Load<Sprite>("Assets/Artwork/Assets/0_Assets/Atlas/at_dungeon_01/obj_wep_m_ss_01");
-        List_Item_Consumable potions = new List_Item_Consumable
-            (3, 
-            ConsumableType.HealthPotion, 
-            "Health Potion", 
-            100, 
-            test_spr, 
-            99);
-
-        AddToList(allConsumableData, potions);
+        
     }
 }

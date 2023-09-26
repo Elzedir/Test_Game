@@ -43,31 +43,34 @@ public class List_Ability
 
     static void ArcheryAbilities()
     {
-        List_Ability chargedShot = new List_Ability_ChargedShot(
-            Ability.ChargedShot, // Name
-            "Charge up and fire an arrow of energy", // Description
-            SO_List.Instance.WeaponMeleeSprites[0].sprite, // Icon
-            Aspect.Hunt, // Specialisation
-            5, // Max Ability Level
-            2, // Damage Per Level
-            ItemType.Weapon, // Required Type
-            0, // Health
-            0, // Mana
-            0, // Stamina
-            0, // Push Recovery
-            5, // Ability Damage
-            1, // Ability Speed (Bow draw speed)
-            4, // Ability Swing Time (Arrow speed)
-            4, // Ability Range
-            1, // Ability Push Force
-            10f, // AbilityCooldown
-            0, 0, // Physical, Magical Defence
-            0, // DodgeCooldown
-
-            new WeaponType[] { WeaponType.OneHandedRanged, WeaponType.TwoHandedRanged }, // Weapon Type Restrictions
-            new WeaponClass[] { WeaponClass.None }, // Weapon Class Restrictions
-            2f // ChargeTime
+        AbilityStats abilityStats = new AbilityStats(
+            abilityName: Ability.ChargedShot,
+            abilityDescription: "Charge up and fire an arrow of energy",
+            abilityIcon: SO_List.Instance.WeaponMeleeSprites[0].sprite,
+            abilitySpecialisation: Aspect.Hunt,
+            abilityMaxLevel: 5,
+            abilityDamagePerAbilityLevel: 2
             );
+
+        CombatStats combatStats = new CombatStats(
+            attackDamage: 5,
+            attackSpeed: 1,
+            attackSwingTime: 4,
+            attackRange: 2,
+            attackPushForce: 1,
+            attackCooldown: 10f
+            );
+
+        WeaponStats weaponStats = new WeaponStats(
+            weaponType: new WeaponType[] { WeaponType.OneHandedRanged, WeaponType.TwoHandedRanged },
+            weaponClass: new WeaponClass[] { WeaponClass.None },
+            maxChargeTime: 2
+            );
+
+        AbilityData abilityData = new AbilityData(abilityStats: abilityStats, combatStats: combatStats, weaponStats: weaponStats);
+
+        List_Ability chargedShot = new List_Ability_ChargedShot(abilityData: abilityData);
+
         AddToList(AllAbilityData, chargedShot);
     }
 
@@ -151,16 +154,26 @@ public class List_Ability
 }
 
 [Serializable]
-public struct AbilityData
+public class AbilityData
 {
     public AbilityStats AbilityStats;
-    public CombatStats CombatStats;
     public WeaponStats WeaponStats;
-    public ArmourStats ArmourStats;
+    public CombatStats CombatStats;
+
+    public AbilityData(
+        AbilityStats abilityStats = null,
+        WeaponStats weaponStats = null,
+        CombatStats combatStats = null
+        )
+    {
+        this.AbilityStats = abilityStats != null ? abilityStats : new AbilityStats();
+        this.WeaponStats = weaponStats != null ? weaponStats : new WeaponStats();
+        this.CombatStats = combatStats != null ? combatStats : new CombatStats();
+    }
 }
 
 [Serializable]
-public struct AbilityStats
+public class AbilityStats
 {
     public Ability AbilityName;
     public string AbilityDescription;
@@ -169,4 +182,23 @@ public struct AbilityStats
     public int AbilityMaxLevel;
     public float AbilityDamagePerAbilityLevel;
     public ItemType RequiredType;
+
+    public AbilityStats(
+        Ability abilityName = Ability.None,
+        string abilityDescription = "",
+        Sprite abilityIcon = null,
+        Aspect abilitySpecialisation = Aspect.None,
+        int abilityMaxLevel = 0,
+        float abilityDamagePerAbilityLevel = 0,
+        ItemType requiredType = ItemType.None
+        )
+    {
+        this.AbilityName = abilityName;
+        this.AbilityDescription = abilityDescription;
+        this.AbilityIcon = abilityIcon;
+        this.AbilitySpecialisation = abilitySpecialisation;
+        this.AbilityMaxLevel = abilityMaxLevel;
+        this.AbilityDamagePerAbilityLevel = abilityDamagePerAbilityLevel;
+        this.RequiredType = requiredType;
+    }
 }

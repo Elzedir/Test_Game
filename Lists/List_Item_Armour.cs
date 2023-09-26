@@ -1,107 +1,88 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Animations;
 using UnityEngine;
 
+public enum ArmourType
+{
+    None,
+    Chest,
+    Head,
+    Legs,
+    Feet
+}
+
 public class List_Item_Armour : List_Item
 {
-    public static List<List_Item> allArmourData = new();
+    public static List<List_Item> AllArmourData = new();
 
     public static void InitializeArmourData()
     {
         Heavy();
 
-        foreach (var armour in allArmourData)
+        foreach (var armour in AllArmourData)
         {
             armour.Start();
         }
     }
 
-    public List_Item_Armour
-        (int itemID,
-        ItemType itemType,
-        string itemName,
-        Sprite itemIcon,
-        Vector3 itemPosition,
-        Vector3 itemRotation,
-        Vector3 itemScale,
-        bool equippable,
-        // AnimatorController itemAnimatorController,
-        int maxStackSize,
-        int itemValue,
-        float itemHealth,
-        float itemMana,
-        float itemStamina,
-        float itemPushRecovery,
-        float itemAttackDamage,
-        float itemAttackSpeed,
-        float itemAttackSwingTime,
-        float itemAttackRange,
-        float itemAttackPushForce,
-        float itemAttackCooldown,
-        float itemPhysicalDefence,
-        float itemMagicalDefence,
-        float itemDodgeCooldown,
-        ArmourType itemArmourType,
-        float itemCoverage)
-    {
-        this.ItemStats.CommonStats.ItemID = itemID;
-        this.ItemStats.CommonStats.ItemType = itemType;
-        this.ItemStats.CommonStats.ItemName = itemName;
-        this.ItemStats.CommonStats.ItemIcon = itemIcon;
-        this.ItemStats.CommonStats.ItemPosition = itemPosition;
-        this.ItemStats.CommonStats.ItemRotation = itemRotation;
-        this.ItemStats.CommonStats.ItemScale = itemScale;
-        this.ItemStats.CommonStats.Equippable = equippable;
-        // this.ItemStats.CommonStats.ItemAnimatorController = itemAnimatorController;
-        this.ItemStats.CommonStats.MaxStackSize = maxStackSize;
-        this.ItemStats.CommonStats.ItemValue = itemValue;
-        this.ItemStats.CombatStats.Health = itemHealth;
-        this.ItemStats.CombatStats.Mana = itemMana;
-        this.ItemStats.CombatStats.Stamina = itemStamina;
-        this.ItemStats.CombatStats.PushRecovery = itemPushRecovery;
-        this.ItemStats.CombatStats.AttackDamage = itemAttackDamage;
-        this.ItemStats.CombatStats.AttackSpeed = itemAttackSpeed;
-        this.ItemStats.CombatStats.AttackSwingTime = itemAttackSwingTime;
-        this.ItemStats.CombatStats.AttackRange = itemAttackRange;
-        this.ItemStats.CombatStats.AttackPushForce = itemAttackPushForce;
-        this.ItemStats.CombatStats.AttackCooldown = itemAttackCooldown;
-        this.ItemStats.CombatStats.PhysicalDefence = itemPhysicalDefence;
-        this.ItemStats.CombatStats.MagicalDefence = itemMagicalDefence;
-        this.ItemStats.CombatStats.DodgeCooldown = itemDodgeCooldown;
-        this.ItemStats.ArmourStats.ArmourType = itemArmourType;
-        this.ItemStats.ArmourStats.ItemCoverage = itemCoverage;
-    }
+    public List_Item_Armour (ItemStats itemStats) { this.ItemStats = itemStats; }
 
     static void Heavy()
     {
-        List_Item_Armour bronzeChestplate01 = new List_Item_Armour(
-            2, // ItemID
-            ItemType.Armour, // ItemType
-            "Bronze chestplate", // ItemName
-            SO_List.Instance.ArmourSprites[0].sprite, // ItemIcon
-            new Vector3(-0.04f, -0.07f, 0f), new Vector3(180, 0, 0), new Vector3(0.4f, 0.4f, 0.4f), // ItemPosition, ItemRotation, ItemScale
-            true, // ItemEquippable
-            //SO_List.Instance.animatorControllers[0].animatorController, // ItemAnimatorController
-            1, // ItemMaxStackSize
-            10, // ItemValue
-            5, // ItemHealth
-            0, // ItemMana
-            0, // ItemStamina
-            1, // ItemPushRecovery
-            0, // ItemAttackDamage
-            0, // itemAttackSpeed,
-            0, // itemAttackSwingTime,
-            0, // itemAttackRange,
-            0f, // itemAttackPushForce,
-            1, // itemAttackCooldown,
-            2, // itemPhysicalDefence,
-            2, // itemMagicalDefence,
-            0, // itemDodgeCooldown,
-            ArmourType.Chest, // ArmourType
-            75 // ItemCoverage
-            ); 
+        CommonStats commonStats = new CommonStats(
+            itemID: 2,
+            itemType: ItemType.Armour,
+            itemName: "Bronze ChestPlate",
+            itemIcon: SO_List.Instance.ArmourSprites[0].sprite,
+            itemPosition: new Vector3(-0.04f, -0.07f, 0f),
+            itemRotation: new Vector3(180, 0, 0),
+            itemScale: new Vector3(0.4f, 0.4f, 0.4f),
+            itemEquippable: true,
+            maxStackSize: 1,
+            itemValue: 10
+            );
 
-        AddToList(allArmourData, bronzeChestplate01);
+        ArmourStats armourStats = new ArmourStats(
+            armourType: ArmourType.Chest,
+            itemCoverage: 75
+            );
+
+        FixedModifiers fixedModifiers = new FixedModifiers(
+            maxHealth: 5,
+            maxMana: 5,
+            maxStamina: 5,
+            pushRecovery: 1,
+            physicalDefence: 2,
+            magicalDefence: 2,
+            dodgeCooldownReduction: -1
+            );
+
+        PercentageModifiers percentageModifiers = new PercentageModifiers(
+            attackSpeed: 0.92f
+            );
+
+        ItemStats bronzeChestPlate01 = new ItemStats(commonStats: commonStats, armourStats: armourStats, fixedModifiers: fixedModifiers, percentageModifiers: percentageModifiers);
+
+        List_Item_Weapon bronzeChestPlate01Weapon = new List_Item_Weapon(bronzeChestPlate01);
+
+        AddToList(AllArmourData, bronzeChestPlate01Weapon);
+    }
+}
+
+[Serializable]
+public class ArmourStats
+{
+    public ArmourType ArmourType;
+    public float ItemCoverage;
+
+    public ArmourStats(
+        ArmourType armourType = ArmourType.None,
+        float itemCoverage = 0
+        )
+    {
+        this.ArmourType = armourType;
+        this.ItemCoverage = itemCoverage;
     }
 }

@@ -53,7 +53,7 @@ public class Environment_Fire_Manager : MonoBehaviour
 
         for (int i = 0; i < tickCount; i++)
         {
-            Damage damage = new Damage { origin = transform.position, damageAmount = target.ActorData.ActorStats.CombatStats.Health / 100, pushForce = 0 };
+            Damage damage = new Damage { origin = transform.position, damageAmount = target.ActorData.ActorStats.CombatStats.MaxHealth / 100, pushForce = 0 };
             target.ReceiveDamage(damage);
             yield return new WaitForSeconds(tickTime);
         }

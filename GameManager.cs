@@ -153,11 +153,11 @@ public class GameManager : MonoBehaviour
     {
         Manager_Stats playerStatManager = Player.GetComponent<Manager_Stats>();
 
-        float healthRatio = Mathf.Clamp((float)playerStatManager.CurrentCombatStats.Health / (float)Player.PlayerActor.ActorData.ActorStats.CombatStats.Health, 0f, 1f);
+        float healthRatio = Mathf.Clamp((float)playerStatManager.CurrentCombatStats.MaxHealth / (float)Player.PlayerActor.ActorData.ActorStats.CombatStats.MaxHealth, 0f, 1f);
         healthBar.localScale = new Vector3(healthRatio, 1, 1);
-        float manaRatio = Mathf.Clamp((float)playerStatManager.CurrentCombatStats.Mana / (float)Player.PlayerActor.ActorData.ActorStats.CombatStats.Mana, 0f, 1f);
+        float manaRatio = Mathf.Clamp((float)playerStatManager.CurrentCombatStats.MaxMana / (float)Player.PlayerActor.ActorData.ActorStats.CombatStats.MaxMana, 0f, 1f);
         manaBar.localScale = new Vector3(manaRatio, 1 , 1);
-        float staminaRatio = Mathf.Clamp((float)playerStatManager.CurrentCombatStats.Stamina / (float)Player.PlayerActor.ActorData.ActorStats.CombatStats.Stamina, 0f, 1f);
+        float staminaRatio = Mathf.Clamp((float)playerStatManager.CurrentCombatStats.MaxStamina / (float)Player.PlayerActor.ActorData.ActorStats.CombatStats.MaxStamina, 0f, 1f);
         staminaBar.localScale = new Vector3(staminaRatio, 1, 1);
     }
 

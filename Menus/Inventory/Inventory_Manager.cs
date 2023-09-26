@@ -294,7 +294,7 @@ public class InventoryItem
     }
     public void UpdateItemStats()
     {
-        ItemStats = ItemStats.SetItemStats(ItemID, StackSize);
+        ItemStats = ItemStats.GetItemStats(ItemID, StackSize);
     }
 }
 

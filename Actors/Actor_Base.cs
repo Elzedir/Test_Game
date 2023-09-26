@@ -55,6 +55,11 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
         LayerCount();
         ActorData.Initialise(_actor);
 
+        if (!ActorData.ActorStats.CombatStats.Initialised)
+        {
+            ActorData.ActorStats.CombatStats = new CombatStats();
+        }
+
         if (ActorData.ActorType == ActorType.Playable)
         {
             StartCoroutine(InitialiseAndSetEquipment());
@@ -323,7 +328,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
             ActorStates.Alerted = false;
         }
 
-        if (ActorData.WithinTriggerRadius(closestEnemy, gameObject))
+        if (!ActorStates.Alerted && ActorData.WithinTriggerRadius(closestEnemy, gameObject))
         {
             ActorStates.Alerted = true;
         }
@@ -336,6 +341,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
 
             if (!withinAttackRange)
             {
+                Debug.Log(gameObject.name);
                 _agent.isStopped = false;
                 _agent.SetDestination(closestEnemy.transform.position);
                 _agent.speed = ActorScripts.StatManager.CurrentCombatStats.MoveSpeed;
@@ -460,19 +466,11 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
             _agent.isStopped = true;
         }
     }
-    public float GetAttackRange()
-    {
-        float attackRange;
-
-        attackRange = ActorData.ActorStats.CombatStats.AttackRange; // Include weapon attack range, do the calculation in Stat manager?
-
-        return attackRange;
-    }
     public bool CheckWithinAttackRange()
     {
         bool result = false;
-        float attackRange = GetAttackRange();
-        Collider2D[] overlapResults = Physics2D.OverlapCircleAll(transform.position, attackRange);
+
+        Collider2D[] overlapResults = Physics2D.OverlapCircleAll(transform.position, ActorScripts.StatManager.CurrentCombatStats.AttackRange);
 
         for (int i = 0; i < overlapResults.Length; i++)
         {
@@ -555,7 +553,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, ActorData.triggerLength);
             Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, GetAttackRange());
+            Gizmos.DrawWireSphere(transform.position, ActorScripts.StatManager.CurrentCombatStats.AttackRange);
         }
     }
     public void StatusCheck()
@@ -617,7 +615,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
 
     protected IEnumerator DodgeCooldown()
     {
-        yield return new WaitForSeconds(_actor.ActorData.ActorStats.CombatStats.DodgeCooldown);
+        yield return new WaitForSeconds(_actor.ActorData.ActorStats.CombatStats.DodgeCooldownReduction);
         _actor.ActorStates.DodgeAvailable = true;
     }
 

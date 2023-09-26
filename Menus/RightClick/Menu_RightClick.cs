@@ -113,11 +113,11 @@ public class Menu_RightClick : MonoBehaviour
 
         if (item != null)
         {
-            _buttonEquip.gameObject.SetActive(item.ItemStats.CommonStats.Equippable);
+            _buttonEquip.gameObject.SetActive(item.ItemStats.CommonStats.ItemEquippable);
         }
         else if (_itemInteractable != null)
         {
-            _buttonEquip.gameObject.SetActive(List_Item.GetItemData(_itemInteractable.ItemID).ItemStats.CommonStats.Equippable);
+            _buttonEquip.gameObject.SetActive(List_Item.GetItemData(_itemInteractable.ItemID).ItemStats.CommonStats.ItemEquippable);
         }
 
         _buttonPickup.gameObject.SetActive(itemInteractable);

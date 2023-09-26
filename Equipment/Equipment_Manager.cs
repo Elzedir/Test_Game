@@ -92,7 +92,7 @@ public abstract class Equipment_Manager : MonoBehaviour
         {
             case ItemType.Weapon:
 
-                if (Array.Exists(item.ItemStats.WeaponStats.WeaponType, w =>
+                if (Array.Exists(item.ItemStats.WeaponStats.WeaponTypeArray, w =>
                     w == WeaponType.OneHandedMelee ||
                     w == WeaponType.TwoHandedMelee ||
                     w == WeaponType.OneHandedRanged ||
@@ -136,7 +136,7 @@ public abstract class Equipment_Manager : MonoBehaviour
         {
             case ItemType.Weapon:
 
-                if (Array.Exists(item.ItemStats.WeaponStats.WeaponType, w =>
+                if (Array.Exists(item.ItemStats.WeaponStats.WeaponTypeArray, w =>
                     w == WeaponType.OneHandedMelee ||
                     w == WeaponType.OneHandedRanged ||
                     w == WeaponType.OneHandedMagic))
@@ -145,7 +145,7 @@ public abstract class Equipment_Manager : MonoBehaviour
                     secondaryEquipSlots = new Equipment_Slot[] { slotSource.MainHand, slotSource.OffHand };
                 }
 
-                else if (Array.Exists(item.ItemStats.WeaponStats.WeaponType, w =>
+                else if (Array.Exists(item.ItemStats.WeaponStats.WeaponTypeArray, w =>
                     w == WeaponType.TwoHandedMelee ||
                     w == WeaponType.TwoHandedRanged ||
                     w == WeaponType.TwoHandedMagic))
@@ -325,7 +325,7 @@ public class EquipmentItem
 
     public void UpdateItemStats()
     {
-        ItemStats = ItemStats.SetItemStats(ItemID, StackSize);
+        ItemStats = ItemStats.GetItemStats(ItemID, StackSize);
     }
 }
 

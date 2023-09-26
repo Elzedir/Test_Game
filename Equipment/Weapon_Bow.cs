@@ -36,10 +36,13 @@ public class Weapon_Bow : Weapon
         arrowGO.SetActive(true);
 
         Projectile_Arrow arrow = arrowGO.GetComponent<Projectile_Arrow>();
-        arrow.Actor = actor;
-        arrow.ChargeTime = equipmentSlot.ChargeTime;
-        arrow.Direction = attackDirection.normalized;
-        arrow.ItemStats = equipmentSlot.EquipmentItem.ItemStats;
+        arrow = new Projectile_Arrow(
+            attackDirection.normalized, 
+            actor.transform.position, 
+            actor.ActorScripts.StatManager.CurrentCombatStats, 
+            equipmentSlot.ChargeTime, 
+            actor.ActorData.CanAttack
+            );
 
         if (ability == Ability.ChargedShot)
         {
@@ -52,8 +55,7 @@ public class Weapon_Bow : Weapon
             arrowVFX.visualEffectAsset = Resources.Load<VisualEffectAsset>("Resources_VFXGraphs/ArrowTest");
             arrowVFX.AddComponent<SortingGroup>().sortingLayerName = "VFX";
 
-            arrow.ItemStats.CombatStats = List_Ability.GetAbility(ability).AbilityData.CombatStats;
-            arrow.ItemStats.WeaponStats = List_Ability.GetAbility(ability).AbilityData.WeaponStats;
+            arrow.CombatStats = List_Ability.GetAbility(ability).AbilityData.CombatStats;
         }
     }
 }

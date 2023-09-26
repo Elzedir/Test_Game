@@ -50,7 +50,7 @@ public class Equipment_Slot : MonoBehaviour
 
         if (_actor.ActorStates.Attacking)
         {
-            WeaponType[] weaponTypes = EquipmentItem.ItemStats.WeaponStats.WeaponType;
+            WeaponType[] weaponTypes = EquipmentItem.ItemStats.WeaponStats.WeaponTypeArray;
 
             if (weaponTypes != null && Array.Exists(weaponTypes, w => w == WeaponType.OneHandedMelee || w == WeaponType.TwoHandedMelee))
             {
@@ -128,7 +128,7 @@ public class Equipment_Slot : MonoBehaviour
 
         float originalAnimationSpeed = animator.speed;
 
-        float newAnimationSpeed = 1f / this.EquipmentItem.ItemStats.CombatStats.AttackSpeed; 
+        float newAnimationSpeed = 1f / CombatStats.GetCombatStatsData(this.EquipmentItem.ItemStats).AttackSpeed; 
         animator.speed = newAnimationSpeed;
 
         if (_hitEnemies == null)
@@ -256,7 +256,7 @@ public class Equipment_Slot : MonoBehaviour
 
         if ((_actor.ActorData.CanAttack & targetLayerMask) != 0)
         {
-            Damage damage = _actor.ActorScripts.StatManager.DealDamage(_chargeTime);
+            Damage damage = Manager_Stats.DealDamage(damageOrigin: _actor.transform.position, combatStats: _actor.ActorScripts.StatManager.CurrentCombatStats, chargeTime: _chargeTime);
             coll.SendMessage("ReceiveDamage", damage);
             _chargeTime = 0f;
         }

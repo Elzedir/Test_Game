@@ -85,7 +85,6 @@ public class Actor_Data_SO : ScriptableObject
     public void Initialise(Actor_Base actor)
     {
         SetActorLayer(actor);
-        InitialiseStats();
         GameManager.Instance.RunCoroutine(DelayedInitialiseAbilityCooldowns());
     }
 
@@ -102,35 +101,6 @@ public class Actor_Data_SO : ScriptableObject
         }
     }
 
-    public void InitialiseStats()
-    {
-        InitialiseFieldValues(ref ActorStats);
-        InitialiseFieldValues(ref ActorStats.CombatStats);
-    }
-
-    private void InitialiseFieldValues<T>(ref T stats) where T : struct
-    {
-        FieldInfo[] fields = typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance);
-        foreach (FieldInfo field in fields)
-        {
-            if (field.FieldType == typeof(float))
-            {
-                if ((float)field.GetValue(stats) == 0)
-                {
-                    Debug.Log($"Scriptable Object field {field} was 0. Restart for it to work.");
-                    field.SetValueDirect(__makeref(stats), 1f);
-                }
-            }
-            else if (field.FieldType == typeof(int))
-            {
-                if ((int)field.GetValue(stats) == 0)
-                {
-                    Debug.Log($"Scriptable object field {field} was 0. Restart for it to work.");
-                    field.SetValueDirect(__makeref(stats), 1);
-                }
-            }
-        }
-    }
     public void SetActorLayer(Actor_Base actor)
     {
         FactionManager factionManager = FactionManager.instance;
@@ -184,11 +154,16 @@ public struct ActorStats
 }
 
 [System.Serializable]
-public struct CombatStats
+public class CombatStats
 {
-    public float Health;
-    public float Mana;
-    public float Stamina;
+    private bool _initialised; public bool Initialised {  get { return _initialised; } }
+
+    public float CurrentHealth;
+    public float CurrentMana;
+    public float CurrentStamina;
+    public float MaxHealth;
+    public float MaxMana;
+    public float MaxStamina;
     public float PushRecovery;
 
     public float AttackDamage;
@@ -202,15 +177,67 @@ public struct CombatStats
     public float MagicalDefence;
 
     public float MoveSpeed;
-    public float DodgeCooldown;
+    public float DodgeCooldownReduction;
 
-    public static CombatStats operator +(CombatStats a, CombatStats b)
+    public CombatStats(
+        bool initialised = true, 
+        float currentHealth = 0, 
+        float currentMana = 0, 
+        float currentStamina = 0, 
+        float maxHealth = 1, 
+        float maxMana = 1, 
+        float maxStamina = 1, 
+        float pushRecovery = 1, 
+        float attackDamage = 1, 
+        float attackSpeed = 1, 
+        float attackSwingTime = 1, 
+        float attackRange = 1, 
+        float attackPushForce = 1, 
+        float attackCooldown = 1, 
+        float physicalDefence = 0, 
+        float magicalDefence = 0, 
+        float moveSpeed = 1, 
+        float dodgeCooldown = 1)
+    {
+        _initialised = initialised;
+        CurrentHealth = currentHealth;
+        CurrentMana = currentMana;
+        CurrentStamina = currentStamina;
+        MaxHealth = maxHealth;
+        MaxMana = maxMana;
+        MaxStamina = maxStamina;
+        PushRecovery = pushRecovery;
+
+        AttackDamage = attackDamage;
+        AttackSpeed = attackSpeed;
+        AttackSwingTime = attackSwingTime;
+        AttackRange = attackRange;
+        AttackPushForce = attackPushForce;
+        AttackCooldown = attackCooldown;
+
+        PhysicalDefence = physicalDefence;
+        MagicalDefence = magicalDefence;
+
+        MoveSpeed = moveSpeed;
+        DodgeCooldownReduction = dodgeCooldown;
+    }
+
+    public static CombatStats GetCombatStatsData(ItemStats itemStats)
+    {
+        CombatStats modifiedCombatStats = new CombatStats();
+        modifiedCombatStats += itemStats.StatModifiersFixed;
+        modifiedCombatStats *= itemStats.StatModifiersPercentage;
+
+        return modifiedCombatStats;
+    }
+
+    public static CombatStats operator +(CombatStats a, FixedModifiers b)
     {
         return new CombatStats
         {
-            Health = a.Health + b.Health,
-            Mana = a.Mana + b.Mana,
-            Stamina = a.Stamina + b.Stamina,
+            MaxHealth = a.MaxHealth + b.MaxHealth,
+            MaxMana = a.MaxMana + b.MaxMana,
+            MaxStamina = a.MaxStamina + b.MaxStamina,
             PushRecovery = a.PushRecovery + b.PushRecovery,
             AttackDamage = a.AttackDamage + b.AttackDamage,
             AttackSpeed = a.AttackSpeed + b.AttackSpeed,
@@ -220,7 +247,27 @@ public struct CombatStats
             AttackCooldown = a.AttackCooldown + b.AttackCooldown,
             PhysicalDefence = a.PhysicalDefence + b.PhysicalDefence,
             MagicalDefence = a.MagicalDefence + b.MagicalDefence,
-            DodgeCooldown = a.DodgeCooldown + b.DodgeCooldown
+            DodgeCooldownReduction = a.DodgeCooldownReduction + b.DodgeCooldownReduction
+        };
+    }
+
+    public static CombatStats operator *(CombatStats a, PercentageModifiers b)
+    {
+        return new CombatStats
+        {
+            MaxHealth = b.MaxHealth != 0 ? a.MaxHealth * b.MaxHealth : a.MaxHealth,
+            MaxMana = b.MaxMana != 0 ? a.MaxMana * b.MaxMana : a.MaxMana,
+            MaxStamina = b.MaxStamina != 0 ? a.MaxStamina * b.MaxStamina : a.MaxStamina,
+            PushRecovery = b.PushRecovery != 0 ? a.PushRecovery * b.PushRecovery : a.PushRecovery,
+            AttackDamage = b.AttackDamage != 0 ? a.AttackDamage * b.AttackDamage : a.AttackDamage,
+            AttackSpeed = b.AttackSpeed != 0 ? a.AttackSpeed * b.AttackSpeed : a.AttackSpeed,
+            AttackSwingTime = b.AttackSwingTime != 0 ? a.AttackSwingTime * b.AttackSwingTime : a.AttackSwingTime,
+            AttackRange = b.AttackRange != 0 ? a.AttackRange * b.AttackRange : a.AttackRange,
+            AttackPushForce = b.AttackPushForce != 0 ? a.AttackPushForce * b.AttackPushForce : a.AttackPushForce,
+            AttackCooldown = b.AttackCooldown != 0 ? a.AttackCooldown * b.AttackCooldown : a.AttackCooldown,
+            PhysicalDefence = b.PhysicalDefence != 0 ? a.PhysicalDefence * b.PhysicalDefence : a.PhysicalDefence,
+            MagicalDefence = b.MagicalDefence != 0 ? a.MagicalDefence * b.MagicalDefence : a.MagicalDefence,
+            DodgeCooldownReduction = b.DodgeCooldownReduction != 0 ? a.DodgeCooldownReduction * b.DodgeCooldownReduction : a.DodgeCooldownReduction
         };
     }
 }
@@ -241,7 +288,7 @@ public struct SPECIAL
 public struct Aspects
 {
     public Title ActorTitle;
-    public List<Aspect> ActorAspects;
+    public List<Aspect> ActorAspectList;
 }
 
 [System.Serializable]

@@ -8,18 +8,18 @@ using UnityEngine;
 public enum Aspect
 {
     None,
-    Arcane, // Witchcraft, Conjury
-    Art, // Songcraft, Artistry
     Defiance, // Defence, Fortification
     Essence, // Sorcery, Magic
-    Flow, // Swiftblade, Dual
+    Esthesis, // Songcraft, Artistry
+    // Flow, // Swiftblade, Dual
     Glory, // Battlerage, Warfare
     Grace, // Vitalism, Devotion
     Hunt, // Archery, Wild
-    Malice, // Malediction, Malice
+    Involution, // Witchcraft, Conjury
+    // Malice, // Malediction, Malice
     Shadow, // Shadowplay, Finesse
     Soul, // Occultism, Necromancy
-    Will, // Auramancy, Will
+    Volition, // Auramancy, Will
     Vocation
 }
 
@@ -66,16 +66,15 @@ public enum Title
     CurseDrinker,
     Daggerspell, // Change
     Darkaegis, // Check
-    DarkLantern, // Change
     Darkrunner, // Change 
     Darkstring, // Change
     Dawncaller,
     Deathgrim, // Check
     Deathwarden,
+    Defender,
     Defiler,
     Demonologist,
     Dervish, // Check
-    Dirgeweaver, // No
     Doombringer, // Check
     Doomlord, // Change
     Dreadhunter, // Choose one
@@ -104,6 +103,7 @@ public enum Title
     Fleshshaper,
     Gaian, // Check
     Gravesinger,
+    Guardian,
     Gypsy,
     Harbinger,
     Harvester,
@@ -123,11 +123,8 @@ public enum Title
     Lamentor,
     Liberator,
     Lorebreaker,
-    Maledict, // Change
-    Memento, // Check
     Mortisculpt, // Check
     Naturalist,
-    Necromancer, // Change
     Necroharmonist, // Check
     Necroscribe,
     Nightbearer, // Choose one
@@ -149,10 +146,9 @@ public enum Title
     Reaper,
     Requiem,
     Revenant,
-    Rimefire, // Check
     Scion,
     Shadehunter, // Choose one
-    Shadestriker, // Choose one
+    Shadestrider, // Choose one
     Shadowbane, // Choose one
     Shadowblade, // Choose one
     Shadowknight, // Choose one
@@ -169,7 +165,6 @@ public enum Title
     Soulsinger, // Choose one
     Soulsong, // Choose one
     Soulwrought,
-    Spellbow, // Choose one
     Spellsinger, // Choose one
     Spellsong, // Choose one
     Spellsword, // Choose one
@@ -181,66 +176,268 @@ public enum Title
     Thaumaturge, // Check
     Thanaturge,
     Tombcaller, // Choose one
-    Tombwarder, // Choose one
+    Tombwarden, // Choose one
     Trickster,
-    Vagabond, // Change
     Vulgarist, // Change
     Wanderer,
     Warpriest,
+    Worldwalker,
     Witcher
 }
 
 public class List_Aspect
 {
-    private static Dictionary<string, Title> _titleMappings = new();
     private static HashSet<Title> _usedTitles = new();
-
-    public static void AddToList(string key, Title title)
-    {
-        if (_usedTitles.Contains(title))
-        {
-            throw new ArgumentException("Item ID " + title + " is already used");
-        }
-
-        _usedTitles.Add(title);
-
-        _titleMappings[key] = title;
-    }
+    private static Dictionary<Title, (Aspect, Aspect, Aspect)> _titleList = new();
 
     public static void InitialiseSpecialisations()
     {
-        foreach (Aspect spec1 in Enum.GetValues(typeof(Aspect)))
+        foreach (KeyValuePair<Title, (Aspect, Aspect, Aspect)> title in _titleList)
         {
-            foreach (Aspect spec2 in Enum.GetValues(typeof(Aspect)))
+            string aspects = string.Join(",", title.Value.Item1, title.Value.Item2, title.Value.Item3);
+            if (_usedTitles.Contains(title.Key))
             {
-                foreach (Aspect spec3 in Enum.GetValues(typeof(Aspect)))
-                {
-                    List<Aspect> combination = new List<Aspect> { spec1, spec2, spec3 };
-                    combination.Sort();  // Sort to make combinations unique
-                    string key = string.Join(",", combination);
-
-                    // Initialize with a default title, or use your logic to map it to a specific title
-                    if (!_titleMappings.ContainsKey(key))
-                    {
-                        _titleMappings[key] = Title.None;
-                    }
-                }
+                throw new ArgumentException("Item ID " + title.Key + " is already used");
             }
+            _usedTitles.Add(title.Key);
         }
 
-        AddToList("None,None,None", Title.Aspectless);
-        AddToList("Wild,None,None", Title.Archer);
-        AddToList("Wild,Glory,None", Title.Wanderer);
-        AddToList("Wild,Glory,Sorcery", Title.Witcher);
-        AddToList("Wild,None,Sorcery", Title.Brightbow);
-        AddToList("Glory,None,None", Title.Soldier);
-        AddToList("Glory,None,Sorcery", Title.Alchemist);
-        AddToList("Glory,None,Witchcraft", Title.Hexblade);
+        _titleList.Add(Title.Aspectless, (Aspect.None, Aspect.None, Aspect.None));
+
+        _titleList.Add(Title.Guardian, (Aspect.Defiance, Aspect.None, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Essence, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Essence, Aspect.Esthesis));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Essence, Aspect.Glory));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Essence, Aspect.Grace));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Essence, Aspect.Hunt));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Essence, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Essence, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Essence, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Essence, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Esthesis, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Esthesis, Aspect.Glory));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Esthesis, Aspect.Grace));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Esthesis, Aspect.Hunt));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Esthesis, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Esthesis, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Esthesis, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Esthesis, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Glory, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Glory, Aspect.Grace));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Glory, Aspect.Hunt));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Glory, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Glory, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Glory, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Glory, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Grace, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Grace, Aspect.Hunt));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Grace, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Grace, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Grace, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Grace, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Hunt, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Hunt, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Hunt, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Hunt, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Hunt, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Involution, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Involution, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Involution, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Involution, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Shadow, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Shadow, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Shadow, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Soul, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Soul, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Defiance, Aspect.Volition, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.None, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Esthesis, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Esthesis, Aspect.Glory));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Esthesis, Aspect.Grace));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Esthesis, Aspect.Hunt));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Esthesis, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Esthesis, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Esthesis, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Esthesis, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Glory, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Glory, Aspect.Grace));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Glory, Aspect.Hunt));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Glory, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Glory, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Glory, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Glory, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Grace, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Grace, Aspect.Hunt));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Grace, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Grace, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Grace, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Grace, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Hunt, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Hunt, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Hunt, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Hunt, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Hunt, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Involution, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Involution, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Involution, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Involution, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Shadow, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Shadow, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Shadow, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Soul, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Soul, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Essence, Aspect.Volition, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.None, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Glory, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Glory, Aspect.Grace));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Glory, Aspect.Hunt));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Glory, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Glory, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Glory, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Glory, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Grace, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Grace, Aspect.Hunt));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Grace, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Grace, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Grace, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Grace, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Hunt, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Hunt, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Hunt, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Hunt, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Hunt, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Involution, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Involution, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Involution, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Involution, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Shadow, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Shadow, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Shadow, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Soul, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Soul, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Esthesis, Aspect.Volition, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.None, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Grace, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Grace, Aspect.Hunt));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Grace, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Grace, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Grace, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Grace, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Hunt, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Hunt, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Hunt, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Hunt, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Hunt, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Involution, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Involution, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Involution, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Involution, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Shadow, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Shadow, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Shadow, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Soul, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Soul, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Glory, Aspect.Volition, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.None, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Hunt, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Hunt, Aspect.Involution));
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Hunt, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Hunt, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Hunt, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Involution, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Involution, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Involution, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Involution, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Shadow, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Shadow, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Shadow, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Soul, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Soul, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Grace, Aspect.Volition, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.None, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.Involution, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.Involution, Aspect.Shadow));
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.Involution, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.Involution, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.Shadow, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.Shadow, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.Shadow, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.Soul, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.Soul, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Hunt, Aspect.Volition, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Involution, Aspect.None, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Involution, Aspect.Shadow, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Involution, Aspect.Shadow, Aspect.Soul));
+        _titleList.Add(Title.Aspectless, (Aspect.Involution, Aspect.Shadow, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Involution, Aspect.Soul, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Involution, Aspect.Soul, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Involution, Aspect.Volition, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Shadow, Aspect.None, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Shadow, Aspect.Soul, Aspect.None));
+        _titleList.Add(Title.Aspectless, (Aspect.Shadow, Aspect.Soul, Aspect.Volition));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Shadow, Aspect.Volition, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Soul, Aspect.Volition, Aspect.None));
+
+        _titleList.Add(Title.Aspectless, (Aspect.Volition, Aspect.None, Aspect.None));
     }
 
     public void SetSpecialisation(Actor_Base actor, Aspect specialisation)
     {
-        List<Aspect> currentSpecialisationList = actor.ActorData.ActorAspects.ActorAspects;
+        List<Aspect> currentSpecialisationList = actor.ActorData.ActorAspects.ActorAspectList;
+        
+        /// Change this so that it instead looks for Aspect.None
 
         if (currentSpecialisationList.Count < 3)
         {
@@ -259,12 +456,20 @@ public class List_Aspect
 
     public static Title GetCharacterTitle(Actor_Base actor)
     {
-        var sortedSpecialisations = actor.ActorData.ActorAspects.ActorAspects.OrderBy(s => s.ToString()).ToList();
-        string key = string.Join(",", sortedSpecialisations);
+        var sortedSpecialisations = actor.ActorData.ActorAspects.ActorAspectList.OrderBy(s => s.ToString()).ToList();
 
-        if (_titleMappings.TryGetValue(key, out Title _title))
+        while (sortedSpecialisations.Count < 3)
         {
-            return actor.ActorData.ActorAspects.ActorTitle = _title;
+            actor.ActorData.ActorAspects.ActorAspectList.Add(Aspect.None);
+        }
+
+        var aspectTuple = (sortedSpecialisations[0], sortedSpecialisations[1], sortedSpecialisations[2]);
+
+        Title title;
+        if (_titleList.Any(kvp => kvp.Value.Equals(aspectTuple)))
+        {
+            title = _titleList.First(kvp => kvp.Value.Equals(aspectTuple)).Key;
+            return actor.ActorData.ActorAspects.ActorTitle = title;
         }
         else
         {

@@ -4,13 +4,13 @@ using UnityEngine;
 
 public abstract class Projectile : MonoBehaviour
 {
-    public Actor_Base Actor;
-    protected Rigidbody2D _rb;
-    protected Collider2D _collider;
     public Vector2 Direction;
     public Vector3 Origin;
-    public ItemStats ItemStats;
+    public CombatStats CombatStats;
     public float ChargeTime;
+    public LayerMask AttackableLayers;
+    protected Rigidbody2D _rb;
+    protected Collider2D _collider;
     protected bool _hasLanded = false;
     protected HashSet<Collider2D> _hitEnemies;
     protected bool _hitEnemy = false;
@@ -39,10 +39,9 @@ public abstract class Projectile : MonoBehaviour
             Collider2D[] results = new Collider2D[42];
             ContactFilter2D filter = new ContactFilter2D();
 
-            LayerMask attackableLayers = Actor.ActorData.CanAttack;
-            attackableLayers |= LayerMask.GetMask("Blocking");
+            AttackableLayers |= LayerMask.GetMask("Blocking");
 
-            filter.layerMask = attackableLayers;
+            filter.layerMask = AttackableLayers;
             filter.useLayerMask = true;
 
             int numColliders = Physics2D.OverlapCollider(_collider, filter, results);
@@ -69,17 +68,11 @@ public abstract class Projectile : MonoBehaviour
                 {
                     if (!_hasLanded)
                     {
-                        if (Actor == null)
-                        {
-                            Debug.LogWarning("No actor found for " + this.name);
-                            return;
-                        }
-
                         int targetLayerMask = 1 << hit.gameObject.layer;
 
-                        if ((Actor.ActorData.CanAttack & targetLayerMask) != 0)
+                        if ((AttackableLayers & targetLayerMask) != 0)
                         {
-                            Damage damage = Actor.ActorScripts.StatManager.DealDamage(ChargeTime);
+                            Damage damage = Manager_Stats.DealDamage(damageOrigin: Origin, combatStats: CombatStats, chargeTime: ChargeTime);
                             hit.SendMessage("ReceiveDamage", damage);
                             _hitEnemy = true;
                         }

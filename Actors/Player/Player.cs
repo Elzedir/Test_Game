@@ -30,7 +30,7 @@ public class Player : MonoBehaviour
     public void PlayerRespawn()
     {
         GameManager.Instance.PlayerDead = false;
-        _playerActor.ActorScripts.StatManager.RestoreHealth(_playerActor.ActorScripts.StatManager.CurrentCombatStats.Health);
+        _playerActor.ActorScripts.StatManager.RestoreHealth(_playerActor.ActorScripts.StatManager.CurrentCombatStats.MaxHealth);
         _playerActor.PushDirection = Vector3.zero;
     }
 

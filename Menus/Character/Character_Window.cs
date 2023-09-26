@@ -114,16 +114,16 @@ public class Character_Window : Menu_UI
         _actorTitle.text = List_Aspect.GetCharacterTitle(actor).ToString();
         _actorIcon.sprite = actor.GetComponent<SpriteRenderer>().sprite;
 
-        if (actor.ActorData.ActorAspects.ActorAspects != null)
+        if (actor.ActorData.ActorAspects.ActorAspectList != null)
         {
             Transform[] allChildren = transform.GetComponentsInChildren<Transform>(true);
 
-            _actorSpecialisation1.text = actor.ActorData.ActorAspects.ActorAspects[0].ToString();
-            _specialisation1 = actor.ActorData.ActorAspects.ActorAspects[0];
-            _actorSpecialisation2.text = actor.ActorData.ActorAspects.ActorAspects[1].ToString();
-            _specialisation2 = actor.ActorData.ActorAspects.ActorAspects[1];
-            _actorSpecialisation3.text = actor.ActorData.ActorAspects.ActorAspects[2].ToString();
-            _specialisation3 = actor.ActorData.ActorAspects.ActorAspects[2];
+            _actorSpecialisation1.text = actor.ActorData.ActorAspects.ActorAspectList[0].ToString();
+            _specialisation1 = actor.ActorData.ActorAspects.ActorAspectList[0];
+            _actorSpecialisation2.text = actor.ActorData.ActorAspects.ActorAspectList[1].ToString();
+            _specialisation2 = actor.ActorData.ActorAspects.ActorAspectList[1];
+            _actorSpecialisation3.text = actor.ActorData.ActorAspects.ActorAspectList[2].ToString();
+            _specialisation3 = actor.ActorData.ActorAspects.ActorAspectList[2];
 
             _specialisationButtons.Add(allChildren.FirstOrDefault(t => t.name == "ActorSpecialisationButton1").GetComponent<Button>());
             _specialisationButtons.Add(allChildren.FirstOrDefault(t => t.name == "ActorSpecialisationButton2").GetComponent<Button>());
@@ -137,9 +137,9 @@ public class Character_Window : Menu_UI
         }
 
         _levelNumber.text = actor.ActorData.ActorStats.Level.ToString();
-        _healthNumber.text = $"{actor.ActorScripts.StatManager.CurrentCombatStats.Health} / {actor.ActorData.ActorStats.CombatStats.Health}";
-        _manaNumber.text = $"{actor.ActorScripts.StatManager.CurrentCombatStats.Mana} / {actor.ActorData.ActorStats.CombatStats.Mana}";
-        _staminaNumber.text = $"{actor.ActorScripts.StatManager.CurrentCombatStats.Stamina} / {actor.ActorData.ActorStats.CombatStats.Stamina}";
+        _healthNumber.text = $"{actor.ActorScripts.StatManager.CurrentCombatStats.MaxHealth} / {actor.ActorData.ActorStats.CombatStats.MaxHealth}";
+        _manaNumber.text = $"{actor.ActorScripts.StatManager.CurrentCombatStats.MaxMana} / {actor.ActorData.ActorStats.CombatStats.MaxMana}";
+        _staminaNumber.text = $"{actor.ActorScripts.StatManager.CurrentCombatStats.MaxStamina} / {actor.ActorData.ActorStats.CombatStats.MaxStamina}";
     }
 
     public void SetCharacterStats(GameObject interactedObject)

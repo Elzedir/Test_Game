@@ -1,3 +1,4 @@
+using NUnit.Framework.Constraints;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,146 +11,126 @@ using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+public enum WeaponType
+{
+    None,
+    OneHandedMelee,
+    TwoHandedMelee,
+    OneHandedRanged,
+    TwoHandedRanged,
+    OneHandedMagic,
+    TwoHandedMagic
+}
+
+public enum WeaponClass
+{
+    None,
+    Axe,
+    ShortBow,
+    ShortSword,
+    Spear
+}
+
 public class List_Item_Weapon : List_Item
 {
     public static List<List_Item> AllWeaponData = new();
 
-    public List_Item_Weapon
-        (int itemID,
-        ItemType itemType,
-        string itemName,
-        Sprite itemIcon,
-        Vector3 itemPosition,
-        Vector3 itemRotation,
-        Vector3 itemScale,
-        bool equippable,
-        AnimatorController itemAnimatorController,
-        int maxStackSize,
-        int itemValue,
-        float itemHealth,
-        float itemMana,
-        float itemStamina,
-        float itemPushRecovery,
-        float itemAttackDamage,
-        float itemAttackSpeed,
-        float itemAttackSwingTime,
-        float itemAttackRange,
-        float itemAttackPushForce,
-        float itemAttackCooldown,
-        float itemPhysicalDefence,
-        float itemMagicalDefence,
-        float itemDodgeCooldown,
-        WeaponType[] weaponType,
-        WeaponClass[] weaponClass,
-        float maxChargeTime)
-    {
-        this.ItemStats.CommonStats.ItemID = itemID;
-        this.ItemStats.CommonStats.ItemType = itemType;
-        this.ItemStats.CommonStats.ItemName = itemName;
-        this.ItemStats.CommonStats.ItemIcon = itemIcon;
-        this.ItemStats.CommonStats.ItemPosition = itemPosition;
-        this.ItemStats.CommonStats.ItemRotation = itemRotation;
-        this.ItemStats.CommonStats.ItemScale = itemScale;
-        this.ItemStats.CommonStats.Equippable = equippable;
-        this.ItemStats.CommonStats.ItemAnimatorController = itemAnimatorController;
-        this.ItemStats.CommonStats.MaxStackSize = maxStackSize;
-        this.ItemStats.CommonStats.ItemValue = itemValue;
-
-        this.ItemStats.CombatStats.Health = itemHealth;
-        this.ItemStats.CombatStats.Mana = itemMana;
-        this.ItemStats.CombatStats.Stamina = itemStamina;
-        this.ItemStats.CombatStats.PushRecovery = itemPushRecovery;
-        this.ItemStats.CombatStats.AttackDamage = itemAttackDamage;
-        this.ItemStats.CombatStats.AttackSpeed = itemAttackSpeed;
-        this.ItemStats.CombatStats.AttackSwingTime = itemAttackSwingTime;
-        this.ItemStats.CombatStats.AttackRange = itemAttackRange;
-        this.ItemStats.CombatStats.AttackPushForce = itemAttackPushForce;
-        this.ItemStats.CombatStats.AttackCooldown = itemAttackCooldown;
-        this.ItemStats.CombatStats.PhysicalDefence = itemPhysicalDefence;
-        this.ItemStats.CombatStats.MagicalDefence = itemMagicalDefence;
-        this.ItemStats.CombatStats.DodgeCooldown = itemDodgeCooldown;
-
-        this.ItemStats.WeaponStats.WeaponType = weaponType;
-        this.ItemStats.WeaponStats.WeaponClass = weaponClass;
-        this.ItemStats.WeaponStats.MaxChargeTime = maxChargeTime;
-    }
+    public List_Item_Weapon (ItemStats itemStats) { this.ItemStats = itemStats; }
 
     public static void InitializeWeaponData()
     {
+        Melee();
         Ranged();
-        Shortswords(); //Melee
         
         foreach (var weapon in AllWeaponData)
         {
             weapon.Start();
         }
     }
+    static void Melee()
+    {
+        ShortSwords();
+    }
     static void Ranged()
     {
-        Shortbows();
+        ShortBows();
     }
-    static void Shortbows()
+    static void ShortBows()
     {
+        CommonStats commonStats = new CommonStats(
+            itemID: 100,
+            itemType: ItemType.Weapon,
+            itemName: "Wooden ShortBow",
+            itemIcon: Resources.Load<Sprite>("Resources_Sprite_Weapon/Weapons/bow/bow"),
+            itemPosition: Vector3.zero,
+            itemRotation: Vector3.zero,
+            itemScale: Vector3.one,
+            itemEquippable: true,
+            itemAnimatorController: Resources.Load<AnimatorController>("Resources_AnimatorControllers/wep_r_sb_01"),
+            maxStackSize: 1,
+            itemValue: 15
+            );
 
+        WeaponStats weaponStats = new WeaponStats(
+            weaponType: new WeaponType[] { WeaponType.TwoHandedRanged },
+            weaponClass: new WeaponClass[] { WeaponClass.ShortBow },
+            maxChargeTime: 3
+            );
 
-        List_Item_Weapon testBow1 = new List_Item_Weapon(
-            100, // ItemID
-            ItemType.Weapon, // ItemType
-            "Wooden Shortbow", // ItemName
-            SO_List.Instance.WeaponRangedSprites[0].sprite, // ItemIcon
-            new Vector3(0, 0, 0), new Vector3(0, 0, 0), new Vector3(1, 1, 1), // ItemPosition, ItemRotation, ItemScale
-            true, // ItemEquippable
-            SO_List.Instance.animatorControllers[2].animatorController, // ItemAnimatorController
-            1, // ItemMaxStackSize
-            15, // ItemValue
-            0, // ItemHealth
-            0, // ItemMana
-            0, // ItemStamina
-            0, // ItemPushRecovery
-            1, // ItemAttackDamage
-            3, // itemAttackSpeed,
-            4, // itemAttackSwingTime,
-            3, // itemAttackRange,
-            1.5f, // itemAttackPushForce,
-            1, // itemAttackCooldown,
-            0, // itemPhysicalDefence,
-            0, // itemMagicalDefence,
-            0, // itemDodgeCooldown,
-            new WeaponType[] { WeaponType.TwoHandedRanged }, // WeaponType
-            new WeaponClass[] { WeaponClass.Shortbow }, // WeaponClass
-            3); // ItemMaxChargeTime
+        FixedModifiers fixedModifiers = new FixedModifiers(
+            attackRange: 1
+            );
 
-        AddToList(AllWeaponData, testBow1);
+        PercentageModifiers percentageModifiers = new PercentageModifiers(
+            attackDamage: 1.1f,
+            attackSpeed: 0.9f,
+            attackSwingTime: 1f,
+            attackRange: 1f,
+            attackPushForce: 1.1f
+            );
+
+        ItemStats testBow1 = new ItemStats(commonStats: commonStats, weaponStats: weaponStats, fixedModifiers: fixedModifiers, percentageModifiers: percentageModifiers);
+
+        List_Item_Weapon testbow1Weapon = new List_Item_Weapon(testBow1);
+
+        AddToList(AllWeaponData, testbow1Weapon);
     }
-    static void Shortswords()
-    {        
-        List_Item_Weapon woodShortsword1 = new List_Item_Weapon(
-            1, // ItemID
-            ItemType.Weapon, // ItemType
-            "Wood Shortsword", // ItemName
-            SO_List.Instance.WeaponMeleeSprites[0].sprite, // ItemIcon
-            new Vector3(-0.04f, -0.07f, 0f), new Vector3(180, 0, 0), new Vector3(0.4f, 0.4f, 0.4f),// ItemPosition, ItemRotation, ItemScale
-            true,// ItemEquippable
-            SO_List.Instance.animatorControllers[0].animatorController,// ItemAnimatorController
-            1, // ItemMaxStackSize
-            15, // ItemValue
-            0, // ItemHealth
-            0, // ItemMana
-            0, // ItemStamina
-            0, // ItemPushRecovery
-            1, // ItemAttackDamage
-            2, // itemAttackSpeed,
-            1, // itemAttackSwingTime,
-            1, // itemAttackRange,
-            2f, // itemAttackPushForce,
-            1, // itemAttackCooldown,
-            0, // itemPhysicalDefence,
-            0, // itemMagicalDefence,
-            0, // itemDodgeCooldown,
-            new WeaponType[] { WeaponType.OneHandedMelee }, // WeaponType
-            new WeaponClass[] { WeaponClass.ShortSword }, // WeaponClass
-            3); // ItemMaxChargeTime);
+    static void ShortSwords()
+    {
+        CommonStats commonStats = new CommonStats(
+            itemID: 1,
+            itemType: ItemType.Weapon,
+            itemName: "Wooden ShortSword",
+            itemIcon: List_Item.GetSpriteFromSpriteSheet(path: "Resources_Sprite_Weapon/Weapons/at_dungeon_01", name: "obj_wep_m_ss_01"),
+            itemPosition: new Vector3 (-0.04f, -0.07f, 0),
+            itemRotation: new Vector3 (180, 0, 0),
+            itemScale: new Vector3(0.4f, 0.4f, 0.4f),
+            itemEquippable: true,
+            itemAnimatorController: Resources.Load<AnimatorController>("Resources_AnimatorControllers/wep_m_ss_base"),
+            maxStackSize: 1,
+            itemValue: 15
+            );
 
-        AddToList(AllWeaponData, woodShortsword1);
+        WeaponStats weaponStats = new WeaponStats(
+            weaponType: new WeaponType[] { WeaponType.OneHandedMelee },
+            weaponClass: new WeaponClass[] { WeaponClass.ShortSword },
+            maxChargeTime: 3
+            );
+
+        FixedModifiers fixedModifiers = new FixedModifiers(
+            );
+
+        PercentageModifiers percentageModifiers = new PercentageModifiers(
+            attackDamage: 1.2f,
+            attackSpeed: 1.1f,
+            attackSwingTime: 1.1f,
+            attackPushForce: 1.1f
+            );
+
+        ItemStats woodenShortSword01 = new ItemStats(commonStats: commonStats, weaponStats: weaponStats, fixedModifiers: fixedModifiers, percentageModifiers: percentageModifiers);
+
+        List_Item_Weapon woodenShortSword01Weapon = new List_Item_Weapon(woodenShortSword01);
+
+        AddToList(AllWeaponData, woodenShortSword01Weapon);
     }
 }
