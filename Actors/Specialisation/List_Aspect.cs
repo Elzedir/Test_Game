@@ -79,14 +79,13 @@ public enum Title
     Doomlord, // Change
     Dreadhunter, // Choose one
     Dreadblade, // Choose one
-    Dreadbow, // Choose one
     Dreadnaught,
     Dreadstone, // Choose one
     Dreambreaker,
     Druid,
     Earthsinger,
     Ebonsong, // Check
-    Ectomancer, // Check
+    Necroetherist, // Check
     Edgewalker,
     Eidolon, // Check
     Elegist, // Check
@@ -128,7 +127,6 @@ public enum Title
     Necroharmonist, // Check
     Necroscribe,
     Nightbearer, // Choose one
-    Nightblade, // Choose one
     Nightcloak, // Choose one
     Nightwitch, // Choose one
     Nocturne, // Check
@@ -137,12 +135,12 @@ public enum Title
     Paladin,
     Phantasm,
     Phantombinder, // Check
+    Philosopher,
     Planeshifter,
     Poxbane,
     PoxRanger, // Change
     Primeval, // Change
     Ranger,
-    Ravager,
     Reaper,
     Requiem,
     Revenant,
@@ -150,7 +148,6 @@ public enum Title
     Shadehunter, // Choose one
     Shadestrider, // Choose one
     Shadowbane, // Choose one
-    Shadowblade, // Choose one
     Shadowknight, // Choose one
     Shaman,
     Sharpshot,
@@ -458,10 +455,12 @@ public class List_Aspect
     {
         var sortedSpecialisations = actor.ActorData.ActorAspects.ActorAspectList.OrderBy(s => s.ToString()).ToList();
 
-        while (sortedSpecialisations.Count < 3)
-        {
-            actor.ActorData.ActorAspects.ActorAspectList.Add(Aspect.None);
-        }
+        // Need to fix. Causes and out of memory problem.
+
+        //while (sortedSpecialisations.Count < 3)
+        //{
+        //    actor.ActorData.ActorAspects.ActorAspectList.Add(Aspect.None);
+        //}
 
         var aspectTuple = (sortedSpecialisations[0], sortedSpecialisations[1], sortedSpecialisations[2]);
 

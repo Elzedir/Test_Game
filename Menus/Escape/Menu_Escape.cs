@@ -41,8 +41,8 @@ public class Menu_Escape : Menu_UI
     {
         if (GameManager.Instance.CurrentState != GameState.InCombat)
         {
-            Menu_CharacterSelect.Instance.OpenMenu();
             CloseMenu();
+            Menu_CharacterSelect.Instance.OpenMenu();
         }
         else
         {
@@ -54,8 +54,8 @@ public class Menu_Escape : Menu_UI
     {
         if (GameManager.Instance.CurrentState != GameState.InCombat)
         {
-            Menu_Settings.Instance.OpenMenu();
             CloseMenu();
+            Menu_Settings.Instance.OpenMenu();
         }
         else
         {

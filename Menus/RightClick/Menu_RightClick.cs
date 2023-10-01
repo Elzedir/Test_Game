@@ -168,7 +168,7 @@ public class Menu_RightClick : MonoBehaviour
 
         if (inventorySource.GetIInventoryGO() == GameManager.Instance.Player.PlayerActor.gameObject)
         {
-            _inventoryDestination = _inventoryInteracted;
+            _inventoryDestination = _inventoryInteracted != null ? _inventoryInteracted : GameManager.Instance.Player.PlayerActor;
             _inventoryInteracted = inventorySource;
             _inventorySlot = inventorySlot;
         }
@@ -183,6 +183,8 @@ public class Menu_RightClick : MonoBehaviour
 
     public void SlotEquipment(IEquipment equipmentSource, Equipment_Slot equipmentSlot, List_Item item, bool itemEquipped)
     {
+        _equipmentSlot = equipmentSlot;
+
         if (equipmentSource.GetIEquipmentGO() == GameManager.Instance.Player.PlayerActor.gameObject)
         {
             _equipmentDestination = _equipmentInteracted;
@@ -228,6 +230,7 @@ public class Menu_RightClick : MonoBehaviour
     {
         if (_equipmentSlot != null)
         {
+            Debug.Log("1");
             Equipment_Manager.UnequipEquipment(equipmentSource: _equipmentInteracted, equipSlot: _equipmentSlot);
             RightClickMenuExit();
         }

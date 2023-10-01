@@ -35,7 +35,7 @@ public class List_Item_Armour : List_Item
             itemID: 2,
             itemType: ItemType.Armour,
             itemName: "Bronze ChestPlate",
-            itemIcon: SO_List.Instance.ArmourSprites[0].sprite,
+            itemIcon: List_Item.GetSpriteFromSpriteSheet(path: "Resources_Sprite/Armour/armours", name: "armours_0"),
             itemPosition: new Vector3(-0.04f, -0.07f, 0f),
             itemRotation: new Vector3(180, 0, 0),
             itemScale: new Vector3(0.4f, 0.4f, 0.4f),

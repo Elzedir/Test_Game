@@ -32,6 +32,7 @@ public abstract class Inventory_Manager : MonoBehaviour
 
     public static bool AddItem(IInventory itemDestination, List_Item item, int stackSize)
     {
+        
         if (item == null || stackSize <= 0 || itemDestination == null)
         {
             return false;
@@ -224,6 +225,7 @@ public abstract class Inventory_Manager : MonoBehaviour
 public class Inventory
 {
     public int BaseInventorySize = 10;
+    public int CurrentInventorySize;
     [SerializeField] public List<InventoryItem> InventoryItems = new();
     public void InitialiseInventoryItems(int numSlots, Inventory inventory)
     {

@@ -36,10 +36,11 @@ public class Weapon_Bow : Weapon
         arrowGO.SetActive(true);
 
         Projectile_Arrow arrow = arrowGO.GetComponent<Projectile_Arrow>();
-        arrow = new Projectile_Arrow(
+
+        arrow.InitialiseArrow(
             attackDirection.normalized, 
             actor.transform.position, 
-            actor.ActorScripts.StatManager.CurrentCombatStats, 
+            actor.CurrentCombatStats, 
             equipmentSlot.ChargeTime, 
             actor.ActorData.CanAttack
             );

@@ -34,4 +34,9 @@ public class Crate : Actor_Base
         OnActorDeath(gameObject);
         // Play death animation for crate.
     }
+
+    public override void InitialiseNavMesh()
+    {
+        
+    }
 }

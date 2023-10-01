@@ -16,18 +16,17 @@ using static UnityEditor.Progress;
 public class Inventory_EquipmentSlot : MonoBehaviour
 {
     private IEquipment _equipmentSourceActor;
-
+    public int SlotIndex;
     public EquipmentItem EquipmentItem;
-    public TextMeshProUGUI stackSizeText;
-    public Image itemIcon;
-    public SlotType InventoryEquipmentSlotType;
+    private TextMeshProUGUI _stackSizeText;
+    private Image _itemIcon;
+    private SlotType _slotType;
 
-    protected virtual void Start()
-    {
-        
-    }
     public virtual void UpdateSlotUI(IEquipment equipmentSource, EquipmentItem equipmentItem)
     {
+        _itemIcon = GetComponent<Image>();
+        _stackSizeText = GetComponentInChildren<TextMeshProUGUI>();
+
         if (equipmentSource is Actor_Base equipmentSourceActor)
         {
             _equipmentSourceActor = equipmentSourceActor;
@@ -37,23 +36,24 @@ public class Inventory_EquipmentSlot : MonoBehaviour
         
         if (equipmentItem.ItemID == -1 || equipmentItem.StackSize == 0)
         {
-            itemIcon.sprite = null;
-            stackSizeText.enabled = false;
+            _itemIcon.sprite = null;
+            _stackSizeText.enabled = false;
         }
         else
         {
-            itemIcon.sprite = List_Item.GetItemData(equipmentItem.ItemID).ItemStats.CommonStats.ItemIcon;
+            _itemIcon.sprite = List_Item.GetItemData(equipmentItem.ItemID).ItemStats.CommonStats.ItemIcon;
+            equipmentItem.SlotIndex = SlotIndex;
 
-            if (stackSizeText != null)
+            if (_stackSizeText != null)
             {
                 if (equipmentItem.StackSize > 1)
                 {
-                    stackSizeText.text = equipmentItem.StackSize.ToString();
-                    stackSizeText.enabled = true;
+                    _stackSizeText.text = equipmentItem.StackSize.ToString();
+                    _stackSizeText.enabled = true;
                 }
                 else
                 {
-                    stackSizeText.enabled = false;
+                    _stackSizeText.enabled = false;
                 }
             }
         }

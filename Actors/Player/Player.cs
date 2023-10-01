@@ -14,6 +14,16 @@ public class Player : MonoBehaviour
 
     private RaycastHit2D _hit;
 
+    public void Start()
+    {
+        GameManager.Instance.PlayerChange += OnPlayerChange;
+    }
+
+    public void OnDestroy()
+    {
+        GameManager.Instance.PlayerChange -= OnPlayerChange;
+    }
+
     private void FixedUpdate()
     {
         if (_playerActor == null || _playerActor.gameObject != this.gameObject)
@@ -26,11 +36,16 @@ public class Player : MonoBehaviour
             Death();
         }
     }
+
+    public void OnPlayerChange()
+    {
+        _playerActor = GameManager.Instance.Player.PlayerActor;
+    }
     
     public void PlayerRespawn()
     {
         GameManager.Instance.PlayerDead = false;
-        _playerActor.ActorScripts.StatManager.RestoreHealth(_playerActor.ActorScripts.StatManager.CurrentCombatStats.MaxHealth);
+        Manager_Stats.RestoreHealth(actor: _playerActor, amount: _playerActor.CurrentCombatStats.CurrentHealth);
         _playerActor.PushDirection = Vector3.zero;
     }
 
@@ -42,7 +57,7 @@ public class Player : MonoBehaviour
 
     public virtual void PlayerMove()
     {
-        if (!_playerActor.ActorStates.Dead)
+        if (_playerActor != null && !_playerActor.ActorStates.Dead)
         {
             float x = 0;
             float y = 0;
@@ -57,7 +72,7 @@ public class Player : MonoBehaviour
             if (!_playerActor.ActorStates.Jumping)
             {
                 Vector3 moveDirection = new Vector3(x, y, 0).normalized;
-                Vector3 move = moveDirection * _playerActor.ActorScripts.StatManager.CurrentCombatStats.MoveSpeed;
+                Vector3 move = moveDirection * _playerActor.CurrentCombatStats.MoveSpeed;
                 float speed = move.magnitude / Time.deltaTime;
 
                 transform.localScale = new Vector3(_playerActor.OriginalSize.z * Mathf.Sign(mouseDirection.x), _playerActor.OriginalSize.y, _playerActor.OriginalSize.z);
@@ -87,21 +102,52 @@ public class Player : MonoBehaviour
 
     public void ExecutePlayerAttack(float chargeTime)
     {
-        if (!_playerActor.ActorStates.Attacking)
-        {
-            List<Equipment_Slot> equippedWeapons = Equipment_Manager.WeaponEquipped(PlayerActor);
+        List<Equipment_Slot> equippedWeapons = Equipment_Manager.WeaponEquipped(PlayerActor);
 
-            if (equippedWeapons.Count > 0)
+        if (equippedWeapons.Count > 0)
+        {
+            foreach (var weapon in equippedWeapons)
             {
-                foreach (var weapon in equippedWeapons)
-                {
-                    weapon.Attack(weapon, chargeTime);
-                }
+                weapon.Attack(weapon, chargeTime);
             }
-            else if (equippedWeapons.Count == 0)
+        }
+        else if (equippedWeapons.Count == 0)
+        {
+            _playerActor.MainHand.Attack();
+        }
+    }
+
+    public void StartPlayerChargeAttack()
+    {
+        List<Equipment_Slot> equippedWeapons = Equipment_Manager.WeaponEquipped(PlayerActor);
+
+        if (equippedWeapons.Count > 0)
+        {
+            foreach (var weapon in equippedWeapons)
             {
-                _playerActor.MainHand.Attack();
+                weapon.ChargeUpAttack();
             }
+        }
+        else if (equippedWeapons.Count == 0)
+        {
+            return;
+        }
+    }
+
+    public void CancelPlayerChargeUpAttack()
+    {
+        List<Equipment_Slot> equippedWeapons = Equipment_Manager.WeaponEquipped(PlayerActor);
+
+        if (equippedWeapons.Count > 0)
+        {
+            foreach (var weapon in equippedWeapons)
+            {
+                weapon.ResetAttack(weapon.ChargingCoroutine);
+            }
+        }
+        else if (equippedWeapons.Count == 0)
+        {
+            return;
         }
     }
 

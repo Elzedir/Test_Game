@@ -148,7 +148,7 @@ public class Inventory_Window : Menu_UI
 
         if (InteractedObject.TryGetComponent<Actor_Base>(out Actor_Base actor))
         {
-            actor.ActorScripts.StatManager.UpdateStats();
+            Manager_Stats.UpdateStats(actor);
         }
 
         Manager_Menu.Instance.HandleEscapePressed(this, InteractedObject);

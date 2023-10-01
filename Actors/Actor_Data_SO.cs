@@ -70,6 +70,7 @@ public class Actor_Data_SO : ScriptableObject
     public Inventory ActorInventory;
     public Equipment ActorEquipment;
     public Abilities ActorAbilities;
+    public ActorQuests ActorQuests;
 
     // Trigger Zone
     public float triggerRadius = 3.0f;
@@ -147,7 +148,7 @@ public struct ActorStats
     public int TotalExperience;
     public int CurrentExperience;
     public SPECIAL Special;
-    public CombatStats CombatStats;
+    [SerializeField] private CombatStats _combatStats; public CombatStats CombatStats { get { return _combatStats; } }
 
     public int XpValue;
     public List<Actor_Vocation_Entry> VocationExperience;
@@ -156,7 +157,7 @@ public struct ActorStats
 [System.Serializable]
 public class CombatStats
 {
-    private bool _initialised; public bool Initialised {  get { return _initialised; } }
+    [SerializeField] private bool _initialised; public bool Initialised {  get { return _initialised; } }
 
     public float CurrentHealth;
     public float CurrentMana;
@@ -222,13 +223,68 @@ public class CombatStats
         DodgeCooldownReduction = dodgeCooldown;
     }
 
-    public static CombatStats GetCombatStatsData(ItemStats itemStats)
+    public void Initialise(CombatStats combatStats)
     {
-        CombatStats modifiedCombatStats = new CombatStats();
-        modifiedCombatStats += itemStats.StatModifiersFixed;
-        modifiedCombatStats *= itemStats.StatModifiersPercentage;
+        combatStats = new CombatStats();
+    }
 
-        return modifiedCombatStats;
+    public CombatStats(CombatStats original)
+    {
+        _initialised = original._initialised;
+
+        CurrentHealth = original.CurrentHealth;
+        CurrentMana = original.CurrentMana;
+        CurrentStamina = original.CurrentStamina;
+        MaxHealth = original.MaxHealth;
+        MaxMana = original.MaxMana;
+        MaxStamina = original.MaxStamina;
+        PushRecovery = original.PushRecovery;
+
+        AttackDamage = original.AttackDamage;
+        AttackSpeed = original.AttackSpeed;
+        AttackSwingTime = original.AttackSwingTime;
+        AttackRange = original.AttackRange;
+        AttackPushForce = original.AttackPushForce;
+        AttackCooldown = original.AttackCooldown;
+
+        PhysicalDefence = original.PhysicalDefence;
+        MagicalDefence = original.MagicalDefence;
+
+        MoveSpeed = original.MoveSpeed;
+        DodgeCooldownReduction = original.DodgeCooldownReduction;
+    }
+
+    public static CombatStats GetCombatStatsData(ItemStats itemStats, CombatStats combatStats = null)
+    {
+        if (combatStats == null)
+        {
+            combatStats = new CombatStats();
+        }
+
+        combatStats += itemStats.StatModifiersFixed;
+        combatStats *= itemStats.StatModifiersPercentage;
+
+        return combatStats;
+    }
+
+    public static CombatStats operator +(CombatStats a, CombatStats b)
+    {
+        return new CombatStats
+        {
+            MaxHealth = a.MaxHealth + b.MaxHealth,
+            MaxMana = a.MaxMana + b.MaxMana,
+            MaxStamina = a.MaxStamina + b.MaxStamina,
+            PushRecovery = a.PushRecovery + b.PushRecovery,
+            AttackDamage = a.AttackDamage + b.AttackDamage,
+            AttackSpeed = a.AttackSpeed + b.AttackSpeed,
+            AttackSwingTime = a.AttackSwingTime + b.AttackSwingTime,
+            AttackRange = a.AttackRange + b.AttackRange,
+            AttackPushForce = a.AttackPushForce + b.AttackPushForce,
+            AttackCooldown = a.AttackCooldown + b.AttackCooldown,
+            PhysicalDefence = a.PhysicalDefence + b.PhysicalDefence,
+            MagicalDefence = a.MagicalDefence + b.MagicalDefence,
+            DodgeCooldownReduction = a.DodgeCooldownReduction + b.DodgeCooldownReduction
+        };
     }
 
     public static CombatStats operator +(CombatStats a, FixedModifiers b)
@@ -296,4 +352,12 @@ public class Abilities
 {
     public List<Ability> AbilityList = new();
     public Dictionary<List_Ability, float> AbilityCooldowns = new();
+}
+
+[Serializable]
+public class ActorQuests
+{
+    public Quest_Data_SO MainQuest;
+
+    public List<Quest_Data_SO> SecondaryQuests;
 }

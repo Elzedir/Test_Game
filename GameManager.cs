@@ -19,6 +19,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    public event Action PlayerChange;
+
     public GameState CurrentState { get; private set; }
 
     public bool PlayerDead = false;
@@ -56,6 +58,8 @@ public class GameManager : MonoBehaviour
         Instance = this;
         CurrentState = GameState.Playing;
         SceneManager.sceneLoaded += OnSceneLoad;
+
+        Player = FindFirstObjectByType<Player>();
     }
 
     protected virtual void Start()
@@ -65,10 +69,15 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        Player = FindFirstObjectByType<Player>();
-
         if (Player == null)
         {
+            Player = FindFirstObjectByType<Player>();
+
+            if (Player != null)
+            {
+                return;
+            }
+
             Player_Backup PlayerBackup = FindFirstObjectByType<Player_Backup>();
             PlayerBackup.AddComponent<Player>();
             Destroy(PlayerBackup.GetComponent<Player_Backup>());
@@ -83,6 +92,11 @@ public class GameManager : MonoBehaviour
         List_Item_Consumable.InitializeConsumableData();
         List_Aspect.InitialiseSpecialisations();
         List_Ability.InitialiseAbilities();
+    }
+    public void OnPlayerChange(Player player)
+    {
+        GameManager.Instance.Player = player;
+        PlayerChange?.Invoke();
     }
 
     public void ChangeState(GameState newState)
@@ -151,13 +165,11 @@ public class GameManager : MonoBehaviour
     //HUD Bar
     public void HUDBarChange()
     {
-        Manager_Stats playerStatManager = Player.GetComponent<Manager_Stats>();
-
-        float healthRatio = Mathf.Clamp((float)playerStatManager.CurrentCombatStats.MaxHealth / (float)Player.PlayerActor.ActorData.ActorStats.CombatStats.MaxHealth, 0f, 1f);
+        float healthRatio = Mathf.Clamp((float)Player.PlayerActor.CurrentCombatStats.MaxHealth / (float)Player.PlayerActor.CurrentCombatStats.MaxHealth, 0f, 1f);
         healthBar.localScale = new Vector3(healthRatio, 1, 1);
-        float manaRatio = Mathf.Clamp((float)playerStatManager.CurrentCombatStats.MaxMana / (float)Player.PlayerActor.ActorData.ActorStats.CombatStats.MaxMana, 0f, 1f);
+        float manaRatio = Mathf.Clamp((float)Player.PlayerActor.CurrentCombatStats.MaxMana / (float)Player.PlayerActor.CurrentCombatStats.MaxMana, 0f, 1f);
         manaBar.localScale = new Vector3(manaRatio, 1 , 1);
-        float staminaRatio = Mathf.Clamp((float)playerStatManager.CurrentCombatStats.MaxStamina / (float)Player.PlayerActor.ActorData.ActorStats.CombatStats.MaxStamina, 0f, 1f);
+        float staminaRatio = Mathf.Clamp((float)Player.PlayerActor.CurrentCombatStats.MaxStamina / (float)Player.PlayerActor.CurrentCombatStats.MaxStamina, 0f, 1f);
         staminaBar.localScale = new Vector3(staminaRatio, 1, 1);
     }
 

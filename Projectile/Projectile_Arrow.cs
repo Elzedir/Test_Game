@@ -9,7 +9,7 @@ public class Projectile_Arrow : Projectile
 {
     private GameObject stuckTarget = null;
 
-    public Projectile_Arrow(
+    public void InitialiseArrow(
         Vector2 direction,
         Vector3 origin,
         CombatStats combatStats,

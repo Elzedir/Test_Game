@@ -28,9 +28,9 @@ public class FountainManager : Hitbox
 
         if (Time.time - lastRestore > restoreCooldown)
         {
-            Manager_Stats statManager = coll.GetComponent<Manager_Stats>();
+            Actor_Base actor = coll.GetComponent<Actor_Base>();
             lastRestore = Time.time;
-            statManager.RestoreHealth(healthRestore);
+            Manager_Stats.RestoreHealth(actor: actor, amount: healthRestore);
         }
 
     }

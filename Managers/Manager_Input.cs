@@ -16,7 +16,8 @@ public class Manager_Input : MonoBehaviour
 {
     public static Manager_Input Instance;
     public KeyBindings KeyBindings;
-    private Dictionary<ActionKey, Action> _keyActions;
+    private Dictionary<ActionKey, Action> _singlePressKeyActions;
+    private Dictionary<ActionKey, Action> _continuousPressKeyActions;
 
     public GameObject InteractedCharacter;
 
@@ -46,19 +47,27 @@ public class Manager_Input : MonoBehaviour
 
     public void InitialiseKeyActions()
     {
-        _keyActions = new Dictionary<ActionKey, Action>
+        _singlePressKeyActions = new Dictionary<ActionKey, Action>
         {
-            { ActionKey.Move_Up, HandleWPressed },
-            { ActionKey.Move_Down, HandleAPressed },
-            { ActionKey.Move_Left, HandleSPressed },
-            { ActionKey.Move_Right, HandleDPressed },
-
             { ActionKey.C, HandleCPressed },
             { ActionKey.E, HandleEPressed },
             { ActionKey.Escape, HandleEscapePressed },
             { ActionKey.I, HandleIPressed },
             { ActionKey.J, HandleJPressed },
+        };
+
+        _continuousPressKeyActions = new Dictionary<ActionKey, Action>
+        {
+            { ActionKey.Move_Up, HandleWPressed },
+            { ActionKey.Move_Down, HandleAPressed },
+            { ActionKey.Move_Left, HandleSPressed },
+            { ActionKey.Move_Right, HandleDPressed },
             { ActionKey.Space, HandleSpacePressed },
+
+            { ActionKey.Camera_Move_Up, HandleCameraMoveUp },
+            { ActionKey.Camera_Move_Down, HandleCameraMoveDown },
+            { ActionKey.Camera_Move_Left, HandleCameraMoveLeft },
+            { ActionKey.Camera_Move_Right, HandleCameraMoveRight }
         };
     }
 
@@ -66,13 +75,19 @@ public class Manager_Input : MonoBehaviour
     {
         HandleMouse();
 
-        foreach (var actionKey in Enum.GetValues(typeof(ActionKey)).Cast<ActionKey>())
+        foreach (var actionKey in _singlePressKeyActions.Keys)
         {
-            if (actionKey == ActionKey.Mouse0 || actionKey == ActionKey.Mouse1) continue;
-
             if (Input.GetKeyDown(KeyBindings.Keys[actionKey]))
             {
-                _keyActions[actionKey].Invoke();
+                _singlePressKeyActions[actionKey]?.Invoke();
+            }
+        }
+
+        foreach (var actionKey in _continuousPressKeyActions.Keys)
+        {
+            if (Input.GetKey(KeyBindings.Keys[actionKey]))
+            {
+                _continuousPressKeyActions[actionKey]?.Invoke();
             }
         }
 
@@ -97,13 +112,18 @@ public class Manager_Input : MonoBehaviour
         {
             _mouse0Held = true;
             _mouse0HeldTime = 0f;
+
+            GameManager.Instance.Player.StartPlayerChargeAttack();
         }
 
         else if (Input.GetMouseButtonUp(0))
         {
             if (!_cancelledAttack)
             {
-                GameManager.Instance.Player.ExecutePlayerAttack(_mouse0HeldTime);
+                if (!GameManager.Instance.Player.PlayerActor.ActorStates.AttackCoroutineRunning)
+                {
+                    GameManager.Instance.Player.ExecutePlayerAttack(_mouse0HeldTime);
+                }
             }
 
             _mouse0Held = false;
@@ -118,6 +138,8 @@ public class Manager_Input : MonoBehaviour
                 _mouse0Held = false;
                 _mouse0HeldTime = 0;
                 _cancelledAttack = true;
+
+                GameManager.Instance.Player.CancelPlayerChargeUpAttack();
             }
 
             _mouse1Held = true;
@@ -173,7 +195,7 @@ public class Manager_Input : MonoBehaviour
 
     public void HandleCPressed()
     {
-        Character_Window.Instance.OpenMenu();
+        // Character_Window.Instance.OpenMenu();
     }
 
     public void HandleEPressed()
@@ -208,6 +230,26 @@ public class Manager_Input : MonoBehaviour
     public void HandleSpacePressed()
     {
         GameManager.Instance.Player.PlayerDodge();
+    }
+
+    public void HandleCameraMoveUp()
+    {
+        CameraMotor.Instance.ManualMove(Vector2.up);
+    }
+
+    public void HandleCameraMoveDown()
+    {
+        CameraMotor.Instance.ManualMove(Vector2.down);
+    }
+
+    public void HandleCameraMoveLeft()
+    {
+        CameraMotor.Instance.ManualMove(Vector2.left);
+    }
+
+    public void HandleCameraMoveRight()
+    {
+        CameraMotor.Instance.ManualMove(Vector2.right);
     }
 
     public void Interact()
@@ -264,7 +306,8 @@ public enum ActionKey
 {
     Move_Up, Move_Down, Move_Left, Move_Right,
     Mouse0, Mouse1,
-    C, E, Escape, I, J, Space
+    C, E, Escape, I, J, Space,
+    Camera_Move_Up, Camera_Move_Down, Camera_Move_Left, Camera_Move_Right
 }
 
 [Serializable]
@@ -288,6 +331,11 @@ public class KeyBindings
         Keys.Add(ActionKey.I, KeyCode.I);
         Keys.Add(ActionKey.J, KeyCode.J);
         Keys.Add(ActionKey.Space, KeyCode.Space);
+
+        Keys.Add(ActionKey.Camera_Move_Up, KeyCode.UpArrow);
+        Keys.Add(ActionKey.Camera_Move_Down, KeyCode.DownArrow);
+        Keys.Add(ActionKey.Camera_Move_Left, KeyCode.LeftArrow);
+        Keys.Add(ActionKey.Camera_Move_Right, KeyCode.RightArrow);
     }
 
     public void RebindKey(ActionKey action, KeyCode newKey)

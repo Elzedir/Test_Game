@@ -34,23 +34,23 @@ public enum EquipmentSize
 [System.Serializable]
 public abstract class Equipment_Manager : MonoBehaviour
 {
-    public static (bool equipped, int remainingStackSize) Equip(IEquipment equipDestination, List_Item item, int stackSize)
+    public static (bool equipped, int remainingStackSize) Equip(IEquipment equipmentDestination, List_Item item, int stackSize)
     {
         bool equipped = false;
         int remainingStackSize = 0;
 
         if (item == null) { Debug.LogError("Invalid item ID: " + item.ItemStats.CommonStats.ItemID); return (equipped, remainingStackSize); }
 
-        Equipment_Slot primaryEquipSlot = PrimaryEquipSlot(equipDestination, item);
-        Equipment_Slot[] secondaryEquipSlots = SecondaryEquipSlots(equipDestination, item);
+        Equipment_Slot primaryEquipSlot = PrimaryEquipSlot(equipmentDestination, item);
+        Equipment_Slot[] secondaryEquipSlots = SecondaryEquipSlots(equipmentDestination, item);
 
-        (equipped, remainingStackSize) = AttemptEquip(equipDestination, primaryEquipSlot, item, stackSize);
+        (equipped, remainingStackSize) = AttemptEquip(equipmentDestination, primaryEquipSlot, item, stackSize);
 
         if (!equipped)
         {
             foreach (Equipment_Slot secondaryEquipSlot in secondaryEquipSlots)
             {
-                (equipped, remainingStackSize) = AttemptEquip(equipDestination, secondaryEquipSlot, item, stackSize);
+                (equipped, remainingStackSize) = AttemptEquip(equipmentDestination, secondaryEquipSlot, item, stackSize);
 
                 if (equipped)
                 {
@@ -61,13 +61,13 @@ public abstract class Equipment_Manager : MonoBehaviour
 
             if (!equipped)
             {
-                if (equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID != -1 && item.ItemStats.CommonStats.ItemID != equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID)
+                if (equipmentDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID != -1 && item.ItemStats.CommonStats.ItemID != equipmentDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID)
                 {
-                    Debug.Log("Unequipped itemID " + equipDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID);
-                    UnequipEquipment(equipDestination, primaryEquipSlot);
+                    Debug.Log("Unequipped itemID " + equipmentDestination.GetEquipmentData().EquipmentItems[primaryEquipSlot.SlotIndex].ItemID);
+                    UnequipEquipment(equipmentDestination, primaryEquipSlot);
                 }
 
-                (equipped, remainingStackSize) = AttemptEquip(equipDestination, primaryEquipSlot, item, stackSize);
+                (equipped, remainingStackSize) = AttemptEquip(equipmentDestination, primaryEquipSlot, item, stackSize);
 
                 if (equipped)
                 {
@@ -80,7 +80,7 @@ public abstract class Equipment_Manager : MonoBehaviour
             item.AttachWeaponScript(item, primaryEquipSlot);
         }
 
-        UpdateEquipment(equipDestination);
+        UpdateEquipment(equipmentDestination);
 
         return (equipped, remainingStackSize);
     }
@@ -255,6 +255,11 @@ public abstract class Equipment_Manager : MonoBehaviour
             equipmentSource.EquipmentSlotList[i].SetEquipmentItem(equipmentItem);
             equipmentSource.EquipmentSlotList[i].UpdateSprite();
         }
+
+        if (equipmentSource.GetIEquipmentGO().TryGetComponent<Actor_Base>(out Actor_Base actor))
+        {
+            Manager_Stats.UpdateStats(actor);
+        } 
     }
 
     public static List<Equipment_Slot> WeaponEquipped(IEquipment equipmentSource)

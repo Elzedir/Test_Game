@@ -5,8 +5,9 @@ using System.Reflection;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Rendering.Universal;
 
-public class Actor_Base : Hitbox, IInventory, IEquipment
+public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
 {
     public ActorScripts ActorScripts;
     public ActorStates ActorStates;
@@ -17,6 +18,8 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
     private Actor_Base _actor;
     private NavMeshAgent _agent;
     public Dialogue_Data_SO DialogueData;
+
+    public CombatStats CurrentCombatStats;
     protected override BoxCollider2D Coll => ActorComponents.ActorColl;
 
     // Layers
@@ -52,12 +55,18 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
     {
         base.Start();
         InitialiseComponents();
+        InitialiseEvents();
         LayerCount();
         ActorData.Initialise(_actor);
+        Manager_Actors.Instance.AddToActorList(this);
 
         if (!ActorData.ActorStats.CombatStats.Initialised)
         {
-            ActorData.ActorStats.CombatStats = new CombatStats();
+            ActorData.ActorStats.CombatStats.Initialise(ActorData.ActorStats.CombatStats);
+        }
+        else
+        {
+            Manager_Stats.UpdateStats(this);
         }
 
         if (ActorData.ActorType == ActorType.Playable)
@@ -68,11 +77,16 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
 
     private void InitialiseComponents()
     {
-        _player = GetComponent<Player>();
+        if (TryGetComponent<Player>(out Player player))
+        {
+            _player = player;
+        }
+        else
+        {
+            _player = GameManager.Instance.Player;
+        }
+        
         _actor = GetComponent<Actor_Base>();
-        _agent = GetComponent<NavMeshAgent>() != null ? GetComponent<NavMeshAgent>() : gameObject.AddComponent<NavMeshAgent>();
-        _agent.updateRotation = false;
-        _agent.updateUpAxis = false;
         startingPosition = transform.position;
         ActorScripts.StatManager = GetComponent<Manager_Stats>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
@@ -81,6 +95,18 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
         _actorAnimator = GetComponent<Animator>();
         Transform vfxTransform = transform.Find("VFX") ?? CreateChildGameObject("VFX").transform;
         ActorScripts.Actor_VFX = vfxTransform.GetComponent<Actor_VFX>() ?? vfxTransform.gameObject.AddComponent<Actor_VFX>();
+
+        InitialiseNavMesh();
+    }
+
+    public void InitialiseEvents()
+    {
+        //Manager_Time.Instance.OnNewDay += ProgressSchedule;
+    }
+
+    public void OnDestroy()
+    {
+        //Manager_Time.Instance.OnNewDay -= ProgressSchedule;
     }
 
     private IEnumerator InitialiseAndSetEquipment()
@@ -187,11 +213,6 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
     {
         base.Update();
 
-        if (_player == null)
-        {
-            _player = GameManager.Instance.Player;
-        }
-
         if (ActorData.ActorType == ActorType.Playable)
         {
             if (ActorStates.Talking)
@@ -212,6 +233,26 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
                 HandleNPCBehavior();
             }
         }
+    }
+
+    public void SetToPlayer()
+    {
+        _player = this.gameObject.AddComponent<Player>();
+        _agent.isStopped = true;
+        _wanderData = null;
+        _patrolData = null;
+        GameManager.Instance.OnPlayerChange(_player);
+    }
+
+    public void SetToNPC()
+    {
+        if (TryGetComponent<Player>(out Player player))
+        {
+            Destroy(player);
+        }
+        else { Debug.Log("Player script does not exist on this object"); }
+
+        // Put a way for the old player to resume whatever activities they were doing last, and then begin actions to continue them.
     }
 
     private void HandleNPCBehavior()
@@ -341,16 +382,15 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
 
             if (!withinAttackRange)
             {
-                Debug.Log(gameObject.name);
                 _agent.isStopped = false;
                 _agent.SetDestination(closestEnemy.transform.position);
-                _agent.speed = ActorScripts.StatManager.CurrentCombatStats.MoveSpeed;
+                _agent.speed = CurrentCombatStats.MoveSpeed;
             }
             else
             {
                 _agent.isStopped = true;
 
-                if (!ActorStates.Attacking)
+                if (!ActorStates.AttackCoroutineRunning)
                 {
                     NPCAttack();
                 }
@@ -422,7 +462,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
 
     private IEnumerator WanderCoroutine()
     {
-        yield return new WaitForSeconds(_wanderData.WanderTime);
+        yield return new WaitForSeconds(_wanderData.GetRandomWanderTime());
         StartCoroutine(WaitAtWanderPoint());
         _wanderData.IsWanderingCoroutineRunning = false;
     }
@@ -431,7 +471,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
     {
         _wanderData.IsWandering = false;
         _wanderData.IsWanderWaiting = true;
-        yield return new WaitForSeconds(_wanderData.WanderWaitTime);
+        yield return new WaitForSeconds(_wanderData.GetRandomWanderWaitTime());
         _wanderData.IsWanderWaiting = false;
     }
 
@@ -458,7 +498,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
         if(distanceToStart > 0.01f)
         {
             _agent.SetDestination(startingPosition);
-            _agent.speed = ActorScripts.StatManager.CurrentCombatStats.MoveSpeed;
+            _agent.speed = CurrentCombatStats.MoveSpeed;
         }
         else
         {
@@ -470,7 +510,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
     {
         bool result = false;
 
-        Collider2D[] overlapResults = Physics2D.OverlapCircleAll(transform.position, ActorScripts.StatManager.CurrentCombatStats.AttackRange);
+        Collider2D[] overlapResults = Physics2D.OverlapCircleAll(transform.position, CurrentCombatStats.AttackRange);
 
         for (int i = 0; i < overlapResults.Length; i++)
         {
@@ -515,9 +555,13 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
             MainHand.Attack();
         }
     }
+    public void CollideCheck()
+    {
+
+    }
     public void ReceiveDamage(Damage damage)
     {
-        ActorScripts.StatManager.ReceiveDamage(damage);
+        Manager_Stats.ReceiveDamage(this, damage);
     }
     public void AbilityUse(GameObject target = null)
     {
@@ -532,6 +576,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
         GameManager.Instance.GrantXp(ActorData.ActorStats.XpValue, GameManager.Instance.Player.PlayerActor);
         GameManager.Instance.ShowFloatingText("+" + ActorData.ActorStats.XpValue + " xp", 30, Color.magenta, transform.position, Vector3.up * 40, 1.0f);
         GameManager.Instance.CreateDeadBody(this);
+        Manager_Actors.Instance.RemoveFromActorList(this);
         Destroy(gameObject);
     }
     public void LayerCount()
@@ -553,7 +598,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, ActorData.triggerLength);
             Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, ActorScripts.StatManager.CurrentCombatStats.AttackRange);
+            Gizmos.DrawWireSphere(transform.position, CurrentCombatStats.AttackRange);
         }
     }
     public void StatusCheck()
@@ -598,15 +643,15 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
 
     protected IEnumerator DodgeCoroutine(Animator animator)
     {
-        _actor.ActorStates.Dodging = true;
-        _actor.ActorStates.DodgeAvailable = false;
-        _actor.ActorScripts.StatManager.CurrentCombatStats.MoveSpeed = _actor.ActorData.ActorStats.CombatStats.MoveSpeed * 2;
+        ActorStates.Dodging = true;
+        ActorStates.DodgeAvailable = false;
+        CurrentCombatStats.MoveSpeed = ActorData.ActorStats.CombatStats.MoveSpeed * 2;
         animator.SetTrigger("Dodge");
 
         yield return new WaitForSeconds(animator.GetCurrentAnimatorClipInfo(0)[0].clip.length);
 
-        _actor.ActorScripts.StatManager.CurrentCombatStats.MoveSpeed = _actor.ActorData.ActorStats.CombatStats.MoveSpeed;
-        _actor.ActorStates.Dodging = false;
+        CurrentCombatStats.MoveSpeed = ActorData.ActorStats.CombatStats.MoveSpeed;
+        ActorStates.Dodging = false;
 
         animator.ResetTrigger("Dodge");
 
@@ -615,8 +660,8 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
 
     protected IEnumerator DodgeCooldown()
     {
-        yield return new WaitForSeconds(_actor.ActorData.ActorStats.CombatStats.DodgeCooldownReduction);
-        _actor.ActorStates.DodgeAvailable = true;
+        yield return new WaitForSeconds(ActorData.ActorStats.CombatStats.DodgeCooldownReduction);
+        ActorStates.DodgeAvailable = true;
     }
 
     public InventoryType InventoryType => InventoryType.Actor;
@@ -642,7 +687,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
     }
     public int GetInventorySize()
     {
-        return ActorScripts.StatManager.CurrentInventorySize;
+        return ActorData.ActorInventory.CurrentInventorySize;
     }
 
     public List<Equipment_Slot> EquipmentSlotList { get; set; }
@@ -682,6 +727,35 @@ public class Actor_Base : Hitbox, IInventory, IEquipment
         EquipmentItem.None(noneItem);
         return noneItem;
     }
+
+    public virtual void InitialiseNavMesh()
+    {
+        _agent = GetComponent<NavMeshAgent>() != null ? GetComponent<NavMeshAgent>() : gameObject.AddComponent<NavMeshAgent>();
+        _agent.updateRotation = false;
+        _agent.updateUpAxis = false;
+    }
+
+    public void ProgressSchedule()
+    {
+        //ActorData.ScheduleData.ProgressSchedule(ActorData.ScheduleData);
+    }
+
+    public void Highlight()
+    {
+        GameObject light2DGO = new GameObject();
+        light2DGO.name = "CharacterHighlighter";
+        light2DGO.transform.parent = transform;
+        light2DGO.transform.localPosition = Vector3.zero;
+
+        Light2D light2D = light2DGO.AddComponent<Light2D>();
+        light2D.intensity = 3.0f;
+        light2D.pointLightOuterRadius = 0.2f;
+    }
+
+    public void RemoveHighlight()
+    {
+        Destroy(GetComponentInChildren<Light2D>());
+    }
 }
 
 [System.Serializable]
@@ -705,7 +779,7 @@ public class ActorStates
     public bool Dead = false;
     public bool Hostile = true;
     public bool Alerted = false;
-    public bool Attacking = false;
+    public bool AttackCoroutineRunning = false;
     public bool Jumping = false;
     public bool Berserk = false;
     public bool OnFire = false;
@@ -723,11 +797,23 @@ public class WanderData
     public Vector3 WanderTargetPosition;
     public BoxCollider2D WanderRegion;
     public float WanderSpeed;
-    public float WanderTime;
-    public float WanderWaitTime;
+    public float MinWanderTime;
+    public float MaxWanderTime;
+    public float MinWanderWaitTime;
+    public float MaxWanderWaitTime;
     public bool IsWandering = false;
     public bool IsWanderingCoroutineRunning = false;
     public bool IsWanderWaiting = false;
+
+    public float GetRandomWanderTime()
+    {
+        return UnityEngine.Random.Range(MinWanderTime, MaxWanderTime);
+    }
+
+    public float GetRandomWanderWaitTime()
+    {
+        return UnityEngine.Random.Range(MinWanderWaitTime, MaxWanderWaitTime);
+    }
 }
 
 [System.Serializable]
@@ -746,4 +832,9 @@ public class PatrolData
 public class Actions
 {
     public bool canDodge;
+}
+
+public interface INavMesh
+{
+    public void InitialiseNavMesh();
 }

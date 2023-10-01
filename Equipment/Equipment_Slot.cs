@@ -27,10 +27,17 @@ public class Equipment_Slot : MonoBehaviour
     protected Animator _animator; 
 
     protected HashSet<Collider2D> _hitEnemies;
+    protected float _originalAnimationSpeed;
     protected bool _offHandAttack = false;
+    protected bool _isFullyCharged = false;
+    protected bool _isCoroutineCharging = false;
+    protected Coroutine _chargingCoroutine; public Coroutine ChargingCoroutine { get { return _chargingCoroutine; } }
+    protected Coroutine _attackCoroutine;
+
+    protected AnimationClip _chargingClip;
+    protected AnimationClip _attackClip;
 
     protected float _chargeTime = 0f; public float ChargeTime { get { return _chargeTime; } }
-    protected bool _currentlyAttacking = false;
 
     public void Start()
     {        
@@ -42,13 +49,16 @@ public class Equipment_Slot : MonoBehaviour
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _actor = GetComponentInParent<Actor_Base>();
         _animator = GetComponent<Animator>();
+
+        if (_animator != null)
+        {
+            _originalAnimationSpeed = _animator.speed;
+        }
     }
 
     public void Update()
     {
-        // Change this later to allow ranged and magic equipment to have a melee attack
-
-        if (_actor.ActorStates.Attacking)
+        if (_actor.ActorStates.AttackCoroutineRunning)
         {
             WeaponType[] weaponTypes = EquipmentItem.ItemStats.WeaponStats.WeaponTypeArray;
 
@@ -72,6 +82,13 @@ public class Equipment_Slot : MonoBehaviour
                 else if (this.SlotType == SlotType.OffHand && _offHandAttack == true)
                 {
                     //RangedCollideCheck();
+                }
+            }
+            else
+            {
+                if (this.SlotType == SlotType.MainHand)
+                {
+                    MeleeCollideCheck();
                 }
             }
         }
@@ -107,7 +124,74 @@ public class Equipment_Slot : MonoBehaviour
     {
         _animator.enabled = true;
         _animator.runtimeAnimatorController = EquipmentItem.ItemStats.CommonStats.ItemAnimatorController;
+
+        if (_animator.runtimeAnimatorController != null)
+        {
+            foreach (AnimationClip clip in _animator.runtimeAnimatorController.animationClips)
+            {
+                if (clip.name == "wep_r_sb_01_base_weaponcharging")
+                {
+                    Debug.Log("1");
+                    _chargingClip = clip;
+                }
+                else if (clip.name == "wep_r_sb_01_base_attack")
+                {
+                    Debug.Log("2");
+                    _attackClip = clip;
+                }
+            }
+        }
     }
+
+    public virtual void ChargeUpAttack()
+    {
+        if (!_isCoroutineCharging)
+        {
+            _chargingCoroutine = StartCoroutine(ChargeUpAttackCoroutine());
+        }
+    }
+
+    protected IEnumerator ChargeUpAttackCoroutine()
+    {
+        _isFullyCharged = false;
+        _animator.ResetTrigger("Attack");
+        _animator.SetBool("Charging", true);
+
+        _isCoroutineCharging = true;
+
+        yield return null;
+
+        _animator.speed = _chargingClip.length / EquipmentItem.ItemStats.WeaponStats.MaxChargeTime;
+
+        Debug.Log($"Animator Speed: {_animator.speed}");
+
+        yield return new WaitForSeconds(EquipmentItem.ItemStats.WeaponStats.MaxChargeTime);
+
+        _isCoroutineCharging = false;
+        _animator.SetBool("Charged", true);
+        yield return null;
+        _animator.SetBool("Charging", false);
+        _animator.speed = _originalAnimationSpeed;
+        
+        _isFullyCharged = true;
+    }
+    public virtual void ResetAttack(Coroutine coroutine)
+    {
+        _isCoroutineCharging = false;
+
+        _animator.speed = _originalAnimationSpeed;
+        _isFullyCharged = false;
+
+        _animator.SetBool("Charging", false);
+        _animator.SetBool("Charged", false);
+
+        if (coroutine != null)
+        {
+            StopCoroutine(coroutine);
+            coroutine = null;
+        }
+    }
+
     public virtual void Attack(Equipment_Slot equipmentSlot = null, float chargeTime = 0f)
     {
         if (chargeTime > EquipmentItem.ItemStats.WeaponStats.MaxChargeTime)
@@ -117,18 +201,28 @@ public class Equipment_Slot : MonoBehaviour
 
         _chargeTime = chargeTime;
 
-        if (!_currentlyAttacking)
+        if (!_actor.ActorStates.AttackCoroutineRunning)
         {
-            StartCoroutine(AttackCoroutine(_animator, equipmentSlot));
+            if (this.SlotType == SlotType.MainHand)
+            {
+                _attackCoroutine = StartCoroutine(AttackCoroutine(_animator, equipmentSlot));
+            }
+            else if (equipmentSlot.SlotType == SlotType.OffHand && equipmentSlot != null)
+            {
+                _offHandAttack = true;
+                _attackCoroutine = StartCoroutine(AttackCoroutine(_animator, equipmentSlot));
+            }
         }
     }
+
     protected IEnumerator AttackCoroutine(Animator animator, Equipment_Slot equipmentSlot)
     {
+        ResetAttack(_chargingCoroutine);
+        _actor.ActorStates.AttackCoroutineRunning = true;
+
         // Change the animation if the charge time is high enough.
 
-        float originalAnimationSpeed = animator.speed;
-
-        float newAnimationSpeed = 1f / CombatStats.GetCombatStatsData(this.EquipmentItem.ItemStats).AttackSpeed; 
+        float newAnimationSpeed = 1f / CombatStats.GetCombatStatsData(itemStats: this.EquipmentItem.ItemStats).AttackSpeed; 
         animator.speed = newAnimationSpeed;
 
         if (_hitEnemies == null)
@@ -141,20 +235,17 @@ public class Equipment_Slot : MonoBehaviour
             animator = _actor.ActorAnimator;
         }
 
-        _actor.ActorStates.Attacking = true;
-        _currentlyAttacking = true;
         animator.SetTrigger("Attack");
 
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorClipInfo(0)[0].clip.length / newAnimationSpeed);
+        yield return new WaitForSeconds(_attackClip.length / newAnimationSpeed);
 
-        animator.speed = originalAnimationSpeed;
+        animator.speed = _originalAnimationSpeed;
 
-        _actor.ActorStates.Attacking = false;
-        _currentlyAttacking = false;
         _offHandAttack = false;
-
         animator.ResetTrigger("Attack");
+        
         _hitEnemies.Clear();
+        _actor.ActorStates.AttackCoroutineRunning = false;
     }
 
     protected void MeleeCollideCheck()
@@ -256,7 +347,7 @@ public class Equipment_Slot : MonoBehaviour
 
         if ((_actor.ActorData.CanAttack & targetLayerMask) != 0)
         {
-            Damage damage = Manager_Stats.DealDamage(damageOrigin: _actor.transform.position, combatStats: _actor.ActorScripts.StatManager.CurrentCombatStats, chargeTime: _chargeTime);
+            Damage damage = Manager_Stats.DealDamage(damageOrigin: _actor.transform.position, combatStats: _actor.CurrentCombatStats, chargeTime: _chargeTime);
             coll.SendMessage("ReceiveDamage", damage);
             _chargeTime = 0f;
         }

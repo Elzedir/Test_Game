@@ -61,7 +61,7 @@ public class List_Item_Weapon : List_Item
             itemID: 100,
             itemType: ItemType.Weapon,
             itemName: "Wooden ShortBow",
-            itemIcon: Resources.Load<Sprite>("Resources_Sprite_Weapon/Weapons/bow/bow"),
+            itemIcon: Resources.Load<Sprite>("Resources_Sprite/Weapon/Weapons/bow/bow"),
             itemPosition: Vector3.zero,
             itemRotation: Vector3.zero,
             itemScale: Vector3.one,
@@ -83,17 +83,17 @@ public class List_Item_Weapon : List_Item
 
         PercentageModifiers percentageModifiers = new PercentageModifiers(
             attackDamage: 1.1f,
-            attackSpeed: 0.9f,
-            attackSwingTime: 1f,
-            attackRange: 1f,
+            attackSpeed: 1f,
+            attackSwingTime: 2f,
+            attackRange: 2f,
             attackPushForce: 1.1f
             );
 
         ItemStats testBow1 = new ItemStats(commonStats: commonStats, weaponStats: weaponStats, fixedModifiers: fixedModifiers, percentageModifiers: percentageModifiers);
 
-        List_Item_Weapon testbow1Weapon = new List_Item_Weapon(testBow1);
+        List_Item_Weapon testBow1Weapon = new List_Item_Weapon(testBow1);
 
-        AddToList(AllWeaponData, testbow1Weapon);
+        AddToList(AllWeaponData, testBow1Weapon);
     }
     static void ShortSwords()
     {
@@ -101,7 +101,7 @@ public class List_Item_Weapon : List_Item
             itemID: 1,
             itemType: ItemType.Weapon,
             itemName: "Wooden ShortSword",
-            itemIcon: List_Item.GetSpriteFromSpriteSheet(path: "Resources_Sprite_Weapon/Weapons/at_dungeon_01", name: "obj_wep_m_ss_01"),
+            itemIcon: List_Item.GetSpriteFromSpriteSheet(path: "Resources_Sprite/Weapon/Weapons/at_dungeon_01", name: "obj_wep_m_ss_01"),
             itemPosition: new Vector3 (-0.04f, -0.07f, 0),
             itemRotation: new Vector3 (180, 0, 0),
             itemScale: new Vector3(0.4f, 0.4f, 0.4f),
