@@ -8,7 +8,7 @@ public abstract class Projectile : MonoBehaviour
     public Vector3 Origin;
     public CombatStats CombatStats;
     public float ChargeTime;
-    public LayerMask AttackableLayers;
+    public Faction ProjectileFaction;
     protected Rigidbody2D _rb;
     protected Collider2D _collider;
     protected bool _hasLanded = false;
@@ -39,9 +39,7 @@ public abstract class Projectile : MonoBehaviour
             Collider2D[] results = new Collider2D[42];
             ContactFilter2D filter = new ContactFilter2D();
 
-            AttackableLayers |= LayerMask.GetMask("Blocking");
-
-            filter.layerMask = AttackableLayers;
+            filter.layerMask = LayerMask.GetMask("Blocking");
             filter.useLayerMask = true;
 
             int numColliders = Physics2D.OverlapCollider(_collider, filter, results);
@@ -68,9 +66,7 @@ public abstract class Projectile : MonoBehaviour
                 {
                     if (!_hasLanded)
                     {
-                        int targetLayerMask = 1 << hit.gameObject.layer;
-
-                        if ((AttackableLayers & targetLayerMask) != 0)
+                        if (ProjectileFaction.CanAttack(hit.gameObject.GetComponent<Actor_Base>().ActorData.Faction.FactionName))
                         {
                             Damage damage = Manager_Stats.DealDamage(damageOrigin: Origin, combatStats: CombatStats, chargeTime: ChargeTime);
                             hit.SendMessage("ReceiveDamage", damage);

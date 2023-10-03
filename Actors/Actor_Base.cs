@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
@@ -36,11 +37,9 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
     protected float lastAttack;
 
     public List<GameObject> NPCs = new List<GameObject>();
-    public List<GameObject> attackableTargets = new List<GameObject>();
+    public List<GameObject> AttackableTargets = new List<GameObject>();
 
     public bool RightMouseButtonHeld = false;
-    public GameObject Weapon;
-    public Transform SheathedPosition;
 
     private SpriteRenderer _spriteRenderer; public SpriteRenderer SpriteRenderer { get { return _spriteRenderer; } }
     private Animator _actorAnimator; public Animator ActorAnimator { get { return _actorAnimator; } }
@@ -57,7 +56,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
         InitialiseComponents();
         InitialiseEvents();
         LayerCount();
-        ActorData.Initialise(_actor);
+        StartCoroutine(ActorData.Initialise(_actor));
         Manager_Actors.Instance.AddToActorList(this);
 
         if (!ActorData.ActorStats.CombatStats.Initialised)
@@ -300,24 +299,30 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
     public virtual void TargetCheck()
     {
         float maxTargetDistance = float.MaxValue;
-        Player player = GetComponent<Player>();
-        Collider2D[] triggerHits = Physics2D.OverlapCircleAll(transform.position, ActorData.triggerRadius, ActorData.CanAttack);
+        Collider2D[] triggerHits = Physics2D.OverlapCircleAll(transform.position, ActorData.triggerRadius);
 
-        foreach (Collider2D hits in triggerHits)
+        foreach (Collider2D hit in triggerHits)
         {
-            GameObject target = hits.gameObject;
+            GameObject target = hit.gameObject;
 
-            if (target != null && !attackableTargets.Contains(target) && target.GetComponent<Equipment_Slot>() == null && target.GetComponent<Projectile>() == null)
+            Actor_Base targetActor = target.GetComponent<Actor_Base>();
+
+            if (target == null || !targetActor || ActorData.Faction == targetActor.ActorData.Faction)
+            {
+                return;
+            }
+
+            if (!AttackableTargets.Contains(target) &&  ActorData.Faction.CanAttack(target.GetComponent<Actor_Base>().ActorData.Faction.FactionName))
             {
                 BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
 
                 if (targetCollider != null && targetCollider.enabled)
                 {
-                    attackableTargets.Add(target);
+                    AttackableTargets.Add(target);
                 }
             }
             
-            if (player != null)
+            if (GetComponent<Player>() != null)
             {
                 if (target != null && target.GetComponent<Actor_Base>() != null && !NPCs.Contains(target))
                 {
@@ -331,7 +336,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
             }
         }
 
-        foreach (GameObject target in attackableTargets)
+        foreach (GameObject target in AttackableTargets)
         {
             if (target != null)
             {
@@ -479,10 +484,10 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
     {
         Debug.Log("OnActorDeath called");
 
-        if (attackableTargets.Contains(actor))
+        if (AttackableTargets.Contains(actor))
         {
             Debug.Log(actor + " died");
-            attackableTargets.Remove(actor);
+            AttackableTargets.Remove(actor);
         }
 
         if (NPCs.Contains(actor))
@@ -516,7 +521,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
         {
             GameObject target = overlapResults[i].gameObject;
 
-            if (target != null && attackableTargets.Contains(target))
+            if (target != null && AttackableTargets.Contains(target))
             {
                 result = true;
             }
@@ -547,12 +552,12 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
         {
             foreach (var weapon in equippedWeapons)
             {
-                weapon.Attack(weapon);
+                weapon.Attack();
             }
         }
         else
         {
-            MainHand.Attack();
+            MainHand.Attack(unarmedAttack: true);
         }
     }
     public void CollideCheck()

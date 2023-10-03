@@ -108,12 +108,12 @@ public class Player : MonoBehaviour
         {
             foreach (var weapon in equippedWeapons)
             {
-                weapon.Attack(weapon, chargeTime);
+                weapon.Attack(chargeTime: chargeTime);
             }
         }
         else if (equippedWeapons.Count == 0)
         {
-            _playerActor.MainHand.Attack();
+            _playerActor.MainHand.Attack(unarmedAttack: true);
         }
     }
 

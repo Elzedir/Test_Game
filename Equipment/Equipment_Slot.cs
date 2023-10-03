@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum SlotType
@@ -131,12 +133,10 @@ public class Equipment_Slot : MonoBehaviour
             {
                 if (clip.name == "wep_r_sb_01_base_weaponcharging")
                 {
-                    Debug.Log("1");
                     _chargingClip = clip;
                 }
                 else if (clip.name == "wep_r_sb_01_base_attack")
                 {
-                    Debug.Log("2");
                     _attackClip = clip;
                 }
             }
@@ -162,8 +162,6 @@ public class Equipment_Slot : MonoBehaviour
         yield return null;
 
         _animator.speed = _chargingClip.length / EquipmentItem.ItemStats.WeaponStats.MaxChargeTime;
-
-        Debug.Log($"Animator Speed: {_animator.speed}");
 
         yield return new WaitForSeconds(EquipmentItem.ItemStats.WeaponStats.MaxChargeTime);
 
@@ -192,7 +190,7 @@ public class Equipment_Slot : MonoBehaviour
         }
     }
 
-    public virtual void Attack(Equipment_Slot equipmentSlot = null, float chargeTime = 0f)
+    public virtual void Attack(float chargeTime = 0f, bool unarmedAttack = false)
     {
         if (chargeTime > EquipmentItem.ItemStats.WeaponStats.MaxChargeTime)
         {
@@ -203,47 +201,70 @@ public class Equipment_Slot : MonoBehaviour
 
         if (!_actor.ActorStates.AttackCoroutineRunning)
         {
-            if (this.SlotType == SlotType.MainHand)
+            if (SlotType == SlotType.MainHand)
             {
-                _attackCoroutine = StartCoroutine(AttackCoroutine(_animator, equipmentSlot));
+                _attackCoroutine = StartCoroutine(AttackCoroutine(_animator, unarmedAttack));
             }
-            else if (equipmentSlot.SlotType == SlotType.OffHand && equipmentSlot != null)
+            else if (SlotType == SlotType.OffHand)
             {
                 _offHandAttack = true;
-                _attackCoroutine = StartCoroutine(AttackCoroutine(_animator, equipmentSlot));
+                _attackCoroutine = StartCoroutine(AttackCoroutine(_animator));
             }
         }
     }
 
-    protected IEnumerator AttackCoroutine(Animator animator, Equipment_Slot equipmentSlot)
+    protected IEnumerator AttackCoroutine(Animator animator, bool unarmedAttack = false)
     {
-        ResetAttack(_chargingCoroutine);
+        if (!unarmedAttack)
+        {
+            ResetAttack(_chargingCoroutine);
+        }
+        else
+        {
+            animator = _actor.ActorAnimator;
+        }
+
         _actor.ActorStates.AttackCoroutineRunning = true;
 
         // Change the animation if the charge time is high enough.
 
-        float newAnimationSpeed = 1f / CombatStats.GetCombatStatsData(itemStats: this.EquipmentItem.ItemStats).AttackSpeed; 
-        animator.speed = newAnimationSpeed;
+        animator.speed = 1f / _actor.CurrentCombatStats.AttackSpeed;
 
         if (_hitEnemies == null)
         {
             _hitEnemies = new HashSet<Collider2D>();
         }
 
-        if (equipmentSlot == null)
-        {
-            animator = _actor.ActorAnimator;
-        }
-
         animator.SetTrigger("Attack");
 
-        yield return new WaitForSeconds(_attackClip.length / newAnimationSpeed);
+        float attackClipLength = 10;
+
+        if (!unarmedAttack)
+        {
+            attackClipLength = _attackClip.length;
+        }
+        else
+        {
+            foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
+            {
+                if (clip.name == "Unarmed_Attack")
+                {
+                    attackClipLength = clip.length;
+                }
+                else
+                {
+                    attackClipLength = animator.GetCurrentAnimatorClipInfo(0)[0].clip.length;
+                }
+            }
+        }
+
+        yield return new WaitForSeconds(attackClipLength / animator.speed);
 
         animator.speed = _originalAnimationSpeed;
 
         _offHandAttack = false;
         animator.ResetTrigger("Attack");
-        
+
         _hitEnemies.Clear();
         _actor.ActorStates.AttackCoroutineRunning = false;
     }
@@ -282,12 +303,7 @@ public class Equipment_Slot : MonoBehaviour
 
         foreach (Collider2D hit in hits)
         {
-            if (hit.GetComponent<Equipment_Slot>() != null)
-            {
-                continue;
-            }
-
-            if (hit.gameObject.layer == gameObject.layer || !hit.enabled || _hitEnemies.Contains(hit))
+            if (!hit.GetComponent<Actor_Base>() || hit.gameObject == _actor.gameObject || _hitEnemies.Contains(hit))
                 continue;
 
             OnCollide(hit);
@@ -343,10 +359,9 @@ public class Equipment_Slot : MonoBehaviour
             return;
         }
 
-        int targetLayerMask = 1 << coll.gameObject.layer;
-
-        if ((_actor.ActorData.CanAttack & targetLayerMask) != 0)
+        if (_actor.ActorData.Faction.CanAttack(coll.gameObject.GetComponent<Actor_Base>().ActorData.Faction.FactionName))
         {
+            Debug.Log($"1");
             Damage damage = Manager_Stats.DealDamage(damageOrigin: _actor.transform.position, combatStats: _actor.CurrentCombatStats, chargeTime: _chargeTime);
             coll.SendMessage("ReceiveDamage", damage);
             _chargeTime = 0f;

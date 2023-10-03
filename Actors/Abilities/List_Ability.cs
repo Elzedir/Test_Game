@@ -20,11 +20,6 @@ public class List_Ability
 
     public AbilityData AbilityData;
 
-    public void Start()
-    {
-        
-    }
-
     public static void AddToList(List<List_Ability> list, List_Ability ability)
     {
         if (_usedAbilities.Contains(ability.AbilityData.AbilityStats.AbilityName))
@@ -46,7 +41,7 @@ public class List_Ability
         AbilityStats abilityStats = new AbilityStats(
             abilityName: Ability.ChargedShot,
             abilityDescription: "Charge up and fire an arrow of energy",
-            abilityIcon: SO_List.Instance.WeaponMeleeSprites[0].sprite,
+            abilityIcon: List_Item.GetSpriteFromSpriteSheet(path: "Resources_Sprite/Weapon/Weapons/obj_wep_m_02 (st)", name: "Charged_Shot"),
             abilitySpecialisation: Aspect.Hunt,
             abilityMaxLevel: 5,
             abilityDamagePerAbilityLevel: 2

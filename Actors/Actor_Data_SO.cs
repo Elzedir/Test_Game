@@ -1,12 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.Rendering;
-using static FactionManager;
 
 public enum ActorType
 {
@@ -33,7 +28,7 @@ public class Actor_Data_SO : ScriptableObject
 {
     public string CharacterName;
     public ActorType ActorType;
-    public FactionManager.Faction _faction;
+    public Faction Faction;
     private PlayableRace _playableRace;
     private NonPlayableType _nonPlayableType;
     public Worldstate Worldstate;
@@ -46,22 +41,6 @@ public class Actor_Data_SO : ScriptableObject
     {
         get { return _nonPlayableType; }
         set { _nonPlayableType = value; }
-    }
-    public LayerMask CanAttack
-    {
-        get
-        {
-            FactionManager factionManager = FactionManager.instance;
-
-            if (factionManager != null && factionManager.factionMasks.ContainsKey(_faction))
-            {
-                return factionManager.factionMasks[_faction];
-            }
-            else
-            {
-                return 0;
-            }
-        }
     }
 
     private Actor_Skills _actorSkills;
@@ -83,16 +62,16 @@ public class Actor_Data_SO : ScriptableObject
     public float triggerLength;
     public float chaseLength;
 
-    public void Initialise(Actor_Base actor)
+    public IEnumerator Initialise(Actor_Base actor)
     {
-        SetActorLayer(actor);
-        GameManager.Instance.RunCoroutine(DelayedInitialiseAbilityCooldowns());
+        yield return new WaitForSeconds(0.1f);
+
+        InitialiseAbilityCooldowns();
+        ActorAspects.InitialiseAspects(actor);
     }
 
-    private IEnumerator DelayedInitialiseAbilityCooldowns()
+    private void InitialiseAbilityCooldowns()
     {
-        yield return new WaitForSeconds(Manager_Initialiser.InitialiseAbilityDelay);
-
         foreach (List_Ability ability in List_Ability.AllAbilityData)
         {
             if (ability != null)
@@ -100,15 +79,6 @@ public class Actor_Data_SO : ScriptableObject
                 ActorAbilities.AbilityCooldowns[ability] = Time.time;
             }
         }
-    }
-
-    public void SetActorLayer(Actor_Base actor)
-    {
-        FactionManager factionManager = FactionManager.instance;
-        string layerName = factionManager.GetLayerNameFromFaction(_faction);
-        int layerIndex = LayerMask.NameToLayer(layerName);
-        actor.gameObject.layer = layerIndex;
-        SetActorChildLayerRecursively(actor.gameObject, layerIndex);
     }
     public void SetActorChildLayerRecursively(GameObject obj, int newLayer)
     {
@@ -343,8 +313,22 @@ public struct SPECIAL
 [System.Serializable]
 public struct Aspects
 {
-    public Title ActorTitle;
-    public List<Aspect> ActorAspectList;
+    public ClassTitle ActorTitle;
+    public List<Aspect> _actorAspectList;
+    public List<Aspect> ActorAspectList
+    {
+        get { return _actorAspectList; }
+        set
+        {
+            _actorAspectList = value;
+            InitialiseAspects(aspectList: _actorAspectList);
+        }
+    }
+
+    public void InitialiseAspects(Actor_Base actor = null, List<Aspect> aspectList = null)
+    {
+        ActorTitle = List_Aspect.GetCharacterTitle(actor: actor, aspectList: aspectList);
+    }
 }
 
 [System.Serializable]

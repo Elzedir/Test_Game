@@ -14,14 +14,14 @@ public class Projectile_Arrow : Projectile
         Vector3 origin,
         CombatStats combatStats,
         float chargeTime,
-        LayerMask attackableLayers
+        Faction projectileFaction
         )
     {
         this.Direction = direction;
         this.Origin = origin;
         this.CombatStats = combatStats;
         this.ChargeTime = chargeTime;
-        this.AttackableLayers = attackableLayers;
+        this.ProjectileFaction = projectileFaction;
     }
 
     protected override void FixedUpdate()

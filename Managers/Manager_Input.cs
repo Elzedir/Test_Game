@@ -195,7 +195,7 @@ public class Manager_Input : MonoBehaviour
 
     public void HandleCPressed()
     {
-        // Character_Window.Instance.OpenMenu();
+        Character_Window.Instance.OpenMenu();
     }
 
     public void HandleEPressed()

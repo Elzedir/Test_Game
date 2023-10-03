@@ -92,6 +92,7 @@ public class GameManager : MonoBehaviour
         List_Item_Consumable.InitializeConsumableData();
         List_Aspect.InitialiseSpecialisations();
         List_Ability.InitialiseAbilities();
+        List_Faction.InitialiseFactions();
     }
     public void OnPlayerChange(Player player)
     {
