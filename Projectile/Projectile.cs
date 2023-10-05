@@ -8,7 +8,7 @@ public abstract class Projectile : MonoBehaviour
     public Vector3 Origin;
     public CombatStats CombatStats;
     public float ChargeTime;
-    public Faction ProjectileFaction;
+    public Faction_Data_SO ProjectileFaction;
     protected Rigidbody2D _rb;
     protected Collider2D _collider;
     protected bool _hasLanded = false;
@@ -66,7 +66,7 @@ public abstract class Projectile : MonoBehaviour
                 {
                     if (!_hasLanded)
                     {
-                        if (ProjectileFaction.CanAttack(hit.gameObject.GetComponent<Actor_Base>().ActorData.Faction.FactionName))
+                        if (ProjectileFaction.CanAttack(hit.gameObject.GetComponent<Actor_Base>().ActorData.FactionData))
                         {
                             Damage damage = Manager_Stats.DealDamage(damageOrigin: Origin, combatStats: CombatStats, chargeTime: ChargeTime);
                             hit.SendMessage("ReceiveDamage", damage);

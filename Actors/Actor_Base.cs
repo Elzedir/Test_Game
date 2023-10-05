@@ -10,6 +10,7 @@ using UnityEngine.Rendering.Universal;
 
 public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
 {
+    public FactionName FactionName;
     public ActorScripts ActorScripts;
     public ActorStates ActorStates;
     public ActorComponents ActorComponents;
@@ -212,6 +213,8 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
     {
         base.Update();
 
+        FactionName = ActorData.Faction;
+
         if (ActorData.ActorType == ActorType.Playable)
         {
             if (ActorStates.Talking)
@@ -307,12 +310,12 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
 
             Actor_Base targetActor = target.GetComponent<Actor_Base>();
 
-            if (target == null || !targetActor || ActorData.Faction == targetActor.ActorData.Faction)
+            if (target == null || !targetActor || ActorData.FactionData == targetActor.ActorData.FactionData)
             {
                 return;
             }
 
-            if (!AttackableTargets.Contains(target) &&  ActorData.Faction.CanAttack(target.GetComponent<Actor_Base>().ActorData.Faction.FactionName))
+            if (!AttackableTargets.Contains(target) &&  ActorData.FactionData.CanAttack(target.GetComponent<Actor_Base>().ActorData.FactionData))
             {
                 BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
 

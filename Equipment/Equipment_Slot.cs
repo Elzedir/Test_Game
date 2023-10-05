@@ -359,7 +359,7 @@ public class Equipment_Slot : MonoBehaviour
             return;
         }
 
-        if (_actor.ActorData.Faction.CanAttack(coll.gameObject.GetComponent<Actor_Base>().ActorData.Faction.FactionName))
+        if (_actor.ActorData.FactionData.CanAttack(coll.gameObject.GetComponent<Actor_Base>().ActorData.FactionData))
         {
             Debug.Log($"1");
             Damage damage = Manager_Stats.DealDamage(damageOrigin: _actor.transform.position, combatStats: _actor.CurrentCombatStats, chargeTime: _chargeTime);

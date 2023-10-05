@@ -28,7 +28,8 @@ public class Actor_Data_SO : ScriptableObject
 {
     public string CharacterName;
     public ActorType ActorType;
-    public Faction Faction;
+    public FactionName Faction;
+    public Faction_Data_SO FactionData;
     private PlayableRace _playableRace;
     private NonPlayableType _nonPlayableType;
     public Worldstate Worldstate;
@@ -58,7 +59,6 @@ public class Actor_Data_SO : ScriptableObject
     public bool isFlammable;
     public bool IsTalkable;
 
-
     public float triggerLength;
     public float chaseLength;
 
@@ -68,6 +68,7 @@ public class Actor_Data_SO : ScriptableObject
 
         InitialiseAbilityCooldowns();
         ActorAspects.InitialiseAspects(actor);
+        List_Faction.SetFaction(this);
     }
 
     private void InitialiseAbilityCooldowns()

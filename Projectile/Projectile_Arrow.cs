@@ -14,7 +14,7 @@ public class Projectile_Arrow : Projectile
         Vector3 origin,
         CombatStats combatStats,
         float chargeTime,
-        Faction projectileFaction
+        Faction_Data_SO projectileFaction
         )
     {
         this.Direction = direction;

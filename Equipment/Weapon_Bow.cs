@@ -42,7 +42,7 @@ public class Weapon_Bow : Weapon
             actor.transform.position, 
             actor.CurrentCombatStats, 
             equipmentSlot.ChargeTime, 
-            actor.ActorData.Faction
+            actor.ActorData.FactionData
             );
 
         if (ability == Ability.ChargedShot)
