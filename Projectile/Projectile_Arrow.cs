@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public class Projectile_Arrow : Projectile
 {
@@ -14,6 +15,7 @@ public class Projectile_Arrow : Projectile
         Vector3 origin,
         CombatStats combatStats,
         float chargeTime,
+        float maxChargeTime,
         Faction_Data_SO projectileFaction
         )
     {
@@ -21,6 +23,7 @@ public class Projectile_Arrow : Projectile
         this.Origin = origin;
         this.CombatStats = combatStats;
         this.ChargeTime = chargeTime;
+        this.MaxChargeTime = maxChargeTime;
         this.ProjectileFaction = projectileFaction;
     }
 
@@ -45,15 +48,16 @@ public class Projectile_Arrow : Projectile
 
             if (_rb != null)
             {
-                if (distanceFromOrigin >= CombatStats.AttackRange || _hasLanded)
+                if (distanceFromOrigin >= Mathf.Max(CombatStats.AttackRange * (ChargeTime / MaxChargeTime), 0.2f) || _hasLanded)
                 {
+                    GetComponentInChildren<VisualEffect>().SetFloat("Lifetime", 0);
                     DespawnArrow();
                     // Play the hit animation.
                     Invoke("DestroyProjectile", 5f);
                 }
                 else
                 {
-                    _rb.velocity = Direction * CombatStats.AttackSwingTime;
+                    _rb.velocity = Direction * Mathf.Max(CombatStats.AttackSwingTime * (ChargeTime / MaxChargeTime), 0.5f);
                 }
 
                 if (_rb.velocity.magnitude < 0.1f)

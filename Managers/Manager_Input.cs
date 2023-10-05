@@ -120,7 +120,7 @@ public class Manager_Input : MonoBehaviour
         {
             if (!_cancelledAttack)
             {
-                if (!GameManager.Instance.Player.PlayerActor.ActorStates.AttackCoroutineRunning)
+                if (!GameManager.Instance.Player.PlayerActor.ActorStates.AttackCoroutineRunning && !GameManager.Instance.Player.PlayerActor.ActorStates.Dodging)
                 {
                     GameManager.Instance.Player.ExecutePlayerAttack(_mouse0HeldTime);
                 }
@@ -318,8 +318,8 @@ public class KeyBindings
     public KeyBindings()
     {
         Keys.Add(ActionKey.Move_Up, KeyCode.W);
-        Keys.Add(ActionKey.Move_Down, KeyCode.A);
-        Keys.Add(ActionKey.Move_Left, KeyCode.S);
+        Keys.Add(ActionKey.Move_Down, KeyCode.S);
+        Keys.Add(ActionKey.Move_Left, KeyCode.A);
         Keys.Add(ActionKey.Move_Right, KeyCode.D);
 
         Keys.Add(ActionKey.Mouse0, KeyCode.Mouse0);

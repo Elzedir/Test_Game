@@ -41,22 +41,20 @@ public class Weapon_Bow : Weapon
             attackDirection.normalized, 
             actor.transform.position, 
             actor.CurrentCombatStats, 
-            equipmentSlot.ChargeTime, 
+            equipmentSlot.ChargeTime,
+            equipmentSlot.EquipmentItem.ItemStats.WeaponStats.MaxChargeTime,
             actor.ActorData.FactionData
             );
 
         if (ability == Ability.ChargedShot)
         {
-            GameObject vfxChild = new GameObject("ArrowVFX");
-            vfxChild.transform.SetParent(arrowGO.transform);
-            vfxChild.transform.localPosition = Vector3.zero;
-            vfxChild.transform.localRotation = Quaternion.identity;
-
-            VisualEffect arrowVFX = vfxChild.AddComponent<VisualEffect>();
-            arrowVFX.visualEffectAsset = Resources.Load<VisualEffectAsset>("Resources_VFXGraphs/ArrowTest");
-            arrowVFX.AddComponent<SortingGroup>().sortingLayerName = "VFX";
-
+            VFX_Manager.CreateVFX("Arrow", arrowGO.transform, "Resources_VFXGraphs/ArrowTest");
             arrow.CombatStats = List_Ability.GetAbility(ability).AbilityData.CombatStats;
+        }
+        else
+        {
+            VisualEffect arrowVFX = VFX_Manager.CreateVFX("Arrow", arrowGO.transform, "Resources_VFXGraphs/ArrowTrail");
+            arrowVFX.SetFloat("Lifetime", equipmentSlot.ChargeTime * 0.25f);
         }
     }
 }

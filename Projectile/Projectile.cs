@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public abstract class Projectile : MonoBehaviour
 {
@@ -8,6 +9,7 @@ public abstract class Projectile : MonoBehaviour
     public Vector3 Origin;
     public CombatStats CombatStats;
     public float ChargeTime;
+    public float MaxChargeTime;
     public Faction_Data_SO ProjectileFaction;
     protected Rigidbody2D _rb;
     protected Collider2D _collider;
@@ -38,10 +40,6 @@ public abstract class Projectile : MonoBehaviour
         {
             Collider2D[] results = new Collider2D[42];
             ContactFilter2D filter = new ContactFilter2D();
-
-            filter.layerMask = LayerMask.GetMask("Blocking");
-            filter.useLayerMask = true;
-
             int numColliders = Physics2D.OverlapCollider(_collider, filter, results);
 
             for (int i = 0; i < numColliders; i++)
@@ -53,7 +51,7 @@ public abstract class Projectile : MonoBehaviour
                     continue;
                 }
 
-                if (hit.gameObject.layer == gameObject.layer || !hit.enabled || _hitEnemies.Contains(hit))
+                if (!hit.enabled || _hitEnemies.Contains(hit))
                     continue;
 
                 if ((LayerMask.GetMask("Blocking") & (1 << hit.gameObject.layer)) != 0)
@@ -64,15 +62,14 @@ public abstract class Projectile : MonoBehaviour
                 }
                 else
                 {
-                    if (!_hasLanded)
+                    if (_hasLanded || !hit.gameObject.GetComponent<Actor_Base>() || !ProjectileFaction.CanAttack(hit.gameObject.GetComponent<Actor_Base>().ActorData.FactionData))
                     {
-                        if (ProjectileFaction.CanAttack(hit.gameObject.GetComponent<Actor_Base>().ActorData.FactionData))
-                        {
-                            Damage damage = Manager_Stats.DealDamage(damageOrigin: Origin, combatStats: CombatStats, chargeTime: ChargeTime);
-                            hit.SendMessage("ReceiveDamage", damage);
-                            _hitEnemy = true;
-                        }
+                        return;
                     }
+
+                    Damage damage = Manager_Stats.DealDamage(damageOrigin: Origin, combatStats: CombatStats, chargeTime: ChargeTime);
+                    hit.SendMessage("ReceiveDamage", damage);
+                    _hitEnemy = true;
                 }
 
                 _hitEnemies.Add(hit);

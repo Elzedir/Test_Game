@@ -10,7 +10,6 @@ using UnityEngine.Rendering.Universal;
 
 public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
 {
-    public FactionName FactionName;
     public ActorScripts ActorScripts;
     public ActorStates ActorStates;
     public ActorComponents ActorComponents;
@@ -213,14 +212,13 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
     {
         base.Update();
 
-        FactionName = ActorData.Faction;
-
         if (ActorData.ActorType == ActorType.Playable)
         {
             if (ActorStates.Talking)
             {
                 return;
             }
+
             if (ActorStates.Hostile)
             {
                 TargetCheck();
@@ -301,7 +299,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
     
     public virtual void TargetCheck()
     {
-        float maxTargetDistance = float.MaxValue;
+        float maxTargetDistance = ActorData.triggerRadius;
         Collider2D[] triggerHits = Physics2D.OverlapCircleAll(transform.position, ActorData.triggerRadius);
 
         foreach (Collider2D hit in triggerHits)
@@ -312,10 +310,10 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
 
             if (target == null || !targetActor || ActorData.FactionData == targetActor.ActorData.FactionData)
             {
-                return;
+                continue;
             }
 
-            if (!AttackableTargets.Contains(target) &&  ActorData.FactionData.CanAttack(target.GetComponent<Actor_Base>().ActorData.FactionData))
+            if (!AttackableTargets.Contains(target) && ActorData.FactionData.CanAttack(target.GetComponent<Actor_Base>().ActorData.FactionData))
             {
                 BoxCollider2D targetCollider = target.GetComponent<BoxCollider2D>();
 
@@ -398,7 +396,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
             {
                 _agent.isStopped = true;
 
-                if (!ActorStates.AttackCoroutineRunning)
+                if (!ActorStates.AttackCoroutineRunning && !ActorStates.Dodging)
                 {
                     NPCAttack();
                 }
@@ -620,14 +618,14 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
     {
         if (ActorStates.OnFire)
         {
-            VFX_Manager.instance.AddOnFireVFX(_actor, ActorScripts.Actor_VFX.transform);
+            VFX_Manager.Instance.AddOnFireVFX(_actor, ActorScripts.Actor_VFX.transform);
         }
     }
     public void RemoveOnFireVFX()
     { 
         if (!ActorStates.OnFire)
         {
-            VFX_Manager.instance.RemoveOnFireVFX(_actor, ActorScripts.Actor_VFX.transform);
+            VFX_Manager.Instance.RemoveOnFireVFX(_actor, ActorScripts.Actor_VFX.transform);
         }
     }
 

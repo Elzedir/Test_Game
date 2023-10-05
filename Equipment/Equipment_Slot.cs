@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public enum SlotType
 {
@@ -161,9 +162,11 @@ public class Equipment_Slot : MonoBehaviour
 
         yield return null;
 
-        _animator.speed = _chargingClip.length / EquipmentItem.ItemStats.WeaponStats.MaxChargeTime;
+        float maxChargeTime = EquipmentItem.ItemStats.WeaponStats.MaxChargeTime / _actor.CurrentCombatStats.AttackSpeed;
 
-        yield return new WaitForSeconds(EquipmentItem.ItemStats.WeaponStats.MaxChargeTime);
+        _animator.speed = _chargingClip.length / maxChargeTime;
+
+        yield return new WaitForSeconds(maxChargeTime);
 
         _isCoroutineCharging = false;
         _animator.SetBool("Charged", true);
@@ -192,6 +195,8 @@ public class Equipment_Slot : MonoBehaviour
 
     public virtual void Attack(float chargeTime = 0f, bool unarmedAttack = false)
     {
+        chargeTime *= _actor.CurrentCombatStats.AttackSpeed;
+
         if (chargeTime > EquipmentItem.ItemStats.WeaponStats.MaxChargeTime)
         {
             chargeTime = EquipmentItem.ItemStats.WeaponStats.MaxChargeTime;
@@ -258,6 +263,19 @@ public class Equipment_Slot : MonoBehaviour
             }
         }
 
+        VisualEffect slashTest = VFX_Manager.CreateVFX("SlashTest", _actor.transform, "Resources_VFXGraphs/SlashTest", attackClipLength / animator.speed);
+
+        if(_actor.transform.localScale.x >= 0)
+        {
+            slashTest.SetVector3("OriginPosition", new Vector3(0.1f, 0, 0));
+            slashTest.SetVector3("OriginAngle", new Vector3(0, 0, 0));
+        }
+        else
+        {
+            slashTest.SetVector3("OriginPosition", new Vector3(-0.1f, 0, 0));
+            slashTest.SetVector3("OriginAngle", new Vector3(180, 0, 0));
+        }
+        
         yield return new WaitForSeconds(attackClipLength / animator.speed);
 
         animator.speed = _originalAnimationSpeed;
@@ -361,10 +379,15 @@ public class Equipment_Slot : MonoBehaviour
 
         if (_actor.ActorData.FactionData.CanAttack(coll.gameObject.GetComponent<Actor_Base>().ActorData.FactionData))
         {
-            Debug.Log($"1");
             Damage damage = Manager_Stats.DealDamage(damageOrigin: _actor.transform.position, combatStats: _actor.CurrentCombatStats, chargeTime: _chargeTime);
             coll.SendMessage("ReceiveDamage", damage);
             _chargeTime = 0f;
+
+            if (_actor.ActorData.FactionData.FactionName == FactionName.Player)
+            {
+                VisualEffect slashHit = VFX_Manager.CreateVFX("SlashHit", coll.transform, "Resources_VFXGraphs/SlashHit", 1f);
+
+            }
         }
     }
 }

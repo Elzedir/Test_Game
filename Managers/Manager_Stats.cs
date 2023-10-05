@@ -46,7 +46,7 @@ public class Manager_Stats : MonoBehaviour
         Damage damage = new Damage
         {
             origin = damageOrigin,
-            damageAmount = combatStats.AttackDamage * (1 + (chargeTime * 0.25f)),
+            damageAmount = Mathf.Round(combatStats.AttackDamage * (1 + (chargeTime * 0.25f)) * 100f) / 100f,
             pushForce = combatStats.AttackPushForce
         };
 

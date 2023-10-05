@@ -55,21 +55,8 @@ public class Faction_Data_SO : ScriptableObject
     {
         FactionRelationship relationship = FactionData.Find(x => x.FactionName == interactedFaction.FactionName);
 
-        Debug.Log(interactedFaction.FactionName);
-
         if (relationship != null)
         {
-            Debug.Log(relationship.RelationshipValue);
-
-            if (relationship.RelationshipValue < -25)
-            {
-                Debug.Log("1234");
-            }
-            else if (relationship.RelationshipValue > -25)
-            {
-                Debug.Log("4321");
-            }
-
             return relationship.RelationshipValue < -25;
         }
 

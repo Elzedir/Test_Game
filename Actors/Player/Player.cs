@@ -61,44 +61,48 @@ public class Player : MonoBehaviour
         {
             float x = 0;
             float y = 0;
+            Vector3 mouseDirection = Vector3.zero;
 
             if (Input.GetKey(Manager_Input.Instance.KeyBindings.Keys[ActionKey.Move_Up])) y = 1;
-            if (Input.GetKey(Manager_Input.Instance.KeyBindings.Keys[ActionKey.Move_Down])) x = -1;
-            if (Input.GetKey(Manager_Input.Instance.KeyBindings.Keys[ActionKey.Move_Left])) y = -1;
+            if (Input.GetKey(Manager_Input.Instance.KeyBindings.Keys[ActionKey.Move_Down])) y = -1;
+            if (Input.GetKey(Manager_Input.Instance.KeyBindings.Keys[ActionKey.Move_Left])) x = -1;
             if (Input.GetKey(Manager_Input.Instance.KeyBindings.Keys[ActionKey.Move_Right])) x = 1;
 
-            var mouseDirection = Input.mousePosition - Camera.main.WorldToScreenPoint(transform.position);
-
-            if (!_playerActor.ActorStates.Jumping)
+            if (!_playerActor.ActorStates.Dodging)
             {
-                Vector3 moveDirection = new Vector3(x, y, 0).normalized;
-                Vector3 move = moveDirection * _playerActor.CurrentCombatStats.MoveSpeed;
-                float speed = move.magnitude / Time.deltaTime;
-
-                transform.localScale = new Vector3(_playerActor.OriginalSize.z * Mathf.Sign(mouseDirection.x), _playerActor.OriginalSize.y, _playerActor.OriginalSize.z);
-                _playerActor.ActorScripts.Actor_VFX.transform.localScale = new Vector3(Mathf.Sign(mouseDirection.x), 1, 1);
-
-                move += _playerActor.PushDirection;
-
-                _playerActor.PushDirection = Vector3.Lerp(_playerActor.PushDirection, Vector3.zero, _playerActor.ActorData.ActorStats.CombatStats.PushRecovery);
-
-                _hit = Physics2D.BoxCast(transform.position, _playerActor.ActorComponents.ActorColl.bounds.size, 0, new Vector2(0, move.y), Mathf.Abs(move.y * Time.deltaTime), LayerMask.GetMask("Blocking"));
-
-                if (_hit.collider == null)
-                {
-                    transform.Translate(0, move.y * Time.deltaTime, 0);
-                }
-                _hit = Physics2D.BoxCast(transform.position, _playerActor.ActorComponents.ActorColl.bounds.size, 0, new Vector2(move.x, 0), Mathf.Abs(move.x * Time.deltaTime), LayerMask.GetMask("Blocking"));
-
-                if (_hit.collider == null)
-                {
-                    transform.Translate(move.x * Time.deltaTime, 0, 0);
-                }
-
-                _playerActor.ActorAnimator.SetFloat("Speed", speed);
+                mouseDirection = Input.mousePosition - Camera.main.WorldToScreenPoint(transform.position);
             }
+
+            Vector3 moveDirection = new Vector3(x, y, 0).normalized;
+            Vector3 move = moveDirection * _playerActor.CurrentCombatStats.MoveSpeed;
+            float speed = move.magnitude / Time.deltaTime;
+
+            Vector3 lookDirection = _playerActor.ActorStates.Dodging ? moveDirection : mouseDirection;
+
+            transform.localScale = new Vector3(_playerActor.OriginalSize.z * Mathf.Sign(lookDirection.x), _playerActor.OriginalSize.y, _playerActor.OriginalSize.z);
+            _playerActor.ActorScripts.Actor_VFX.transform.localScale = new Vector3(Mathf.Sign(lookDirection.x), 1, 1);
+
+            move += _playerActor.PushDirection;
+            _playerActor.PushDirection = Vector3.Lerp(_playerActor.PushDirection, Vector3.zero, _playerActor.ActorData.ActorStats.CombatStats.PushRecovery);
+
+            _hit = Physics2D.BoxCast(transform.position, _playerActor.ActorComponents.ActorColl.bounds.size, 0, new Vector2(0, move.y), Mathf.Abs(move.y * Time.deltaTime), LayerMask.GetMask("Blocking"));
+
+            if (_hit.collider == null)
+            {
+                transform.Translate(0, move.y * Time.deltaTime, 0);
+            }
+
+            _hit = Physics2D.BoxCast(transform.position, _playerActor.ActorComponents.ActorColl.bounds.size, 0, new Vector2(move.x, 0), Mathf.Abs(move.x * Time.deltaTime), LayerMask.GetMask("Blocking"));
+
+            if (_hit.collider == null)
+            {
+                transform.Translate(move.x * Time.deltaTime, 0, 0);
+            }
+
+            _playerActor.ActorAnimator.SetFloat("Speed", speed);
         }
     }
+
 
     public void ExecutePlayerAttack(float chargeTime)
     {

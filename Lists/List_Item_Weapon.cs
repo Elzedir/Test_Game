@@ -74,7 +74,7 @@ public class List_Item_Weapon : List_Item
         WeaponStats weaponStats = new WeaponStats(
             weaponType: new WeaponType[] { WeaponType.TwoHandedRanged },
             weaponClass: new WeaponClass[] { WeaponClass.ShortBow },
-            maxChargeTime: 3
+            maxChargeTime: 2
             );
 
         FixedModifiers fixedModifiers = new FixedModifiers(
@@ -83,9 +83,9 @@ public class List_Item_Weapon : List_Item
 
         PercentageModifiers percentageModifiers = new PercentageModifiers(
             attackDamage: 1.1f,
-            attackSpeed: 1f,
-            attackSwingTime: 2f,
-            attackRange: 2f,
+            attackSpeed: 1.5f,
+            attackSwingTime: 3f,
+            attackRange: 3f,
             attackPushForce: 1.1f
             );
 
