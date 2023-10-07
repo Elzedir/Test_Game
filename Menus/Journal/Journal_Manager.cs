@@ -29,14 +29,14 @@ public class Journal_Manager : MonoBehaviour
             QuestList.Add(questToStart);
         }
 
-        UpdateQuestStage(questToStart, Quest_Data_SO.QuestStage.Started);
+        UpdateQuestStage(questToStart, QuestStage.Started);
     }
 
-    public void UpdateQuestStage(Quest_Data_SO quest, Quest_Data_SO.QuestStage newQuestStage)
+    public void UpdateQuestStage(Quest_Data_SO quest, QuestStage newQuestStage)
     {
         if (QuestList.Contains(quest))
         {
-            quest._QuestStage = newQuestStage;
+            quest.QuestStage = newQuestStage;
         }
     }
 }

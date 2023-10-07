@@ -19,6 +19,7 @@ public class Manager_Input : MonoBehaviour
     private Dictionary<ActionKey, Action> _singlePressKeyActions;
     private Dictionary<ActionKey, Action> _continuousPressKeyActions;
 
+    private Player _player;
     public GameObject InteractedCharacter;
 
     private bool _mouse0Held = false;
@@ -43,6 +44,12 @@ public class Manager_Input : MonoBehaviour
         KeyBindings = new KeyBindings();
         KeyBindings.LoadBindings();
         InitialiseKeyActions();
+        GameManager.Instance.PlayerChange += OnPlayerChange;
+    }
+
+    private void OnPlayerChange()
+    {
+        _player = GameManager.Instance.Player;
     }
 
     public void InitialiseKeyActions()
@@ -73,6 +80,11 @@ public class Manager_Input : MonoBehaviour
 
     public void Update()
     {
+        if (_player == null)
+        {
+            _player = GameManager.Instance.Player;
+        }
+
         HandleMouse();
 
         foreach (var actionKey in _singlePressKeyActions.Keys)
@@ -81,6 +93,11 @@ public class Manager_Input : MonoBehaviour
             {
                 _singlePressKeyActions[actionKey]?.Invoke();
             }
+        }
+
+        if (_player.PlayerActor.ActorStates.Talking || _player.PlayerActor.ActorStates.Dodging)
+        {
+            return; // Change this later on so that it doesn't do a sweeping check but is more on an individual basis.
         }
 
         foreach (var actionKey in _continuousPressKeyActions.Keys)
@@ -113,16 +130,16 @@ public class Manager_Input : MonoBehaviour
             _mouse0Held = true;
             _mouse0HeldTime = 0f;
 
-            GameManager.Instance.Player.StartPlayerChargeAttack();
+            _player.StartPlayerChargeAttack();
         }
 
         else if (Input.GetMouseButtonUp(0))
         {
             if (!_cancelledAttack)
             {
-                if (!GameManager.Instance.Player.PlayerActor.ActorStates.AttackCoroutineRunning && !GameManager.Instance.Player.PlayerActor.ActorStates.Dodging)
+                if (!_player.PlayerActor.ActorStates.AttackCoroutineRunning)
                 {
-                    GameManager.Instance.Player.ExecutePlayerAttack(_mouse0HeldTime);
+                    _player.ExecutePlayerAttack(_mouse0HeldTime);
                 }
             }
 
@@ -139,7 +156,7 @@ public class Manager_Input : MonoBehaviour
                 _mouse0HeldTime = 0;
                 _cancelledAttack = true;
 
-                GameManager.Instance.Player.CancelPlayerChargeUpAttack();
+                _player.CancelPlayerChargeUpAttack();
             }
 
             _mouse1Held = true;
@@ -172,7 +189,7 @@ public class Manager_Input : MonoBehaviour
 
     public void HandleNumberPressed(int number)
     {
-        Manager_Abilities.ActivateAbility(number - 1, GameManager.Instance.Player.PlayerActor);
+        Manager_Abilities.ActivateAbility(number - 1, _player.PlayerActor);
     }
 
     public void HandleWPressed()
@@ -217,7 +234,7 @@ public class Manager_Input : MonoBehaviour
     {
         // Can put in different states to do different things, like during cutscene or during minigame or something
 
-        Manager_Menu.Instance.OpenMenu(Manager_Menu.Instance.InventoryMenu, GameManager.Instance.Player.gameObject);
+        Manager_Menu.Instance.OpenMenu(Manager_Menu.Instance.InventoryMenu, _player.gameObject);
     }
 
     public void HandleJPressed()
@@ -229,7 +246,7 @@ public class Manager_Input : MonoBehaviour
 
     public void HandleSpacePressed()
     {
-        GameManager.Instance.Player.PlayerDodge();
+        _player.PlayerDodge();
     }
 
     public void HandleCameraMoveUp()

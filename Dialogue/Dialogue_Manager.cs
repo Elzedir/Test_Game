@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -36,18 +37,22 @@ public class Dialogue_Manager : MonoBehaviour
         _interactedActor.ActorStates.Talking = true;
         interactedChar = interactedCharacter;
 
+        if (dialogueLines == _interactedActor.DialogueData.Introducer)
+        {
+            _interactedActor.DialogueData.Introduced = true;
+        }
+
         if (dialogueLines == null && !dialogueData.Introduced && dialogueIndex == 0)
         {
-            dialogueLines = dialogueData.DialogueOptions[0].DialogueBranches[0];
-            dialogueData.Introduced = true;
+            dialogueLines = dialogueData.DialogueOptions[0].DialogueLines[0];
         }
         else if (dialogueLines == null && dialogueIndex == 0)
         {
-            dialogueLines = dialogueData.DialogueOptions[0].DialogueBranches[1];
+            dialogueLines = dialogueData.DialogueOptions[0].DialogueLines[1];
         }
 
         _currentDialogueLines = dialogueLines;
-        
+
         dialogueCoroutine = StartCoroutine(DisplayDialogue(dialogueLines, dialogueIndex));
     }
 
@@ -110,17 +115,25 @@ public class Dialogue_Manager : MonoBehaviour
         if (dialogue.DisplayTime != 0)
         {
             yield return StartCoroutine(WaitForDisplayTimeOrEnter(dialogue.DisplayTime));
+
+            if (dialogue.NextLine != null)
+            {
+                OpenDialogue(interactedChar, dialogueLines: dialogue.NextLine);
+            }
         }
         else
         {
-            while (!optionSelected)
+            if (dialogue.Choices.Length > 0)
             {
-                yield return null;
-            }
+                while (!optionSelected)
+                {
+                    yield return null;
+                }
 
-            if (optionSelected)
-            {
-                optionSelected = false;
+                if (optionSelected)
+                {
+                    optionSelected = false;
+                }
             }
         }
     }

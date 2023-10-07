@@ -386,7 +386,7 @@ public class Equipment_Slot : MonoBehaviour
             if (_actor.ActorData.FactionData.FactionName == FactionName.Player)
             {
                 VisualEffect slashHit = VFX_Manager.CreateVFX("SlashHit", coll.transform, "Resources_VFXGraphs/SlashHit", 1f);
-
+                CameraMotor.Instance.ShakeOnce();
             }
         }
     }

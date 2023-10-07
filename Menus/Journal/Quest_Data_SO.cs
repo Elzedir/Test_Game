@@ -4,36 +4,43 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-[CreateAssetMenu(fileName = "QuestData", menuName = "QuestData", order = 0)]
+public enum QuestStage { NotDiscovered, NotStarted, Started, Completed }
 
+[CreateAssetMenu(fileName = "QuestData", menuName = "QuestData", order = 0)]
 [System.Serializable]
 public class Quest_Data_SO : ScriptableObject
 {
-    public enum QuestStage { NotDiscovered, NotStarted, Started, Completed }
-
     [Header("Quest")]
     public int QuestID;
-    public QuestStage _QuestStage;
+    public QuestStage QuestStage;
+    [TextArea(1, 10)]
     public string QuestTitle;
     [TextArea(1, 10)]
     public string QuestDescription;
 
-    public QuestObjectives[] QuestObjectives;
-    public QuestHints[] QuestHints;
-    public QuestOutcomes[] QuestOutcomes;
+    public QuestObjective[] QuestObjectives;
+    public QuestHint[] QuestHints;
+
+    public QuestOutcome[] QuestOutcomes;
     public QuestReward[] QuestRewards;
 
     [Header("Follow-on Quest")]
     public Quest_Data_SO NextQuest;
 }
 
-[System.Serializable]
+public enum ObjectiveStage { NotStarted, Started, Completed }
 
-public class QuestObjectives
+[System.Serializable]
+public class QuestObjective
 {
+    public int ObjectiveIndex;
+    [TextArea(1, 10)]
     public string ObjectiveName;
     [TextArea(1, 10)]
     public string ObjectiveDescription;
+    public QuestHint[] ObjectiveHint;
+
+    public ObjectiveStage ObjectiveStage;
 }
 
 [System.Serializable]
@@ -41,23 +48,23 @@ public class QuestReward
 {
     [TextArea(1, 10)]
     public string RewardName;
-    public int QuestRewardID;
-    public int QuestRewardAmount;
-    public Sprite QuestRewardIcon;
+    public int RewardID;
+    public int RewardAmount;
     // Put items into here as buttons you can press to choose.
 }
 
 [System.Serializable]
-public class QuestOutcomes
+public class QuestOutcome
 {
     [TextArea(1, 10)]
     public string OutcomeText;
-    public int QuestOutcome; // This will become a worldstate modifier.
+    public int Outcome; // This will become a worldstate modifier.
 }
 
 [System.Serializable]
-public class QuestHints
+public class QuestHint
 {
+    public bool HintDiscovered;
     [TextArea(1, 10)]
     public string Hint;
     public Button HintLink;
