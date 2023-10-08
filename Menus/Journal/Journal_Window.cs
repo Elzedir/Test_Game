@@ -8,11 +8,11 @@ public class Journal_Window : Menu_UI
 {
     public static Journal_Window Instance;
 
+    private Actor_Base _actor;
     public TextMeshProUGUI nameText;
     public GameObject questButtonPrefab;
     public Transform journalListArea;
     public TextMeshProUGUI journalInfo;
-    public Journal_Manager journalManager;
 
     public void Start()
     {
@@ -30,13 +30,9 @@ public class Journal_Window : Menu_UI
     {
         gameObject.SetActive(true);
         _isOpen = true;
-        SetJournalWindowName(GameManager.Instance.Player.name);
+        nameText.text = interactedObject.name + "'s Journal";
+        _actor = interactedObject.GetComponent<Actor_Base>();
         journalInfo.text = "";
-        foreach (Transform quest in journalListArea)
-        {
-            Destroy(quest.gameObject);
-        }
-        CreateQuestButtons();
     }
 
     public override void CloseMenu(GameObject interactedObject = null)
@@ -49,17 +45,19 @@ public class Journal_Window : Menu_UI
         _isOpen = false;
     }
 
-    public void SetJournalWindowName(string name)
+    public void QuestTabButtonPressed()
     {
-        // Eventually put in an ability to change the font of the journal depending on the actor.
-        nameText.text = name + "'s Journal";
+        CreateQuestButtons();
     }
 
     public void CreateQuestButtons()
     {
-        List<Quest_Data_SO> questList = journalManager.QuestList;
+        foreach(Transform quest in journalListArea)
+        {
+            Destroy(quest.gameObject);
+        }
 
-        foreach (var quest in questList)
+        foreach (Quest_Data_SO quest in _actor.ActorData.ActorQuests.QuestList)
         {
             GameObject questObject = Instantiate(questButtonPrefab, journalListArea);
             Button_Quest questButton = questObject.GetComponent<Button_Quest>();

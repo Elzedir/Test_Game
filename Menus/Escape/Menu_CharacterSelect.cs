@@ -99,6 +99,7 @@ public class Menu_CharacterSelect : Menu_UI
 
     public void SelectCharacterButtonPress()
     {
+        CloseMenu();
         _selectedActor.SetToPlayer();
         GameManager.Instance.Player.PlayerActor.SetToNPC();
     }

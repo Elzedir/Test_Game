@@ -241,7 +241,7 @@ public class Manager_Input : MonoBehaviour
     {
         // Can put in different states to do different things, like during cutscene or during minigame or something
 
-        Manager_Menu.Instance.OpenMenu(Manager_Menu.Instance.JournalMenu);
+        Manager_Menu.Instance.OpenMenu(Manager_Menu.Instance.JournalMenu, _player.gameObject);
     }
 
     public void HandleSpacePressed()

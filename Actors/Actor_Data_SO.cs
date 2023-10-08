@@ -342,7 +342,7 @@ public class Abilities
 [Serializable]
 public class ActorQuests
 {
-    public Quest_Data_SO MainQuest;
+    public List<Quest_Data_SO> MainQuestLine;
 
-    public List<Quest_Data_SO> SecondaryQuests;
+    public List<Quest_Data_SO> QuestList;
 }

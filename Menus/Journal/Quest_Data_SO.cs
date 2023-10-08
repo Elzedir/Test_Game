@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,7 +24,7 @@ public class Quest_Data_SO : ScriptableObject
     public QuestHint[] QuestHints;
 
     public QuestOutcome[] QuestOutcomes;
-    public QuestReward[] QuestRewards;
+    public QuestReward QuestReward;
 
     [Header("Follow-on Quest")]
     public Quest_Data_SO NextQuest;
@@ -46,11 +48,19 @@ public class QuestObjective
 [System.Serializable]
 public class QuestReward
 {
+    public int Experience;
+    public Reward[] Rewards;
+    
+    // Put items into here as buttons you can press to choose.
+}
+
+[Serializable]
+public class Reward
+{
     [TextArea(1, 10)]
     public string RewardName;
     public int RewardID;
     public int RewardAmount;
-    // Put items into here as buttons you can press to choose.
 }
 
 [System.Serializable]
