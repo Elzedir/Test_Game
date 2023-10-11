@@ -2,118 +2,132 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using System.Linq;
+using static Unity.VisualScripting.Metadata;
+using UnityEngine.Tilemaps;
+using TreeEditor;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 
-[Serializable]
 public class Spawner_Tree : MonoBehaviour
 {
-    public float TreeDensity = 10;
-    public float PerlinNoiseMultiplier = 0.05f;
-    public Spawner_Tree_GroupSO TreeGroup;
+    Transform _treeParent;
+    public List<Transform> AllTrees = new();
 
-    private void Start()
+    void Start()
     {
-        SpawnTrees();
+        _treeParent = GameObject.Find("TreeParent").transform;
+
+        Tilemap forestTilemap = GameObject.Find("ForestTilemap").GetComponent<Tilemap>();
+        Spawner_Tree_GroupSO forestGroup = Resources.Load<Spawner_Tree_GroupSO>("Resources_Environment/ForestTreeGroup");
+        
+        SpawnTrees(forestTilemap, forestGroup);
+
+        SortAndSetTrees();
     }
 
-    public void SpawnTrees()
+    void SpawnTrees(Tilemap tilemap, Spawner_Tree_GroupSO treeGroup)
     {
-        int wholeNumber = Mathf.FloorToInt(TreeDensity);
+        BoundsInt bounds = tilemap.cellBounds;
+        TileBase[] allTiles = tilemap.GetTilesBlock(bounds);
+        Vector2 boundarySize = tilemap.cellSize;
 
-        Debug.Log($"Tree Density Number: {wholeNumber}");
-
-        int spawnedTrees = 0;
-
-        BoxCollider2D boxCollider = GetComponent<BoxCollider2D>();
-        CircleCollider2D circleCollider = GetComponent<CircleCollider2D>();
-
-        Vector2 boundarySize = Vector2.zero;
-
-        if (boxCollider.enabled)
+        for (int x = 0; x < bounds.size.x; x++)
         {
-            boundarySize = boxCollider.size;
-        }
-        else if (circleCollider.enabled)
-        {
-            boundarySize = new Vector2(circleCollider.radius * 2, circleCollider.radius * 2);
-        }
-
-        Debug.Log($"Square Size: {boundarySize}");
-
-        float stepX = boundarySize.x / Mathf.Sqrt(wholeNumber);
-        float stepY = boundarySize.y / Mathf.Sqrt(wholeNumber);
-
-        Debug.Log($"StepX: {stepX}, StepY: {stepY}");
-
-        Vector2 startPos = (Vector2)transform.position - boundarySize / 2f;
-
-        Debug.Log($"Start Pos: {startPos}");
-
-        for (float x = startPos.x; x <= startPos.x + boundarySize.x; x += stepX)
-        {
-            for (float y = startPos.y; y <= startPos.y + boundarySize.y; y += stepY)
+            for (int y = 0; y < bounds.size.y; y++)
             {
-                if (spawnedTrees >= wholeNumber)
+                TileBase tile = allTiles[x + y * bounds.size.x];
+                if (tile == null) continue;
+
+                Vector3Int cellPosition = new Vector3Int(x + bounds.x, y + bounds.y, 0);
+                Vector3 worldPosition = tilemap.CellToWorld(cellPosition) + new Vector3(0.5f, 0.5f, 0);
+                int spawnedTrees = 0;
+
+                float stepX = boundarySize.x / Mathf.Sqrt(treeGroup.TreeDensity);
+                float stepY = boundarySize.y / Mathf.Sqrt(treeGroup.TreeDensity);
+
+                Vector2 startPos = (Vector2)worldPosition - boundarySize / 2f;
+
+                for (float xCoord = startPos.x; xCoord <= startPos.x + boundarySize.x; xCoord += stepX)
                 {
-                    break;
+                    for (float yCoord = startPos.y; yCoord <= startPos.y + boundarySize.y; yCoord += stepY)
+                    {
+                        if (spawnedTrees >= treeGroup.TreeDensity) break;
+
+                        int attemptsX = 0;
+                        float noiseFactorX;
+                        float newX;
+
+                        do
+                        {
+                            noiseFactorX = (Mathf.PerlinNoise(xCoord + (UnityEngine.Random.Range(0f, 1f) * treeGroup.TreePerlinMultiplier), yCoord) - 0.5f);
+                            newX = xCoord + noiseFactorX;
+                            attemptsX++;
+                        }
+                        while ((newX < startPos.x || newX > startPos.x + boundarySize.x) && attemptsX < 5);
+
+                        int attemptsY = 0;
+                        float noiseFactorY;
+                        float newY;
+
+                        do
+                        {
+                            noiseFactorY = (Mathf.PerlinNoise(yCoord + (UnityEngine.Random.Range(0f, 1f) * treeGroup.TreePerlinMultiplier), xCoord) - 0.5f);
+                            newY = yCoord + noiseFactorY;
+                            attemptsY++;
+                        }
+                        while ((newY < startPos.y || newY > startPos.y + boundarySize.y) && attemptsY < 5);
+
+                        Tree selectedSprite = treeGroup.Trees[UnityEngine.Random.Range(0, treeGroup.Trees.Count)];
+
+                        GameObject treeTop = new GameObject();
+                        treeTop.transform.parent = _treeParent;
+                        treeTop.transform.position = new Vector3(newX, newY, 0);
+
+                        SpriteRenderer treeTopSprite = treeTop.AddComponent<SpriteRenderer>();
+                        treeTopSprite.sprite = selectedSprite.TreeSprites[0];
+                        treeTopSprite.sortingLayerName = "Trees_Top";
+
+                        float halfHeightOfTop = treeTopSprite.sprite.bounds.size.y / 2;
+
+                        GameObject treeBottom = new GameObject();
+                        treeBottom.transform.parent = treeTop.transform;
+                        treeBottom.transform.position = new Vector3(newX, newY - halfHeightOfTop, 0);
+
+                        SpriteRenderer treeBottomSprite = treeBottom.AddComponent<SpriteRenderer>();
+                        treeBottomSprite.sprite = selectedSprite.TreeSprites[1];
+                        treeBottomSprite.sortingLayerName = "Trees_Bottom";
+
+                        AllTrees.Add(treeTop.transform);
+                        AllTrees.Add(treeBottom.transform);
+                        spawnedTrees++;
+                    }
                 }
 
-                float noiseFactorX = 1 + (Mathf.PerlinNoise(x, y) - 0.5f) * PerlinNoiseMultiplier;
-                float noiseFactorY = 1 + (Mathf.PerlinNoise(y, x) - 0.5f) * PerlinNoiseMultiplier;
-
-                Debug.Log($"X: {x}, Y: {y}");
-                Debug.Log($"NoiseFactorX: {noiseFactorX}, NoiseFactorY: {noiseFactorY}");
-
-                float noiseX = x * noiseFactorX;
-                float noiseY = y * noiseFactorY;
-
-                Debug.Log($"NoiseX: {noiseX}, NoiseY: {noiseY}");
-
-                Sprite selectedSprite = GetRandomTreeSprite();
-
-                GameObject tree = new GameObject();
-                tree.name = $"Tree_{spawnedTrees}";
-                tree.transform.parent = transform;
-                tree.transform.position = new Vector3(noiseX, noiseY, 0);
-                tree.transform.rotation = Quaternion.identity;
-
-                SpriteRenderer treeSprite = tree.AddComponent<SpriteRenderer>();
-                treeSprite.sprite = selectedSprite;
-                treeSprite.sortingLayerName = "Front Design";
-
-                spawnedTrees++;
+                tilemap.SetTile(cellPosition, null);
             }
-
-            if (spawnedTrees >= wholeNumber)
-            {
-                break;
-            }
-        }
-
-        if (UnityEngine.Random.Range(0f, 1f) < (TreeDensity - wholeNumber))
-        {
-            float noiseFactorX = 1 + (Mathf.PerlinNoise(startPos.x + boundarySize.x / 2, startPos.y + boundarySize.y / 2) - 0.5f) * PerlinNoiseMultiplier;
-            float noiseFactorY = 1 + (Mathf.PerlinNoise(startPos.y + boundarySize.y / 2, startPos.x + boundarySize.x / 2) - 0.5f) * PerlinNoiseMultiplier;
-
-            float noisyX = (startPos.x + boundarySize.x / 2) * noiseFactorX;
-            float noisyY = (startPos.y + boundarySize.y / 2) * noiseFactorY;
-
-            Sprite selectedSprite = GetRandomTreeSprite();
-
-            GameObject tree = new GameObject();
-            tree.name = $"Tree_{spawnedTrees}";
-            tree.transform.parent = transform;
-            tree.transform.position = new Vector3(noisyX, noisyY, 0);
-            tree.transform.rotation = Quaternion.identity;
-
-            SpriteRenderer treeSprite = tree.AddComponent<SpriteRenderer>();
-            treeSprite.sprite = selectedSprite;
-            treeSprite.sortingLayerName = "Front Design";
         }
     }
 
-    private Sprite GetRandomTreeSprite()
+    void SortAndSetTrees()
     {
-        int randomIndex = UnityEngine.Random.Range(0, TreeGroup.TreeSprites.Count);
-        return TreeGroup.TreeSprites[randomIndex];
+        var sortedTrees = AllTrees.OrderByDescending(t => t.position.y).ThenByDescending(t => t.position.x).ToList();
+
+        for (int i = 0; i < sortedTrees.Count; i++)
+        {
+            SpriteRenderer sr = sortedTrees[i].GetComponent<SpriteRenderer>();
+
+            if (sr == null) continue;
+
+            if (sr.sortingLayerName == "Trees_Top")
+            {
+                sortedTrees[i].name = $"Tree_Top_{i}";
+            }
+            else
+            {
+                sortedTrees[i].name = $"Tree_Bottom_{i}";
+            }
+            
+            sr.sortingOrder = i;
+        }
     }
 }

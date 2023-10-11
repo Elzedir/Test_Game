@@ -117,7 +117,7 @@ public struct ActorStats
 {
     public int Level;
     public int TotalExperience;
-    public int CurrentExperience;
+    public int Gold;
     public SPECIAL Special;
     [SerializeField] private CombatStats _combatStats; public CombatStats CombatStats { get { return _combatStats; } }
 
