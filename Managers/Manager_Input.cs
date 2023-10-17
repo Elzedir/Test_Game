@@ -1,16 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Xml.XPath;
-using TreeEditor;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using static Inventory_Manager;
-using static UnityEditor.Progress;
 
 public class Manager_Input : MonoBehaviour
 {

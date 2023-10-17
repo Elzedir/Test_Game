@@ -11,12 +11,5 @@ public class Dialogue_Data_SO : ScriptableObject
     public string DialogueCharacterName;
     public bool Introduced = false;
     public Dialogue_Lines_SO Introducer;
-    public Dialogue_Option_Group[] DialogueOptions; 
-}
-[Serializable]
-public class Dialogue_Option_Group
-{
-    [TextArea(1, 10)]
-    public string OptionName;
-    public Dialogue_Lines_SO[] DialogueLines;
+    public Dialogue_Option_SO[] DialogueOptions; 
 }

@@ -13,12 +13,12 @@ public class Chest : MonoBehaviour, IInventory
 
     public IEnumerator Start()
     {
+        yield return new WaitForSeconds(0.1f); // Initialise Items first
+
         if (TryGetComponent<SpriteRenderer>(out _spriteRenderer))
         {
-            _spriteRenderer.sprite = SO_List.Instance.ChestSprites[0].sprite;
+            _spriteRenderer.sprite = List_Sprite.GetSprite(SpriteGroupName.Chest, "Chest_01").ThingSprite[0];
         }
-
-        yield return new WaitForSeconds(0.1f); // Initialise Items first
 
         InitialiseInventory();
     }
@@ -28,8 +28,8 @@ public class Chest : MonoBehaviour, IInventory
         if (Input.GetMouseButtonUp(1))
         {
             _spriteRenderer.sprite = (ChestData.ChestInventory.InventoryItems.Count > 0)
-                    ? SO_List.Instance.ChestSprites[1].sprite
-                    : SO_List.Instance.ChestSprites[2].sprite;
+                    ? List_Sprite.GetSprite(SpriteGroupName.Chest, "Chest_01").ThingSprite[1]
+                    : List_Sprite.GetSprite(SpriteGroupName.Chest, "Chest_01").ThingSprite[2];
 
             Menu_RightClick.Instance.Chest(chest: this);
         }

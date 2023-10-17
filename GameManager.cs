@@ -28,7 +28,6 @@ public class GameManager : MonoBehaviour
     public List<Sprite> playerSprites;
     public List<Sprite> weaponSprites;
     public List<int> upgradePrices;
-    public List<int> XpTable;
 
     public Player Player;
 
@@ -60,11 +59,13 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoad;
 
         Player = FindFirstObjectByType<Player>();
+
+        InitializeGameData();
     }
 
     protected virtual void Start()
     {
-        InitializeGameData();
+        
     }
 
     private void Update()
@@ -87,6 +88,8 @@ public class GameManager : MonoBehaviour
 
     void InitializeGameData()
     {
+        LevelUpData.InitialiseLevels();
+        List_Sprite.InitialiseSprites();
         List_Item_Weapon.InitializeWeaponData();
         List_Item_Armour.InitializeArmourData();
         List_Item_Consumable.InitializeConsumableData();
@@ -179,31 +182,8 @@ public class GameManager : MonoBehaviour
     // Experience
     public void GrantXp(int xp, Actor_Base actor)
     {
-        actor.ActorData.ActorStats.CurrentExperience += xp;
-        actor.ActorData.ActorStats.TotalExperience += xp;
-        CheckLevelUp(actor);
-    }
-    public void CheckLevelUp(Actor_Base actor)
-    {
-        int actorLevel = 0;
-
-        while (actor.ActorData.ActorStats.TotalExperience > XpTable[actorLevel])
-        {
-            actorLevel++;
-
-            if (actorLevel == XpTable.Count)
-            {
-                Debug.Log($"{actor} is at max level");
-                return;
-            }
-        }
-
-        if (actor.ActorData.ActorStats.Level < actorLevel)
-        {
-            actor.ActorData.ActorStats.Level++;
-            List_LevelUp.LevelUp(actor);
-            CheckLevelUp(actor);
-        }
+        actor.ActorData.ActorStats.ActorLevelData.TotalExperience += xp;
+        LevelUpData.LevelUpCheck(actor);
     }
 
     // Save and Load
@@ -290,9 +270,8 @@ public class GameManager : MonoBehaviour
     {
         Player = FindFirstObjectByType<Player>();
 
-        Player.PlayerActor.ActorData.ActorStats.Level = 0;
-        Player.PlayerActor.ActorData.ActorStats.TotalExperience = 0;
-        Player.PlayerActor.ActorData.ActorStats.CurrentExperience = 0;
+        Player.PlayerActor.ActorData.ActorStats.ActorLevelData.Level = 0;
+        Player.PlayerActor.ActorData.ActorStats.ActorLevelData.TotalExperience = 0;
     }
 
     [ContextMenu("Reset Player Equipment")]

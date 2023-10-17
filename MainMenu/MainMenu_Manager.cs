@@ -42,7 +42,7 @@ public class MainMenu_Manager : MonoBehaviour
     {
         if (!menuOpen)
         {
-            // Exit application
+            Application.Quit();
         }
     }
 }

@@ -6,6 +6,7 @@ using UnityEngine;
 public class Menu_Settings : Menu_UI
 {
     public static Menu_Settings Instance;
+    public GameObject Hotkey;
     private List<GameObject> _openSetting = new();
 
     public void Awake()
@@ -51,7 +52,7 @@ public class Menu_Settings : Menu_UI
 
         foreach (KeyValuePair <ActionKey, KeyCode> key in Manager_Input.Instance.KeyBindings.Keys)
         {
-            GameObject hotkeyGO = Instantiate(SO_List.Instance.Prefabs[0], settings);
+            GameObject hotkeyGO = Instantiate(Hotkey, settings);
             hotkeyGO.GetComponent<Menu_Controls_Hotkey>().SetDetails(key);
             _openSetting.Add(hotkeyGO);
         }

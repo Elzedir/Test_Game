@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-using UnityEditor.Animations;
 using UnityEngine;
 
 public enum ItemType
@@ -200,7 +199,7 @@ public class CommonStats
     public Vector3 ItemPosition;
     public Vector3 ItemRotation;
     public Vector3 ItemScale;
-    public AnimatorController ItemAnimatorController;
+    public RuntimeAnimatorController ItemAnimatorController;
 
     public CommonStats(
         int itemID = -1,
@@ -215,7 +214,7 @@ public class CommonStats
         Vector3? itemPosition = null,
         Vector3? itemRotation = null,
         Vector3? itemScale = null,
-        AnimatorController itemAnimatorController = null
+        RuntimeAnimatorController itemAnimatorController = null
         )
     {
         this.ItemID = itemID;

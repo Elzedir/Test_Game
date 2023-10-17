@@ -214,7 +214,7 @@ public enum ClassTitle
 public class List_Aspect
 {
     private static HashSet<ClassTitle> _usedTitles = new();
-    private static Dictionary<ClassTitle, (Aspect, Aspect, Aspect)> _titleList = new();
+    private static Dictionary<ClassTitle, (Aspect, Aspect, Aspect)> _titleList = new(); public static Dictionary<ClassTitle, (Aspect, Aspect, Aspect)> TitleList { get { return _titleList; } }
 
     public static void InitialiseSpecialisations()
     {
@@ -461,24 +461,18 @@ public class List_Aspect
         _titleList.Add(ClassTitle.Philosopher, (Aspect.Volition, Aspect.None, Aspect.None));
     }
 
-    public void SetSpecialisation(Actor_Base actor, Aspect specialisation)
+    public static void AddAspect(Actor_Base actor, Aspect aspectToAdd)
     {
-        List<Aspect> currentSpecialisationList = actor.ActorData.ActorAspects.ActorAspectList;
-        
-        // Change this so that it instead looks for Aspect.None
+        List<Aspect> actorAspectList = actor.ActorData.ActorAspects.ActorAspectList;
 
-        if (currentSpecialisationList.Count < 3)
+        for (int i = 0; i < actorAspectList.Count; i++)
         {
-            if (!currentSpecialisationList.Contains(specialisation))
+            if (actorAspectList[i] == Aspect.None)
             {
-                currentSpecialisationList.Add(specialisation);
+                actorAspectList[i] = aspectToAdd;
             }
         }
-        else
-        {
-            Debug.Log("Can only have three specialisations");
-        }
-
+        
         actor.ActorData.ActorAspects.ActorTitle = GetCharacterTitle(actor);
     }
 

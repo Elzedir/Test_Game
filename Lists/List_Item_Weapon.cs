@@ -1,15 +1,5 @@
-using NUnit.Framework.Constraints;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using TMPro;
-using Unity.IO.LowLevel.Unsafe;
-using Unity.VisualScripting;
-using UnityEditor.Animations;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public enum WeaponType
 {
@@ -66,7 +56,7 @@ public class List_Item_Weapon : List_Item
             itemRotation: Vector3.zero,
             itemScale: Vector3.one,
             itemEquippable: true,
-            itemAnimatorController: Resources.Load<AnimatorController>("Resources_AnimatorControllers/wep_r_sb_01"),
+            itemAnimatorController: Resources.Load<RuntimeAnimatorController>("Resources_AnimatorControllers/wep_r_sb_01"),
             maxStackSize: 1,
             itemValue: 15
             );
@@ -106,7 +96,7 @@ public class List_Item_Weapon : List_Item
             itemRotation: new Vector3 (180, 0, 0),
             itemScale: new Vector3(0.4f, 0.4f, 0.4f),
             itemEquippable: true,
-            itemAnimatorController: Resources.Load<AnimatorController>("Resources_AnimatorControllers/wep_m_ss_base"),
+            itemAnimatorController: Resources.Load<RuntimeAnimatorController>("Resources_AnimatorControllers/wep_m_ss_base"),
             maxStackSize: 1,
             itemValue: 15
             );

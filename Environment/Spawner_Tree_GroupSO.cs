@@ -6,8 +6,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New TreeGroup", menuName = "Environment/Tree Group")]
 public class Spawner_Tree_GroupSO : ScriptableObject
 {
-    public int TreeDensity;
-    public float TreePerlinMultiplier;
     public List<Tree> Trees;
 }
 

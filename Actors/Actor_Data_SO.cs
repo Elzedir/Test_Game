@@ -67,7 +67,10 @@ public class Actor_Data_SO : ScriptableObject
         yield return new WaitForSeconds(0.1f);
 
         InitialiseAbilityCooldowns();
-        ActorAspects.InitialiseAspects(actor);
+        if (actor.ActorData.ActorType == ActorType.Playable)
+        {
+            ActorAspects.InitialiseAspects(actor);
+        }
         List_Faction.SetFaction(this);
     }
 
@@ -115,8 +118,7 @@ public class Actor_Data_SO : ScriptableObject
 [System.Serializable]
 public struct ActorStats
 {
-    public int Level;
-    public int TotalExperience;
+    public ActorLevelData ActorLevelData;
     public int Gold;
     public SPECIAL Special;
     [SerializeField] private CombatStats _combatStats; public CombatStats CombatStats { get { return _combatStats; } }
@@ -299,8 +301,8 @@ public class CombatStats
     }
 }
 
-[System.Serializable]
-public struct SPECIAL
+[Serializable]
+public class SPECIAL
 {
     public int Agility; // Dexterity
     public int Charisma;
@@ -311,7 +313,7 @@ public struct SPECIAL
     public int Strength;
 }
 
-[System.Serializable]
+[Serializable]
 public struct Aspects
 {
     public ClassTitle ActorTitle;
@@ -332,7 +334,7 @@ public struct Aspects
     }
 }
 
-[System.Serializable]
+[Serializable]
 public class Abilities
 {
     public List<Ability> AbilityList = new();
@@ -345,4 +347,20 @@ public class ActorQuests
     public List<Quest_Data_SO> MainQuestLine;
 
     public List<Quest_Data_SO> QuestList;
+}
+
+[Serializable]
+public class ActorLevelData
+{
+    public int Level;
+    public int TotalExperience;
+
+    public bool CanLevelUp;
+    public bool CanAddSkillSet;
+
+    public int TotalSkillPoints;
+    public int UsedSkillPoints;
+
+    public int TotalSPECIALPoints;
+    public int UsedSPECIALPoints;
 }

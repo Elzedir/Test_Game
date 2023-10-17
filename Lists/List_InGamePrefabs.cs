@@ -9,6 +9,7 @@ public enum Prefab
     AbilityListIcon,
     Arrow,
     InventorySlot,
+    AspectChoice
 }
 
 public class List_InGamePrefabs : MonoBehaviour
@@ -18,6 +19,7 @@ public class List_InGamePrefabs : MonoBehaviour
     private GameObject _arrowPrefab;
     private GameObject _inventorySlotPrefab;
     private GameObject _abilityListIconPrefab;
+    private GameObject _aspectChoice;
 
     public void Start()
     {
@@ -32,6 +34,7 @@ public class List_InGamePrefabs : MonoBehaviour
         _arrowPrefab = allChildren.FirstOrDefault(t => t.name == "Arrow").gameObject;
         _inventorySlotPrefab = allChildren.FirstOrDefault(t => t.name == "InventorySlot").gameObject;
         _abilityListIconPrefab = allChildren.FirstOrDefault(t => t.name == "AbilityIcon").gameObject;
+        _aspectChoice = allChildren.FirstOrDefault(t => t.name == "AspectChoice").gameObject;
     }
 
     public void PopulateDictionary()
@@ -39,6 +42,7 @@ public class List_InGamePrefabs : MonoBehaviour
         InGamePrefabs[Prefab.Arrow] = _arrowPrefab;
         InGamePrefabs[Prefab.InventorySlot] = _inventorySlotPrefab;
         InGamePrefabs[Prefab.AbilityListIcon] = _abilityListIconPrefab;
+        InGamePrefabs[Prefab.AspectChoice] = _aspectChoice;
     }
 
     public static GameObject GetPrefab(Prefab prefab)

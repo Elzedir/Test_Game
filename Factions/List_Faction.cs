@@ -1,8 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-using UnityEditor.Playables;
 using UnityEngine;
 
 public class List_Faction
@@ -52,6 +49,11 @@ public class List_Faction
 
     public static void SetFaction(Actor_Data_SO actorData)
     {
+        if (actorData.FactionData == null)
+        {
+            Debug.LogWarning($"{actorData} doesn't have a faction");
+        }
+
         actorData.FactionData = Resources.Load<Faction_Data_SO>($"Resources_Factions/{actorData.Faction.ToString()}");
     }
 }

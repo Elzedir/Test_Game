@@ -1,9 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Rendering.Universal;
@@ -87,7 +84,6 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
         
         _actor = GetComponent<Actor_Base>();
         startingPosition = transform.position;
-        ActorScripts.StatManager = GetComponent<Manager_Stats>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         ActorComponents.ActorColl = GetComponent<BoxCollider2D>();
         ActorComponents.ActorBody = GetComponent<Rigidbody2D>();
@@ -210,6 +206,7 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
     
     protected override void Update()
     {
+
         base.Update();
 
         if (ActorData.ActorType == ActorType.Playable)
@@ -768,7 +765,6 @@ public class Actor_Base : Hitbox, IInventory, IEquipment, INavMesh
 public class ActorScripts
 {
     public Manager_Abilities AbilityManager;
-    public Manager_Stats StatManager;
     public Actor_VFX Actor_VFX;
 }
 

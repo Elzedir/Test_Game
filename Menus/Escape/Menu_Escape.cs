@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Menu_Escape : Menu_UI
 {
@@ -61,5 +62,15 @@ public class Menu_Escape : Menu_UI
         {
             Debug.Log("Player is in combat");
         }
+    }
+
+    public void QuitToMainMenuButtonPressed()
+    {
+        SceneManager.LoadScene("Main Menu");
+    }
+
+    public void QuitToDesktop()
+    {
+        Application.Quit();
     }
 }
